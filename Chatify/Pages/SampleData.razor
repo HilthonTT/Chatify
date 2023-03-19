@@ -3,12 +3,13 @@
 @inject IMessageData messageData
 @inject INotificationData notificationData
 @inject IUserData userData
+@inject ICategoryData categoryData
 
 <h1 class="text-uppercase text-center fw-bold">Sample Data</h1>
 
 <div class="row">
     <div class="col-12 p-5">
-        <div class="row">
+        <div class="row mt-4">
             @if (userCreated)
             {
                 <h4>User have been created.</h4>
@@ -16,6 +17,16 @@
             else
             {
                 <button class="btn btn-primary" @onclick="GenerateSampleData">Create User</button>
+            }
+        </div>
+        <div class="row mt-4">
+            @if (categoriesCreated)
+            {
+                <h4>Categories Created</h4>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="CreateCategories">Create Category</button>
             }
         </div>
         <div class="row mt-4">
@@ -56,6 +67,7 @@
     private bool messagesCreated = false;
     private bool notificationCreated = false;
     private bool userCreated = false;
+    private bool categoriesCreated = false;
 
     private async Task GenerateSampleData()
     {
@@ -76,9 +88,63 @@
         userCreated = true;
     }
 
+
+    private async Task CreateCategories()
+    {
+        var categories = await categoryData.GetAllCategoriesAsync();
+
+        if (categories?.Count > 0)
+        {
+            return;
+        }
+
+        CategoryModel c = new()
+        {
+            CategoryName = "Gaming",
+            CategoryDescription = "Gamers chat about their favorite games and strategies while playing together online.",
+        };
+
+        await categoryData.CreateCategory(c);
+
+        c = new()
+        {
+            CategoryName = "Music",
+            CategoryDescription = "Musicians music enthusiasts discuss their favorite artists, albums, and songs, sharing their opinions and discovering new music recommendations from each other.",
+        };
+
+        await categoryData.CreateCategory(c);
+
+        c = new()
+        {
+            CategoryName = "Sports",
+            CategoryDescription = "Sports fans talk about the latest games and scores, debate the strengths and weaknesses of their favorite teams and players, and share their predictions for upcoming matches.",
+        };
+
+        await categoryData.CreateCategory(c);
+
+        c = new()
+        {
+            CategoryName = "Sciences",
+            CategoryDescription = "Science enthusiasts discuss the latest scientific discoveries, theories, and breakthroughs, exchanging ideas and perspectives on a variety of topics such as physics, biology, chemistry, and astronomy.",
+        };
+
+        await categoryData.CreateCategory(c);
+
+        c = new()
+        {
+            CategoryName = "Technology",
+            CategoryDescription = "Tech enthusiasts talk about the latest gadgets, software, and innovations in the tech industry, sharing their thoughts on the latest trends and advancements, and discussing how technology is shaping the world around us."
+        };
+
+        await categoryData.CreateCategory(c);
+
+        categoriesCreated = true;
+    }
+
     private async Task CreateConversation()
     {
         var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        var categories = await categoryData.GetAllCategoriesAsync();
 
         var participants = new List<BasicUserModel>();
 
@@ -90,6 +156,8 @@
             IsGroupChat = true,
             GroupName = "The Martians",
             Archived = false,
+            Category = categories[0],
+            Owner = new BasicUserModel(foundUser)
         };
 
         await conversationData.CreateConversation(c);
@@ -112,6 +180,8 @@
             IsGroupChat = false,
             GroupName = "The Nerds",
             Archived = false,
+            Category = categories[1],
+            Owner = new BasicUserModel(foundUser)
         };
 
         await conversationData.CreateConversation(c);

@@ -1,9 +1,264 @@
 ﻿@page "/"
+@inject IConversationData conversationData
+@inject IUserData userData
+@inject ICategoryData categoryData
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
 
-<PageTitle>Index</PageTitle>
+<h1 class="text-uppercase text-center">Conversations</h1>
 
-<h1>Hello, world!</h1>
+<div class="text-center">
+    <button class="btn btn-primary btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
+</div>
 
-Welcome to your new app.
+<div class="row">
+    <div class="text-uppercase fw-bold">You are in @conversations?.Count conversations</div>
+    <div class="col-md-8 col-xl-12 btn-group">
+        <button class="btn text-uppercase fw-bold @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
+        <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Popular</button>
+    </div>
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<div class="row mt-2">
+    <div class="col-md-12 col-xl-12">
+        <input type="text" placeholder="Search"
+            aria-label="Search Box" class="form-control"
+            @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+    </div>
+    <div class="col-12 d-block d-md-none">
+        @if (categories is not null && showCategories)
+        {
+            <div class="">
+                <span class="text-uppercase fw-bold">Category</span>
+                <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
+                @foreach (var c in categories)
+                {
+                    <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick(c.CategoryName))">
+                        @c.CategoryName
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="" @onclick="(() => showCategories = true)">
+                <span class="fw-bold">@selectedCategory</span>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-9 col-xl-10">
+        @if (conversations is not null)
+        {
+            <Virtualize Items="conversations" Context="c" OverscanCount="10">
+                
+                <div>
+                    @if (archivingConversation is null)
+                    {
+                        <div>
+                            <div @onclick="(() => OpenDetails(c))">@c.GroupName</div>
+                        </div>
+                        <div>
+                            <div @onclick="(() => OpenDetails(c))">Participants: @c.Participants.Count</div>
+                        </div>
+                        <div>
+                            <div @onclick="(() => OpenDetails(c))">@c.DateCreated</div>
+                        </div>
+                        @if (c.Owner.Id == loggedInUser?.Id)
+                        {
+                            <div>
+                                <button class="btn btn-danger" 
+                                    @onclick="(() => archivingConversation = c)">
+                                    Archived
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div>
+                            <div @onclick="(() => OpenDetails(c))">@c.GroupName</div>
+                        </div>
+                        <div>
+                            <div @onclick="(() => OpenDetails(c))">Participants: @c.Participants.Count</div>
+                        </div>
+                        <div>
+                            <div @onclick="(() => OpenDetails(c))">@c.DateCreated</div>
+                        </div>
+
+                        @if (loggedInUser is not null)
+                        {
+                            <div>
+                                <button class="btn btn-danger" 
+                                    @onclick="ArchiveConversation">
+                                    Confirm
+                                </button>
+                                <button class="btn btn-success" 
+                                    @onclick="(() => archivingConversation = null)">
+                                    Cancel
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
+                
+            </Virtualize>
+        }
+    </div>
+    <div class="col-md-3 col-xl-2 d-none d-md-block">
+        @if (categories is not null)
+        {
+            <div>
+                <span class="text-uppercase fw-bold">Category</span>
+                <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
+                @foreach (var c in categories)
+                {
+                    <div class="@SelectedCategoryClass(c.CategoryName)" 
+                        @onclick="(() => OnCategoryClick(c.CategoryName))">@c.CategoryName</div>    
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private UserModel loggedInUser;
+    private List<ConversationModel> conversations;
+    private List<CategoryModel> categories;
+    private ConversationModel archivingConversation;
+    private string searchText = "";
+    private string selectedCategory = "";
+    private bool isSortedByNew = true;
+    private bool showCategories = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
+        categories = await categoryData.GetAllCategoriesAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterConversations();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(selectedCategory));
+        selectedCategory = stringResults.Success ? stringResults.Value : "All";
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(selectedCategory), selectedCategory);
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+    }
+
+    private async Task FilterConversations()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+
+        var output = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
+
+        if (selectedCategory != "All")
+        {
+            output = output.Where(c => c.Category?.CategoryName == selectedCategory).ToList();
+        }
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(c => c.GroupName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase))
+            .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(c => c.DateCreated).ToList();
+        }
+        else
+        {
+            output = output.OrderByDescending(c => c.Participants.Count).ThenByDescending(c => c.DateCreated).ToList();
+        }
+
+        conversations = output;
+        await SaveFilterState();
+    }
+
+
+    private async Task ArchiveConversation()
+    {
+        archivingConversation.Archived = true;
+        await conversationData.UpdateConversation(archivingConversation, loggedInUser);
+        conversations.Remove(archivingConversation);
+        archivingConversation = null;
+    }
+
+    private async Task OrderByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterConversations();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterConversations();
+    }
+
+    private async Task OnCategoryClick(string category = "All")
+    {
+        selectedCategory = category;
+        showCategories = false;
+        await FilterConversations();
+    }
+
+    private void OpenDetails(ConversationModel conversation)
+    {
+        navManager.NavigateTo($"/Details/{conversation.Id}");
+    }
+
+    private void LoadCreatePage()
+    {
+        if (loggedInUser is not null)
+        {
+            navManager.NavigateTo("/Create");
+        }
+        else
+        {
+            navManager.NavigateTo("/login");
+        }
+    }
+
+    private string SortedByNewClass(bool isNew)
+    {
+        if (isNew == isSortedByNew)
+        {
+            return "btn-success";
+        }
+
+        return "btn-danger";
+    }
+
+    private string SelectedCategoryClass(string category = "All")
+    {
+        if (category == selectedCategory)
+        {
+            return "fw-bold";
+        }
+
+        return "";
+    }
+}
