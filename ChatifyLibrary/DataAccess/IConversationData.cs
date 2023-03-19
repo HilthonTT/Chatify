@@ -6,5 +6,5 @@ public interface IConversationData
     Task<List<ConversationModel>> GetAllConversationAsync();
     Task<ConversationModel> GetConversationAsync(string id);
     Task<List<ConversationModel>> GetUserConversationsAsync(string userId);
-    Task UpdateConversation(ConversationModel conversation);
+    Task UpdateConversation(ConversationModel conversation, UserModel user);
 }

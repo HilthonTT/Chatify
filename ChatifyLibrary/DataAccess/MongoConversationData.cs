@@ -56,9 +56,10 @@ public class MongoConversationData : IConversationData
         return _conversations.InsertOneAsync(conversation);
     }
 
-    public async Task UpdateConversation(ConversationModel conversation)
+    public async Task UpdateConversation(ConversationModel conversation, UserModel user)
     {
         await _conversations.ReplaceOneAsync(c => c.Id == conversation.Id, conversation);
         _cache.Remove(CacheName);
+        _cache.Remove(user.Id);
     }
 }

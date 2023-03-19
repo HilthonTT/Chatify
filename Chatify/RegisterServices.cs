@@ -23,5 +23,6 @@ public static class RegisterServices
         builder.Services.AddSingleton<IMessageData, MongoMessageData>();
         builder.Services.AddSingleton<INotificationData, MongoNotificationData>();
         builder.Services.AddSingleton<IUserData, MongoUserData>();
+        builder.Services.AddSingleton<ICategoryData, MongoCategoryData>();
     }
 }
