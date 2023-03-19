@@ -1,0 +1,159 @@
+﻿@page "/sampleData"
+@inject IConversationData conversationData
+@inject IMessageData messageData
+@inject INotificationData notificationData
+@inject IUserData userData
+
+<h1 class="text-uppercase text-center fw-bold">Sample Data</h1>
+
+<div class="row">
+    <div class="col-12 p-5">
+        <div class="row">
+            @if (userCreated)
+            {
+                <h4>User have been created.</h4>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="GenerateSampleData">Create User</button>
+            }
+        </div>
+        <div class="row mt-4">
+            @if (conversationsCreated)
+            {
+                <h4>Conversations have been created.</h4>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="CreateConversation">Create Conversations</button>
+            }
+        </div>
+        <div class="row mt-4">
+            @if (messagesCreated)
+            {
+                <h4>Messages have been created.</h4>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="CreateMessage">Create Messages</button>
+            }
+        </div>
+        <div class="row mt-4">
+            @if (notificationCreated)
+            {
+              <h4>Notifcations have been created.</h4>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="CreateNotifications">Create Notification</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool conversationsCreated = false;
+    private bool messagesCreated = false;
+    private bool notificationCreated = false;
+    private bool userCreated = false;
+
+    private async Task GenerateSampleData()
+    {
+        var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        var conversations = await conversationData.GetAllConversationAsync();
+        var notifications = await notificationData.GetAllNotificationsAsync();
+        var messages = await messageData.GetAllMessagesAsync();
+
+        UserModel user = new()
+        {
+            ObjectIdentifier = "abc-123",
+            FirstName = "Arthur",
+            LastName = "Morgan",
+            Email = "ArthurMorgan@gmail.com"
+        };
+
+        await userData.CreateUser(user);
+        userCreated = true;
+    }
+
+    private async Task CreateConversation()
+    {
+        var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+
+        var participants = new List<BasicUserModel>();
+
+        participants.Add(new BasicUserModel(foundUser));
+
+        ConversationModel c = new()
+        {
+            Participants = participants,
+            IsGroupChat = true,
+            GroupName = "The Martians",
+            Archived = false,
+        };
+
+        await conversationData.CreateConversation(c);
+
+        UserModel user = new()
+        {
+            ObjectIdentifier = "def-456",
+            FirstName = "John",
+            LastName = "Martston",
+            Email = "JohnMarston@gmail.com"
+        };
+
+        await userData.CreateUser(user);
+
+        participants.Add(new BasicUserModel(user));
+
+        c = new()
+        {
+            Participants = participants,
+            IsGroupChat = false,
+            GroupName = "The Nerds",
+            Archived = false,
+        };
+
+        await conversationData.CreateConversation(c);
+
+        conversationsCreated = true;
+    }
+
+    private async Task CreateMessage()
+    {
+        var firstUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        var secondUser = await userData.GetUserFromAuthenticationAsync("def-456");
+
+        var conversation = await conversationData.GetConversationAsync("6416fd294a70ddfc9f332b70");
+
+        MessageModel m = new()
+        {
+            Sender = new BasicUserModel(firstUser),
+            Receiver = new BasicUserModel(secondUser),
+            Text = "Howdy! There!",
+            Conversation = conversation,
+            Archived = false,
+        };
+
+        await messageData.CreateMessage(m);
+
+        messagesCreated = true;
+    }
+
+    private async Task CreateNotifications()
+    {
+        var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        var message = await messageData.GetMessageAsync("6416fdfe10738892c8ff37f3");
+
+        NotificationModel n = new()
+        {
+            Recipient = new BasicUserModel(foundUser),
+            Message = message,
+            IsSeen = false,
+        };
+
+        await notificationData.CreateNotification(n);
+
+        notificationCreated = true;
+    }
+}
