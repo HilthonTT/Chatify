@@ -180,8 +180,9 @@
 
         if (string.IsNullOrWhiteSpace(searchText) is false)
         {
-            output = output.Where(c => c.GroupName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase))
-            .ToList();
+            output = output.Where(c => c.GroupName.Contains(
+                searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
         }
 
         if (isSortedByNew)
@@ -227,7 +228,7 @@
 
     private void OpenDetails(ConversationModel conversation)
     {
-        navManager.NavigateTo($"/Details/{conversation.Id}");
+        navManager.NavigateTo($"/Conversation/{conversation.Id}");
     }
 
     private void LoadCreatePage()
