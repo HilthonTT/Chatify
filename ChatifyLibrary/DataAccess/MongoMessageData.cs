@@ -14,34 +14,6 @@ public class MongoMessageData : IMessageData
         _messages = db.MessageCollection;
     }
 
-    public async Task<List<MessageModel>> GetSendedMessagesAsync(string userId)
-    {
-        var output = _cache.Get<List<MessageModel>>(userId);
-        if (output is null)
-        {
-            var results = await _messages.FindAsync(m => m.Sender.Id == userId);
-            output = await results.ToListAsync();
-
-            _cache.Set(userId, output, TimeSpan.FromMinutes(1));
-        }
-
-        return output;
-    }
-
-    public async Task<List<MessageModel>> GetReceivedMessagesAsync(string userId)
-    {
-        var output = _cache.Get<List<MessageModel>>(userId + "Received");
-        if (output is null)
-        {
-            var results = await _messages.FindAsync(m => m.Receiver.Id == userId);
-            output = await results.ToListAsync();
-
-            _cache.Set(userId, output, TimeSpan.FromMinutes(1));
-        }
-
-        return output;
-    }
-
     public async Task<List<MessageModel>> GetAllMessagesAsync()
     {
         var output = _cache.Get<List<MessageModel>>(CacheName);

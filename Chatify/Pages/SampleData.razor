@@ -196,10 +196,19 @@
 
         var conversation = await conversationData.GetConversationAsync("6416fd294a70ddfc9f332b70");
 
+        var users = await userData.GetAllUsersAsync();
+
+        var receivers = new List<BasicUserModel>();
+
+        foreach (var r in users)
+        {
+            receivers.Add(new BasicUserModel(r));
+        }
+
         MessageModel m = new()
         {
             Sender = new BasicUserModel(firstUser),
-            Receiver = new BasicUserModel(secondUser),
+            Receivers = receivers,
             Text = "Howdy! There!",
             Conversation = conversation,
             Archived = false,
