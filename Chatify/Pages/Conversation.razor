@@ -1,0 +1,135 @@
+﻿@page "/conversation/{Id}"
+@inject IConversationData conversationData
+@inject IUserData userData
+@inject IMessageData messageData
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+
+<h1>Conversation</h1>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private string messageText = "";
+    private string editingMessageText = "";
+    private string searchText = "";
+    private bool isSortedByNew = true;
+    private ConversationModel conversation;
+    private List<MessageModel> messages;
+    private UserModel loggedInUser;
+    private MessageModel chosenMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        conversation = await conversationData.GetConversationAsync(Id);
+        messages = await messageData.GetAllMessagesAsync();
+        messages = messages.Where(m => m.Conversation.Id == conversation.Id).ToList();
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterMessages();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(messageText));
+        messageText = stringResults.Success ? stringResults.Value : "";
+
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(messageText), messageText);
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+    }
+
+    private async Task FilterMessages()
+    {
+        var output = await messageData.GetAllMessagesAsync();
+        output = output.Where(m => m.Conversation.Id == Id).ToList();
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(m => m.Text.Contains(
+                searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(c => c.Timestamp).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(c => c.Timestamp).ToList();
+        }
+
+        messages = output;
+        await SaveFilterState();
+    }
+
+    private async Task SendMessage()
+    {
+        MessageModel message = new()
+        {
+            Sender = new BasicUserModel(loggedInUser),
+            Text = messageText,
+            Receivers = conversation.Participants,
+            Conversation = conversation,
+            Archived = false,
+        };
+
+        await messageData.CreateMessage(message);
+        messageText = "";
+    }
+
+    private async Task UpdateMessage()
+    {
+        chosenMessage.Text = editingMessageText;
+        await messageData.UpdateMessageAsync(chosenMessage);
+        chosenMessage = null;
+    }
+
+    private async Task ArchiveMessage()
+    {
+        chosenMessage.Archived = true;
+        await messageData.UpdateMessageAsync(chosenMessage);
+        chosenMessage = null;
+    }
+
+    private async Task OrderByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterMessages();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterMessages();
+    }
+
+    private void OnMessageClick(MessageModel message)
+    {
+        chosenMessage = message;
+        editingMessageText = message.Text;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+}
