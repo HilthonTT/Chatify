@@ -194,7 +194,8 @@
         var firstUser = await userData.GetUserFromAuthenticationAsync("abc-123");
         var secondUser = await userData.GetUserFromAuthenticationAsync("def-456");
 
-        var conversation = await conversationData.GetConversationAsync("6416fd294a70ddfc9f332b70");
+        var conversation = await conversationData.GetConversationAsync("64172486ed6abded2dac7841");
+        var conversation2 = await conversationData.GetConversationAsync("64172487ed6abded2dac7843");
 
         var users = await userData.GetAllUsersAsync();
 
@@ -215,6 +216,18 @@
         };
 
         await messageData.CreateMessage(m);
+
+        m = new()
+        {
+            Sender = new BasicUserModel(firstUser),
+            Receivers = receivers,
+            Text = "Howdy! There!",
+            Conversation = conversation2,
+            Archived = false,
+        };
+
+        await messageData.CreateMessage(m);
+
 
         messagesCreated = true;
     }

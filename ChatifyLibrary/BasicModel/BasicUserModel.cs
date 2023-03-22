@@ -18,4 +18,12 @@ public class BasicUserModel
         FirstName = user.FirstName;
         LastName = user.LastName;
     }
+
+    public string FullName
+    {
+        get
+        {
+            return $" { FirstName } { LastName }";
+        }
+    }
 }

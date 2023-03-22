@@ -5,7 +5,70 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
-<h1>Conversation</h1>
+<h1>@conversation?.GroupName</h1>
+
+
+<div class="row">
+    <div class="col-xl-12 col-lg-12">
+        <div class="row">
+            <div class="col-11">
+                <input type="text" placeholder="Message @conversation?.GroupName"
+                    aria-label="Message Box" class="form-control"
+                    @bind-value="messageText"/>
+            </div>
+            <div class="col-1">
+                <button class="btn btn-success form-control"
+                    @onclick="SendMessage">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-10 col-xl-12">
+        @if (messages is not null)
+        {
+            <Virtualize Items="messages" Context="m" OverscanCount="10">
+                <div>
+                    @if (chosenMessage is null)
+                    {
+                        <div>
+                            <div>@m.Sender.FullName</div>
+                        </div>
+                        <div>
+                            <div>@m.Text</div>
+                        </div>
+                        <div>
+                            <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm")</div>
+                        </div>
+                        @if (m.Sender.Id == loggedInUser?.Id)
+                        {
+                            <div>
+                                <button class="btn btn-danger"
+                                    @onclick="(() => OnMessageClick(m))">
+                                    Edit
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div>
+                            <div>@m.Sender.FullName</div>
+                        </div>
+                        <div>
+                            <div>@m.Text</div>
+                        </div>
+                        <div>
+                            <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm")</div>
+                        </div>
+                    }
+                </div>
+            </Virtualize>
+        }
+    </div>
+</div>
 
 @code {
     [Parameter]
@@ -59,7 +122,7 @@
     private async Task FilterMessages()
     {
         var output = await messageData.GetAllMessagesAsync();
-        output = output.Where(m => m.Conversation.Id == Id).ToList();
+        output = output.Where(m => m.Conversation?.Id == Id).ToList();
 
         if (string.IsNullOrWhiteSpace(searchText) is false)
         {
@@ -83,6 +146,11 @@
 
     private async Task SendMessage()
     {
+        if (string.IsNullOrWhiteSpace(messageText))
+        {
+            return;
+        }
+
         MessageModel message = new()
         {
             Sender = new BasicUserModel(loggedInUser),
@@ -93,6 +161,7 @@
         };
 
         await messageData.CreateMessage(message);
+        messages.Add(message);
         messageText = "";
     }
 

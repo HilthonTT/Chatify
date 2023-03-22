@@ -12,6 +12,8 @@ public static class RegisterServices
         builder.Services.AddMemoryCache();
         builder.Services.AddControllersWithViews();
 
+        builder.Services.AddSignalR();
+
         builder.Services.AddResponseCompression(opts =>
         {
             opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
