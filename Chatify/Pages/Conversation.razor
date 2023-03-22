@@ -26,8 +26,6 @@
     </div>
 </div>
 
-<button class="btn btn-danger" @onclick="JoinConversation">Join conv.</button>
-
 <div class="row">
     <div class="col-md-10 col-xl-12">
         @if (messages is not null)
@@ -100,18 +98,16 @@
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<MessageModel>("ReceiveMessage", message =>
-        {
-            messages.Add(message);
-            InvokeAsync(StateHasChanged);
-        });
+        hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
 
         await hubConnection.StartAsync();
+        await hubConnection.InvokeAsync("JoinConversation", conversation);
     }
 
-    private async Task JoinConversation()
+    private void OnReceiveMessage(MessageModel message)
     {
-        await hubConnection.InvokeAsync("JoinConversation", conversation);
+        messages.Add(message);
+        InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -187,7 +183,7 @@
 
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendMessage", message);
+            await hubConnection.InvokeAsync("SendMessage", message, conversation);
         }
 
         messageText = "";
@@ -236,6 +232,7 @@
     {
         if (hubConnection is not null)
         {
+            await hubConnection.StopAsync();
             await hubConnection.DisposeAsync();
         }
     }
