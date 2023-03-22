@@ -1,4 +1,5 @@
 using Chatify;
+using Chatify.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.ConfigureServices();
 
 var app = builder.Build();
+
+app.UseResponseCompression();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -23,6 +26,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.MapBlazorHub();
+app.MapHub<ChatHub>("/chathub");
+app.MapHub<TestHub>("/testhub");
+
 app.MapFallbackToPage("/_Host");
 
 app.Run();

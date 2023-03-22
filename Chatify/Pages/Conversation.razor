@@ -1,9 +1,11 @@
 ﻿@page "/conversation/{Id}"
+@using Microsoft.AspNetCore.SignalR.Client;
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject IMessageData messageData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
+@implements IAsyncDisposable
 
 <h1>@conversation?.GroupName</h1>
 
@@ -18,12 +20,13 @@
             </div>
             <div class="col-1">
                 <button class="btn btn-success form-control"
-                    @onclick="SendMessage">Send</button>
+                    @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
             </div>
         </div>
     </div>
 </div>
 
+<button class="btn btn-danger" @onclick="JoinConversation">Join conv.</button>
 
 <div class="row">
     <div class="col-md-10 col-xl-12">
@@ -74,12 +77,14 @@
     [Parameter]
     public string Id { get; set; }
 
+    private HubConnection? hubConnection;
+
     private string messageText = "";
     private string editingMessageText = "";
     private string searchText = "";
     private bool isSortedByNew = true;
     private ConversationModel conversation;
-    private List<MessageModel> messages;
+    private List<MessageModel> messages = new();
     private UserModel loggedInUser;
     private MessageModel chosenMessage;
 
@@ -89,6 +94,24 @@
         messages = await messageData.GetAllMessagesAsync();
         messages = messages.Where(m => m.Conversation.Id == conversation.Id).ToList();
         loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(navManager.ToAbsoluteUri("/chathub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<MessageModel>("ReceiveMessage", message =>
+        {
+            messages.Add(message);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task JoinConversation()
+    {
+        await hubConnection.InvokeAsync("JoinConversation", conversation);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -161,7 +184,12 @@
         };
 
         await messageData.CreateMessage(message);
-        messages.Add(message);
+
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", message);
+        }
+
         messageText = "";
     }
 
@@ -200,5 +228,15 @@
     private void ClosePage()
     {
         navManager.NavigateTo("/");
+    }
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 }

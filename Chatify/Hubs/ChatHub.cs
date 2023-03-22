@@ -5,13 +5,13 @@ namespace Chatify.Hubs;
 
 public class ChatHub : Hub
 {
-    public async Task SendMessage(ConversationModel conversation,
-                                  UserModel user,
-                                  MessageModel message)
+    public Task SendMessage(MessageModel message)
     {
-        await Clients.Group(
-            conversation.Id).SendAsync(
-            "ReceiveMessage", $"{user.FirstName} {user.LastName}", message.Text);
+        //return Clients.Group(
+        //    conversation.Id).SendAsync(
+        //    "ReceiveMessage", message);
+
+        return Clients.All.SendAsync("ReceiveMessage", message);
     }
 
     public async Task JoinConversation(ConversationModel conversation)
