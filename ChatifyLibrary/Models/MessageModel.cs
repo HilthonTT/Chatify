@@ -9,6 +9,7 @@ public class MessageModel
     public List<BasicUserModel> Receivers { get; set; } = new();
     public string Text { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime LastEdited { get; set; } = DateTime.UtcNow;
     public ConversationModel Conversation { get; set; }
     public bool Archived { get; set; }
 }

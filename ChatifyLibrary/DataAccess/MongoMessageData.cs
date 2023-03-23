@@ -19,10 +19,27 @@ public class MongoMessageData : IMessageData
         var output = _cache.Get<List<MessageModel>>(CacheName);
         if (output is null)
         {
-            var results = await _messages.FindAsync(n => n.Archived == false);
+            var results = await _messages.FindAsync(m => m.Archived == false);
             output = await results.ToListAsync();
 
             _cache.Set(CacheName, output, TimeSpan.FromMinutes(1));
+        }
+
+        return output;
+    }
+
+    public async Task<List<MessageModel>> GetConversationMessagesAsync(ConversationModel conversation)
+    {
+        var output = _cache.Get<List<MessageModel>>(conversation.Id);
+        if (output is null)
+        {
+            var filter = Builders<MessageModel>.Filter.And(
+                Builders<MessageModel>.Filter.Eq(m => m.Conversation.Id, conversation.Id),
+                Builders<MessageModel>.Filter.Eq(m => m.Archived, false));
+
+            output = await _messages.Find(filter).ToListAsync();
+
+            _cache.Set(conversation.Id, output, TimeSpan.FromMinutes(1));
         }
 
         return output;
