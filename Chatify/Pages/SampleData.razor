@@ -71,10 +71,10 @@
 
     private async Task GenerateSampleData()
     {
-        var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
-        var conversations = await conversationData.GetAllConversationAsync();
-        var notifications = await notificationData.GetAllNotificationsAsync();
-        var messages = await messageData.GetAllMessagesAsync();
+        //var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        //var conversations = await conversationData.GetAllConversationAsync();
+        //var notifications = await notificationData.GetAllNotificationsAsync();
+        //var messages = await messageData.GetAllMessagesAsync();
 
         UserModel user = new()
         {
@@ -85,6 +85,16 @@
         };
 
         await userData.CreateUser(user);
+
+        user = new()
+        {
+            ObjectIdentifier = "def-456",
+            FirstName = "John",
+            LastName = "Martston",
+            Email = "JohnMarston@gmail.com"
+        };
+        await userData.CreateUser(user);
+
         userCreated = true;
     }
 

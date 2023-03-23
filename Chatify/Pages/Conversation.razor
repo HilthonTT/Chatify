@@ -13,7 +13,7 @@
 <div class="row">
     <div class="col-xl-12 col-lg-12">
         <div class="row">
-            <div class="col-11">
+            <div class="col-9">
                 <input type="text" placeholder="Message @conversation?.GroupName"
                     aria-label="Message Box" class="form-control"
                     @bind-value="messageText"/>
@@ -21,6 +21,18 @@
             <div class="col-1">
                 <button class="btn btn-success form-control"
                     @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+            </div>
+            <div class="col-2">
+                <div class="Participants">
+                    <span class="text-uppercase fw-bold">Participants</span>
+                    @if (conversation is not null)
+                    {
+                        @foreach (var p in conversation.Participants)
+                        {
+                            <div class="">@p.FullName</div>
+                        }
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -31,8 +43,8 @@
         @if (messages is not null)
         {
             <Virtualize Items="messages" Context="m" OverscanCount="10">
-                <div>
-                    @if (chosenMessage is null)
+                <div class="mt-4">
+                    @if (chosenMessage is null || chosenMessage.Id != m.Id)
                     {
                         <div>
                             <div>@m.Sender.FullName</div>
@@ -59,10 +71,14 @@
                             <div>@m.Sender.FullName</div>
                         </div>
                         <div>
-                            <div>@m.Text</div>
+                            <InputText @bind-Value="@editingMessageText" class="form-control" />
                         </div>
                         <div>
                             <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm")</div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success" @onclick="UpdateMessage">Save</button>
+                            <button class="btn btn-danger" @onclick="(() => chosenMessage = null)">Cancel</button>
                         </div>
                     }
                 </div>
@@ -89,8 +105,11 @@
     protected override async Task OnInitializedAsync()
     {
         conversation = await conversationData.GetConversationAsync(Id);
-        messages = await messageData.GetAllMessagesAsync();
-        messages = messages.Where(m => m.Conversation.Id == conversation.Id).ToList();
+        if (conversation is not null)
+        {
+            messages = await messageData.GetConversationMessagesAsync(conversation);
+        }
+
         loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
 
         hubConnection = new HubConnectionBuilder()
@@ -140,8 +159,12 @@
 
     private async Task FilterMessages()
     {
-        var output = await messageData.GetAllMessagesAsync();
-        output = output.Where(m => m.Conversation?.Id == Id).ToList();
+        var output = new List<MessageModel>();
+
+        if (conversation is not null)
+        {
+            await messageData.GetConversationMessagesAsync(conversation);
+        }
 
         if (string.IsNullOrWhiteSpace(searchText) is false)
         {
@@ -192,6 +215,7 @@
     private async Task UpdateMessage()
     {
         chosenMessage.Text = editingMessageText;
+        chosenMessage.LastEdited = DateTime.UtcNow;
         await messageData.UpdateMessageAsync(chosenMessage);
         chosenMessage = null;
     }
