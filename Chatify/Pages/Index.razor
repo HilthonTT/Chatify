@@ -49,7 +49,26 @@
 </div>
 
 <div class="row mt-4">
-    <div class="col-md-9 col-xl-10">
+    <div class="col-md-3 col-xl-2 d-none d-md-block">
+        @if (loggedInUser is not null)
+        {
+            <div>
+                <span class="text-uppercase fw-bold">Friends</span>
+                @if (loggedInUser.Friends.Count > 0)
+                {
+                    @foreach (var f in loggedInUser.Friends)
+                    {  
+                        <div>@f.FullName</div>   
+                    }
+                }
+                else
+                {
+                    <div>No Friends</div>
+                }
+            </div>
+        }
+    </div>
+    <div class="col-md-7 col-xl-8">
         @if (conversations is not null)
         {
             <Virtualize Items="conversations" Context="c" OverscanCount="10">
@@ -127,6 +146,7 @@
     private UserModel loggedInUser;
     private List<ConversationModel> conversations;
     private List<CategoryModel> categories;
+
     private ConversationModel archivingConversation;
     private string searchText = "";
     private string selectedCategory = "";
