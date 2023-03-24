@@ -1,0 +1,87 @@
+﻿@page "/InviteFriend/{Id}"
+@inject IConversationData conversationData
+@inject IUserData userData
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private UserModel loggedInUser;
+    private ConversationModel conversation;
+    private List<BasicUserModel> friends;
+    private string searchText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        conversation = await conversationData.GetConversationAsync(Id);
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        if (conversation is not null && loggedInUser is not null)
+        {
+            friends = conversation.Participants.Where(
+                u => !loggedInUser.Friends.Any(
+                    existingUser => existingUser.Id == u.Id)).ToList();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterFriends();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+    }
+
+    private async Task FilterFriends()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+
+        var conversation = await conversationData.GetConversationAsync(Id);
+        var output = conversation.Participants.Where(
+                u => !loggedInUser.Friends.Any(
+                    existingUser => existingUser.Id == u.Id)).ToList();
+
+        if (string.IsNullOrWhiteSpace(searchText) == false)
+        {
+            output = output.Where(u => u.FirstName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                u.LastName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+
+        friends = output;
+        await SaveFilterState();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterFriends();
+    }
+
+    private async Task AddParticipant(BasicUserModel model)
+    {
+        conversation.Participants.Add(model);
+
+        await conversationData.UpdateConversation(conversation, loggedInUser);
+
+        friends.Remove(model);
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+}
