@@ -12,33 +12,21 @@
 <div class="row">
     <div class="col-xl-12 col-lg-12">
         <div class="row">
-            <div class="col-9">
+            <div class="col-10">
                 <input type="text" placeholder="Message @conversation?.GroupName"
                     aria-label="Message Box" class="form-control"
                     @bind-value="messageText"/>
             </div>
-            <div class="col-1">
+            <div class="col-2">
                 <button class="btn btn-success form-control"
                     @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
-            </div>
-            <div class="col-2">
-                <div class="Participants">
-                    <span class="text-uppercase fw-bold">Participants</span>
-                    @if (conversation is not null)
-                    {
-                        @foreach (var p in conversation.Participants)
-                        {
-                            <div class="">@p.FullName</div>
-                        }
-                    }
-                </div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-10 col-xl-12">
+    <div class="col-md-8 col-xl-10">
         @if (messages is not null)
         {
             <Virtualize Items="messages" Context="m" OverscanCount="10">
@@ -83,6 +71,21 @@
                 </div>
             </Virtualize>
         }
+    </div>
+    <div class="col-md-4 col-xl-2 d-none d-md-block">
+        <div class="Participants mt-2 text-center">
+            <span class="text-uppercase fw-bold">Participants</span>
+            <div class="mt-2 mb-2">
+                <button class="btn btn-success" @onclick="(() => InviteFriendPage(conversation))">Invite Friends</button>
+            </div>
+            @if (conversation is not null)
+            {
+                @foreach (var p in conversation.Participants)
+                {
+                    <div class="">@p.FullName</div>
+                }
+            }
+        </div>
     </div>
 </div>
 
@@ -258,5 +261,10 @@
             await hubConnection.StopAsync();
             await hubConnection.DisposeAsync();
         }
+    }
+
+    private void InviteFriendPage(ConversationModel conversation)
+    {
+        navManager.NavigateTo($"/InviteFriend/{conversation.Id}");
     }
 }
