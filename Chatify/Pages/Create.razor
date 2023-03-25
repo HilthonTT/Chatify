@@ -4,23 +4,190 @@
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
 
 <h1 class="text-center text-uppercase fw-bold mb-4">Make A Conversation</h1>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-10">
+        <EditForm Model="conversation" OnValidSubmit="(async() => await CreateConversation())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="col-9">  
+                    @if (categories is not null)
+                    {  
+                        <div class="">
+                            <label class="form-label fw-bold text-uppercase">Group Name</label>
+                            <div class="mt-1">Name your group name. Its name will represent the group name.</div>
+                            <ValidationMessage For="(() => conversation.GroupName)" />
+                            <InputText class="form-control" id="conversation-group-name" @bind-Value="conversation.GroupName"/>
+                        </div>
+                        <div class="">
+                            <label class="form-label fw-bold text-uppercase">Category</label>
+                            <ValidationMessage For="(() => conversation.CategoryId)" />
+                            <div class="mt-1">Choose a category that suits your conversation.</div>
+                            <div>
+                                <InputRadioGroup id="categories" @bind-Value="conversation.CategoryId">
+                                    @foreach (var c in categories)
+                                    {
+                                        <div class="">
+                                            <InputRadio Value="@c.Id" id="@c.Id" />
+                                            <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
+                                        </div>
+                                    }
+                                </InputRadioGroup>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <input type="text" placeholder="Search"
+                                aria-label="Search Friends" class="form-control"
+                                @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+                            <button class="btn btn-success btn-lg text-uppercase mt-4" type="submit">Create Conversation</button>
+                        </div>
+                    }  
+                </div>
+                <div class="col-2">
+                   <div class="">
+                       <span class="text-uppercase fw-bold">Participants</span>
+                        <Virtualize Items="conversation.Participants" Context="p" OverscanCount="10">
+                            @if (selectedParticipant is null || selectedParticipant.Id != p.Id)
+                            {
+                                <div class="" @onclick="(() => selectedParticipant = p)">
+                                    <div>@p.FullName</div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="">
+                                    <div>@p.FullName</div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-danger" type="button" @onclick="(() => RemoveParticipant(p))">Remove</button>
+                                        <button class="btn btn-success" type="button" @onclick="(() => selectedParticipant = null)">Keep</button>
+                                    </div>
+                                </div>
+                            }
+                        </Virtualize>
+                   </div>
+                </div>
+                <div class="col-1">
+                    <div class="text-center">
+                        <button class="btn btn-close" type="button" @onclick="ClosePage" />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    @if (friends is not null)
+                    {
+                        <span class="text-uppercase fw-bold">Friends</span>
+                        <Virtualize Items="friends" Context="f" OverscanCount="10">
+                            @if (selectedFriend is null || selectedFriend.Id != f.Id)
+                            {
+                                <div class="" @onclick="(() => selectedFriend = f)">
+                                    <div>@f.FullName</div>
+                                    <div>
+                                        <div>
+                                            @f.DateCreated
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="">
+                                    <div>@f.FullName</div>
+                                    <div>
+                                        <div>
+                                            @f.DateCreated
+                                        </div>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-success" type="button" @onclick="(() => AddParticipant(f))">Add</button>
+                                        <button class="btn btn-danger" type="button" @onclick="(() => selectedFriend = null)">Cancel</button>
+                                    </div>
+                                </div>
+                            }
+                        </Virtualize>
+                    }
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
 
 @code {
     private CreateConversationModel conversation = new();
     private List<CategoryModel> categories;
+    private List<BasicUserModel> friends;
     private UserModel loggedInUser;
+    private BasicUserModel selectedFriend;
+    private BasicUserModel selectedParticipant;
+    private string searchText = "";
 
     protected override async Task OnInitializedAsync()
     {
         categories = await categoryData.GetAllCategoriesAsync();
         loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        friends = loggedInUser.Friends;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterFriends();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+    }
+
+    private async Task FilterFriends()
+    {
+        var output = new List<BasicUserModel>();
+
+        if (loggedInUser is not null)
+        {
+            output = loggedInUser.Friends;
+        }
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(f => f.FirstName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                f.LastName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+
+        friends = output;
+        await SaveFilterState();
     }
 
     private void ClosePage()
     {
         navManager.NavigateTo("/");
+    }
+
+    private void AddParticipant(BasicUserModel participant)
+    {
+        conversation.Participants.Add(participant);
+        loggedInUser.Friends.Remove(participant);
+        selectedFriend = null;
+    }
+
+    private void RemoveParticipant(BasicUserModel participant)
+    {
+        conversation.Participants.Remove(participant);
+        loggedInUser.Friends.Add(participant);
     }
 
     private async Task CreateConversation()
@@ -34,6 +201,8 @@
             IsGroupChat = true,
         };
 
+        c.Participants.Add(new BasicUserModel(loggedInUser));
+
         if (c.Category is null)
         {
             conversation.CategoryId = "";
@@ -43,5 +212,11 @@
         await conversationData.CreateConversation(c);
         conversation = new();
         ClosePage();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterFriends();
     }
 }
