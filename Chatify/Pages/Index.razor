@@ -74,7 +74,7 @@
             <Virtualize Items="conversations" Context="c" OverscanCount="10">
                 
                 <div>
-                    @if (archivingConversation is null)
+                    @if (archivingConversation is null || archivingConversation.Id != c.Id)
                     {
                         <div>
                             <div @onclick="(() => OpenDetails(c))">@c.GroupName</div>
