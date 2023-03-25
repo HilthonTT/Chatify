@@ -1,0 +1,47 @@
+﻿@page "/Create"
+@using Chatify.Models
+@inject ICategoryData categoryData
+@inject IConversationData conversationData
+@inject IUserData userData
+@inject NavigationManager navManager
+
+<h1 class="text-center text-uppercase fw-bold mb-4">Make A Conversation</h1>
+
+@code {
+    private CreateConversationModel conversation = new();
+    private List<CategoryModel> categories;
+    private UserModel loggedInUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryData.GetAllCategoriesAsync();
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private async Task CreateConversation()
+    {
+        ConversationModel c = new()
+        {
+            Owner = new BasicUserModel(loggedInUser),
+            Participants = conversation.Participants,
+            Category = categories.Where(c => c.Id == conversation.CategoryId).FirstOrDefault(),
+            GroupName = conversation.GroupName,
+            IsGroupChat = true,
+        };
+
+        if (c.Category is null)
+        {
+            conversation.CategoryId = "";
+            return;
+        }
+
+        await conversationData.CreateConversation(c);
+        conversation = new();
+        ClosePage();
+    }
+}
