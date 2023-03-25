@@ -40,7 +40,7 @@
                 </div>
                 <div class="row">
                     <div class="col-8">
-                        <MyInputRadioGroup id="friends" @bind-Value="selectedFriendId">
+                        <InputRadioGroup id="friends" @bind-Value="selectedFriendId">
                             @if (friends.Count > 0)
                             {
                                 <Virtualize Items="friends" Context="f" OverscanCount="10">
@@ -72,7 +72,7 @@
                                     You do not have any friends that isn't already in conversation.
                                 </div>
                             }
-                        </MyInputRadioGroup>
+                        </InputRadioGroup>
                     </div>
                 </div>
             </div>
