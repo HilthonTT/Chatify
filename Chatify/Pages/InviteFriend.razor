@@ -4,13 +4,93 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
+<h1 class="text-center text-uppercase mb-4 fw-bold">Invite Friends</h1>
+
+@if (loggedInUser is not null && conversation is not null && friends is not null)
+{
+    @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
+    {
+        <div class="alert alert-danger">
+            You are not authorized to view this page.
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-xl-12 col-lg-10">
+                <div class="row">
+                    <div class="col-11">
+                        <div class="">
+                            <div class="">@conversation.GroupName</div>
+                            <div class="">Owner: @conversation.Owner.FullName</div>
+                            <div class="">@conversation.Participants.Count Participants</div>
+                            <div class="">@conversation.Category.CategoryName</div>
+                        </div>
+                    </div>
+                    <div class="col-1 text-center">
+                        <button class="btn btn-close" @onclick="ClosePage" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-11">
+                        <input class="form-control" type="text" placeholder="Search"
+                                aria-label="Search Box"
+                               @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <MyInputRadioGroup id="friends" @bind-Value="selectedFriendId">
+                            @if (friends.Count > 0)
+                            {
+                                <Virtualize Items="friends" Context="f" OverscanCount="10">
+                                    @if (selectedFriend is null || selectedFriend.Id != f.Id)
+                                    {
+                                        <div class="">
+                                            <InputRadio Value="f.Id" @onclick="(() => selectedFriend = f)"/>
+                                            <label>@f.FullName</label>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="">
+                                            <div class="">
+                                                <InputRadio Value="f.Id" />
+                                                <label>@f.FullName</label> 
+                                            </div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-success" @onclick="(async() => await AddParticipant(f))">Add</button>
+                                                <button class="btn btn-danger" @onclick="(() => selectedFriend = null)">Cancel</button>
+                                            </div>
+                                        </div>
+                                    }
+                                </Virtualize>
+                            }
+                            else
+                            {
+                                <div>
+                                    You do not have any friends that isn't already in conversation.
+                                </div>
+                            }
+                        </MyInputRadioGroup>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
 @code {
     [Parameter]
     public string Id { get; set; }
 
+    private string selectedFriendId = "";
+
     private UserModel loggedInUser;
     private ConversationModel conversation;
     private List<BasicUserModel> friends;
+    private BasicUserModel selectedFriend;
+
     private string searchText = "";
 
     protected override async Task OnInitializedAsync()
@@ -19,8 +99,8 @@
         loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
         if (conversation is not null && loggedInUser is not null)
         {
-            friends = conversation.Participants.Where(
-                u => !loggedInUser.Friends.Any(
+            friends = loggedInUser.Friends.Where(
+                u => !conversation.Participants.Any(
                     existingUser => existingUser.Id == u.Id)).ToList();
         }
     }
@@ -50,9 +130,9 @@
         loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
 
         var conversation = await conversationData.GetConversationAsync(Id);
-        var output = conversation.Participants.Where(
-                u => !loggedInUser.Friends.Any(
-                    existingUser => existingUser.Id == u.Id)).ToList();
+        var output = loggedInUser.Friends.Where(
+            u => !conversation.Participants.Any(
+                existingUser => existingUser.Id == u.Id)).ToList();
 
         if (string.IsNullOrWhiteSpace(searchText) == false)
         {
@@ -83,5 +163,4 @@
     {
         navManager.NavigateTo("/");
     }
-
 }

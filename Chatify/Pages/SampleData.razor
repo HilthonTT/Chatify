@@ -268,14 +268,14 @@
     private async Task UpdateUser()
     {
         var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
-        var friend = await userData.GetUserFromAuthenticationAsync("def-456");
+        var friend = await userData.GetUserFromAuthenticationAsync("hij-789");
 
         var friends = new List<BasicUserModel>
         {
             new BasicUserModel(friend),
         };
 
-        foundUser.Friends = friends;
+        foundUser.Friends.Add(new BasicUserModel(friend));
 
         await userData.UpdateUser(foundUser);
 
