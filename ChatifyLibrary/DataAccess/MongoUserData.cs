@@ -26,6 +26,12 @@ public class MongoUserData : IUserData
         return await results.FirstOrDefaultAsync();
     }
 
+    public async Task<UserModel> GetUserFriendCodeAsync(string code)
+    {
+        var results = await _users.FindAsync(u => u.FriendCode == code);
+        return await results.FirstOrDefaultAsync();
+    }
+
     public Task CreateUser(UserModel user)
     {
         return _users.InsertOneAsync(user);

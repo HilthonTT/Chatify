@@ -1,0 +1,110 @@
+﻿@page "/SendFriendRequest"
+@using Chatify.Models
+@inject IUserData userData
+@inject IFriendRequestData requestData
+@inject NavigationManager navManager
+
+<h1 class="text-center text-uppercase fw-bold mb-4">Send A Friend Request</h1>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-10">
+        @if (string.IsNullOrWhiteSpace(displayMessage) == false)
+        {
+            <div class="alert @GetAlertClass()">@displayMessage</div>
+        }
+        <EditForm Model="request" OnValidSubmit="(async() => await SendRequest())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="col-11">
+                    <div class="">
+                        <label class="form-label fw-bold text-uppercase" for="friend-code">Friend Code</label>
+                        <div class="mt-1">Insert the friend code of the person you want to add.</div>
+                        <ValidationMessage For="(() => request.FriendCode)" />
+                        <InputText class="form-control" id="friend-code" @bind-Value="request.FriendCode"/>
+                    </div>
+                    <div class="text-center mt-2">
+                        <button type="submit" class="btn btn-success btn-lg text-uppercase">Send Request</button>
+                    </div>
+                </div>
+                <div class="col-1">
+                    <div class="text-center">
+                        <button class="btn btn-close" @onclick="ClosePage"></button>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private CreateFriendRequestModel request = new();
+    private List<FriendRequestModel> friendRequests;
+    private UserModel loggedInUser;
+    private string friendCodeText = "";
+    private string displayMessage = "";
+    private bool isSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        if (loggedInUser is not null)
+        {
+            friendRequests = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);
+        }
+    }
+
+    private async Task SendRequest()
+    {
+        displayMessage = "";
+        var user = await userData.GetUserFriendCodeAsync(request.FriendCode);
+        var friendRequest = friendRequests.Where(f => f.Receiver.Id == user.Id).FirstOrDefault();
+
+        if (user is null)
+        {
+            displayMessage = "Oops... no user have been founded having this friend code.";
+            isSuccess = false;
+            return;
+        }
+
+        if (loggedInUser.Friends.Contains(new BasicUserModel(user)))
+        {
+            displayMessage = "You already have this person in your friend list.";
+            isSuccess = false;
+            return;
+        }
+
+        if (friendRequest is not null)
+        {
+            displayMessage = "You already have sended a friend request to this person.";
+            isSuccess = false;
+            return;
+        }
+
+        FriendRequestModel r = new()
+        {
+            Sender = new BasicUserModel(loggedInUser),
+            Receiver = new BasicUserModel(user),
+        };
+
+        await requestData.CreateFriendRequest(r, loggedInUser);
+        friendRequests.Add(r);
+        request = new();
+        displayMessage = "The friend request have been sended";
+        isSuccess = true;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private string GetAlertClass()
+    {
+        if (isSuccess)
+        {
+            return "alert-success";
+        }
+
+        return "alert-danger";
+    }
+}

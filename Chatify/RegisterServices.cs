@@ -1,4 +1,5 @@
-﻿using ChatifyLibrary.DataAccess;
+﻿using Chatify.Helpers;
+using ChatifyLibrary.DataAccess;
 using Microsoft.AspNetCore.ResponseCompression;
 
 namespace Chatify;
@@ -26,5 +27,7 @@ public static class RegisterServices
         builder.Services.AddSingleton<IUserData, MongoUserData>();
         builder.Services.AddSingleton<ICategoryData, MongoCategoryData>();
         builder.Services.AddSingleton<IFriendRequestData, MongoFriendRequestData>();
+
+        builder.Services.AddSingleton<IFriendCodeGenerator, FriendCodeGenerator>();
     }
 }
