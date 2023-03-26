@@ -1,7 +1,6 @@
 ﻿@page "/sampleData"
 @inject IConversationData conversationData
 @inject IMessageData messageData
-@inject INotificationData notificationData
 @inject IUserData userData
 @inject ICategoryData categoryData
 
@@ -59,23 +58,12 @@
                 <button class="btn btn-primary" @onclick="CreateMessage">Create Messages</button>
             }
         </div>
-        <div class="row mt-4">
-            @if (notificationCreated)
-            {
-              <h4>Notifcations have been created.</h4>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="CreateNotifications">Create Notification</button>
-            }
-        </div>
     </div>
 </div>
 
 @code {
     private bool conversationsCreated = false;
     private bool messagesCreated = false;
-    private bool notificationCreated = false;
     private bool userCreated = false;
     private bool categoriesCreated = false;
     private bool userUpdated = false;
@@ -246,23 +234,6 @@
 
 
         messagesCreated = true;
-    }
-
-    private async Task CreateNotifications()
-    {
-        var foundUser = await userData.GetUserFromAuthenticationAsync("abc-123");
-        var message = await messageData.GetMessageAsync("6416fdfe10738892c8ff37f3");
-
-        NotificationModel n = new()
-        {
-            Recipient = new BasicUserModel(foundUser),
-            Message = message,
-            IsSeen = false,
-        };
-
-        await notificationData.CreateNotification(n);
-
-        notificationCreated = true;
     }
 
     private async Task UpdateUser()

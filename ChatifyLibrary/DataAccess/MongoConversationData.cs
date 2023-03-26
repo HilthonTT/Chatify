@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-
-namespace ChatifyLibrary.DataAccess;
+﻿namespace ChatifyLibrary.DataAccess;
 
 public class MongoConversationData : IConversationData
 {

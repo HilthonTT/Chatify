@@ -8,10 +8,10 @@
         IMongoCollection<ConversationModel> ConversationCollection { get; }
         string ConversationCollectionName { get; }
         string DbName { get; }
+        IMongoCollection<FriendRequestModel> FriendRequestCollection { get; }
+        string FriendRequestCollectionName { get; }
         IMongoCollection<MessageModel> MessageCollection { get; }
         string MessageCollectionName { get; }
-        IMongoCollection<NotificationModel> NotificationCollection { get; }
-        string NotificationCollectionName { set; }
         IMongoCollection<UserModel> UserCollection { get; }
         string UserCollectionName { get; }
     }

@@ -23,8 +23,8 @@ public static class RegisterServices
         builder.Services.AddSingleton<IDbConnection, DbConnection>();
         builder.Services.AddSingleton<IConversationData, MongoConversationData>();
         builder.Services.AddSingleton<IMessageData, MongoMessageData>();
-        builder.Services.AddSingleton<INotificationData, MongoNotificationData>();
         builder.Services.AddSingleton<IUserData, MongoUserData>();
         builder.Services.AddSingleton<ICategoryData, MongoCategoryData>();
+        builder.Services.AddSingleton<IFriendRequestData, MongoFriendRequestData>();
     }
 }
