@@ -17,17 +17,17 @@
                     @if (categories is not null)
                     {  
                         <div class="">
-                            <label class="form-label fw-bold text-uppercase">Group Name</label>
+                            <label class="form-label fw-bold text-uppercase" for="conversation-group-name">Group Name</label>
                             <div class="mt-1">Name your group name. Its name will represent the group name.</div>
                             <ValidationMessage For="(() => conversation.GroupName)" />
                             <InputText class="form-control" id="conversation-group-name" @bind-Value="conversation.GroupName"/>
                         </div>
                         <div class="">
-                            <label class="form-label fw-bold text-uppercase">Category</label>
+                            <label class="form-label fw-bold text-uppercase" for="category">Category</label>
                             <ValidationMessage For="(() => conversation.CategoryId)" />
                             <div class="mt-1">Choose a category that suits your conversation.</div>
                             <div>
-                                <InputRadioGroup id="categories" @bind-Value="conversation.CategoryId">
+                                <InputRadioGroup id="category" @bind-Value="conversation.CategoryId">
                                     @foreach (var c in categories)
                                     {
                                         <div class="">

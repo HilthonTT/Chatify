@@ -1,0 +1,159 @@
+﻿@page "/FriendRequests"
+@inject IFriendRequestData requestData
+@inject IUserData userData
+@inject ProtectedSessionStorage sessionStorage
+
+<h1 class="text-uppercase fw-bold text-center mb-4">Friend Requests</h1>
+
+<div class="row">
+    <div class="text-uppercase fw-bold">You currently have @pendingRequests?.Count friend requests</div>
+    <div class="col-md-8 col-xl-12 btn-group">
+        <button class="btn text-uppercase fw-bold @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
+        <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Old</button>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-xl-12">
+        <input type="text" placeholder="Search"
+            aria-label="Search Box" class="form-control"
+            @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-9 col-xl-11">
+        @if (pendingRequests is not null)
+        {
+            <Virtualize Items="pendingRequests" Context="p" OverscanCount="10">
+                <div>
+                    @if (selectedRequest is null || selectedRequest.Id != p.Id)
+                    {
+                        <div>
+                            <div>Request sended by: @p.Sender.FullName</div>
+                            <div>Sended at @p.RequestDate UTC</div>
+                            <div>
+                                <button class="btn btn-success" @onclick="(() => selectedRequest = p)">Accept Request</button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <div>Request sended by: @p.Sender.FullName</div>
+                            <div>Sended at @p.RequestDate UTC</div>
+                            <div class="btn-group">
+                                <button class="btn btn-success" @onclick="(async() => await AcceptRequest(p))">Accept</button>
+                                <button class="btn btn-danger" @onclick="(() => selectedRequest = null)">Reconsider</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Virtualize>
+        }
+    </div>
+</div>
+
+@code {
+    private UserModel loggedInUser;
+    private List<FriendRequestModel> pendingRequests;
+    private FriendRequestModel selectedRequest;
+    private string searchText = "";
+    private bool isSortedByNew = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        if (loggedInUser is not null)
+        {
+            pendingRequests = await requestData.GetUserPendingFriendRequestsAsync(loggedInUser.Id);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterRequests();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+    }
+
+    private async Task FilterRequests()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+
+        var output = await requestData.GetUserPendingFriendRequestsAsync(loggedInUser.Id);
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(f => f.Sender.FirstName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                f.Sender.LastName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(f => f.RequestDate).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(f => f.RequestDate).ToList();
+        }
+
+        pendingRequests = output;
+        await SaveFilterState();
+    }
+
+    private async Task OrderByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterRequests();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterRequests();
+    }
+
+    private async Task AcceptRequest(FriendRequestModel request)
+    {
+        var sender = await userData.GetUserAsync(request.Sender.Id);
+
+        request.IsAccepted = true;
+        loggedInUser.Friends.Add(request.Sender);
+        sender.Friends.Add(new BasicUserModel(loggedInUser));
+
+        await requestData.UpdateFriendRequest(request, loggedInUser);
+        await userData.UpdateUser(loggedInUser);
+        await userData.UpdateUser(sender);
+
+        pendingRequests.Remove(request);
+        selectedRequest = null;
+    }
+
+    private string SortedByNewClass(bool isNew)
+    {
+        if (isSortedByNew == isNew)
+        {
+            return "btn-success";
+        }
+
+        return "btn-danger";
+    }
+}
