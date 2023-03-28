@@ -1,0 +1,78 @@
+﻿@page "/Users/{SearchText}"
+@page "/Users"
+@inject IUserData userData
+@inject NavigationManager navManager
+
+<h1 class="text-center text-uppercase fw-bold mb-4">Users</h1>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-10">
+        <div class="row">
+            <div class="col-11">
+                @if (users?.Count > 0)
+                {
+                    <div>
+                        @foreach (var u in users)
+                        {
+                            <div @onclick="(() => OpenDetails(u))">
+                                <div>@u.FullName</div>
+                                <div>Friend Code: @u.FriendCode</div>
+                                <div>@u.DateCreated.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger text-center">
+                        Something went wrong... 
+                        <br />
+                        There seems to be no users.
+                    </div>
+                }
+            </div>
+            <div class="col-1">
+                <div>
+                    <button class="btn btn-close" @onclick="ClosePage"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string SearchText { get; set; }
+
+    private UserModel loggedInUser;
+    private List<UserModel> users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        await FilterUsers();
+    }
+
+    private async Task FilterUsers()
+    {
+        var output = await userData.GetAllUsersAsync();
+
+        if (string.IsNullOrWhiteSpace(SearchText) is false)
+        {
+            output = output.Where(u => u.FirstName.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase) ||
+                u.LastName.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+
+        users = output;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private void OpenDetails(UserModel user)
+    {
+        navManager.NavigateTo($"/UserDetails/{user.Id}");
+    }
+}

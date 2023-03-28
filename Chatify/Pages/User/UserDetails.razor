@@ -1,0 +1,75 @@
+﻿@page "/userDetails/{Id}"
+@inject IUserData userData
+@inject IConversationData conversationData
+@inject IFriendRequestData requestData
+@inject NavigationManager navManager
+
+<h1 class="text-center text-uppercase fw-bold mb-4">@user?.FullName's Profile</h1>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-10">
+        <div class="row">
+            <div class="col-11">
+                <div>
+                    <div>
+                        <h2>@user?.FullName</h2>
+                        <p>Friend Code: @user?.FriendCode</p>
+                        <p>This user has joined Chatify on @user?.DateCreated.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    @if (user?.Friends.Count > 0)
+                    {
+                        <div>
+                            <h2>@user?.FullName's Friends</h2>
+                            @foreach (var f in user.Friends)
+                            {
+                                <div @onclick="(() => OpenDetails(f))">
+                                    <div class="fw-bold">
+                                        @f.FullName
+                                    </div>
+                                    <div>
+                                        This user has joined Chatify on @f.DateCreated.ToString("dd/MM/yyyy")
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-1">
+                <div>
+                    <button class="btn btn-close" @onclick="ClosePage"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private UserModel loggedInUser;
+    private UserModel user;
+    private List<ConversationModel> conversations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        user = await userData.GetUserAsync(Id);
+        if (loggedInUser is not null)
+        {
+            conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);    
+        }
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private void OpenDetails(BasicUserModel user)
+    {
+        navManager.NavigateTo($"/userDetails/{user.Id}");
+    }
+}
