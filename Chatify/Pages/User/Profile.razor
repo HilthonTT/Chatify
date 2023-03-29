@@ -1,8 +1,10 @@
 ﻿@page "/Profile"
+@attribute [Authorize]
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject IFriendRequestData requestData
 @inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
 
 <h1 class="text-center text-uppercase fw-bold mb-4">My Profile</h1>
 
@@ -65,7 +67,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
         if (loggedInUser is not null)
         {
             conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);

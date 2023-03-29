@@ -1,6 +1,9 @@
 ﻿using Chatify.Helpers;
 using ChatifyLibrary.DataAccess;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
 
 namespace Chatify;
 
@@ -9,9 +12,9 @@ public static class RegisterServices
     public static void ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
-        builder.Services.AddServerSideBlazor();
+        builder.Services.AddServerSideBlazor().AddMicrosoftIdentityConsentHandler();
         builder.Services.AddMemoryCache();
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
 
         builder.Services.AddSignalR();
 
@@ -19,6 +22,17 @@ public static class RegisterServices
         {
             opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                 new[] { "application/octet-stream" });
+        });
+
+        builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAdB2C"));
+
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("Admin", policy =>
+            {
+                policy.RequireClaim("jobTitle", "Admin");
+            });
         });
 
         builder.Services.AddSingleton<IDbConnection, DbConnection>();

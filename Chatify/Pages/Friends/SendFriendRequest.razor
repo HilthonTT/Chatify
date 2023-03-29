@@ -1,8 +1,10 @@
 ﻿@page "/SendFriendRequest"
+@attribute [Authorize]
 @using Chatify.Models
 @inject IUserData userData
 @inject IFriendRequestData requestData
 @inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
 
 <h1 class="text-center text-uppercase fw-bold mb-4">Send A Friend Request</h1>
 
@@ -45,7 +47,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
         if (loggedInUser is not null)
         {
             friendRequests = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);

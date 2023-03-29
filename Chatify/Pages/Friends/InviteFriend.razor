@@ -1,8 +1,10 @@
 ﻿@page "/InviteFriend/{Id}"
+@attribute [Authorize]
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
+@inject AuthenticationStateProvider authProvider
 
 <h1 class="text-center text-uppercase mb-4 fw-bold">Invite Friends</h1>
 
@@ -96,7 +98,7 @@
     protected override async Task OnInitializedAsync()
     {
         conversation = await conversationData.GetConversationAsync(Id);
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
         if (conversation is not null && loggedInUser is not null)
         {
             friends = loggedInUser.Friends.Where(

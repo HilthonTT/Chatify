@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject AuthenticationStateProvider authProvider
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject ICategoryData categoryData
@@ -156,10 +157,13 @@
     private bool showCategories = false;
 
     protected override async Task OnInitializedAsync()
-    {
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
-        conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
+    { 
+        await LoadAndVerifyUser();
         categories = await categoryData.GetAllCategoriesAsync();
+        if (loggedInUser is not null)
+        {
+            conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -169,6 +173,62 @@
             await LoadFilterState();
             await FilterConversations();
             StateHasChanged();
+        }
+    }
+
+    private async Task LoadAndVerifyUser()
+    {
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        string objectId = authState.User.Claims.FirstOrDefault(c => c.Type.Contains("objectidentifier"))?.Value;
+        if (string.IsNullOrWhiteSpace(objectId) == false)
+        {
+            loggedInUser = await userData.GetUserFromAuthenticationAsync(objectId) ?? new();
+            string firstName = authState.User.Claims.FirstOrDefault(c => c.Type.Contains("givenname"))?.Value;
+            string lastName = authState.User.Claims.FirstOrDefault(c => c.Type.Contains("surname"))?.Value;
+            string displayName = authState.User.Claims.FirstOrDefault(c => c.Type.Equals("name"))?.Value;
+            string email = authState.User.Claims.FirstOrDefault(c => c.Type.Contains("email"))?.Value;
+            bool isDirty = false;
+            if (objectId.Equals(loggedInUser.ObjectIdentifier) == false)
+            {
+                isDirty = true;
+                loggedInUser.ObjectIdentifier = objectId;
+            }
+
+            if (firstName.Equals(loggedInUser.FirstName) == false)
+            {
+                isDirty = true;
+                loggedInUser.FirstName = firstName;
+            }
+
+            if (lastName.Equals(loggedInUser.LastName) == false)
+            {
+                isDirty = true;
+                loggedInUser.LastName = lastName;
+            }
+
+            if (displayName.Equals(loggedInUser.DisplayName) == false)
+            {
+                isDirty = true;
+                loggedInUser.DisplayName = displayName;
+            }
+
+            if (email.Equals(loggedInUser.Email) == false)
+            {
+                isDirty = true;
+                loggedInUser.Email = email;
+            }
+
+            if (isDirty)
+            {
+                if (string.IsNullOrWhiteSpace(loggedInUser.Id))
+                {
+                    await userData.CreateUser(loggedInUser);
+                }
+                else
+                {
+                    await userData.UpdateUser(loggedInUser);
+                }
+            }
         }
     }
 
@@ -191,7 +251,7 @@
 
     private async Task FilterConversations()
     {
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        if (loggedInUser is null) return;
 
         var output = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
 
@@ -219,7 +279,6 @@
         conversations = output;
         await SaveFilterState();
     }
-
 
     private async Task ArchiveConversation()
     {
@@ -261,7 +320,7 @@
         }
         else
         {
-            navManager.NavigateTo("/login");
+            navManager.NavigateTo("/MicrosoftIdentity/Account/SignIn", true);
         }
     }
 

@@ -1,10 +1,12 @@
 ﻿@page "/Create"
+@attribute [Authorize]
 @using Chatify.Models
 @inject ICategoryData categoryData
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
+@inject AuthenticationStateProvider authProvider
 
 <h1 class="text-center text-uppercase fw-bold mb-4">Make A Conversation</h1>
 
@@ -128,7 +130,7 @@
     protected override async Task OnInitializedAsync()
     {
         categories = await categoryData.GetAllCategoriesAsync();
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
         friends = loggedInUser.Friends;
     }
 

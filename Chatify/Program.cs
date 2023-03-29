@@ -1,5 +1,6 @@
 using Chatify;
 using Chatify.Hubs;
+using Microsoft.AspNetCore.Rewrite;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,20 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseRewriter(new RewriteOptions().Add(
+    context =>
+    {
+        if (context.HttpContext.Request.Path == "/MicrosoftIdentity/Account/SignedOut")
+        {
+            context.HttpContext.Response.Redirect("/");
+        }
+    }
+));
+
+app.MapControllers();
 app.MapBlazorHub();
 app.MapHub<ChatHub>("/chathub");
 app.MapHub<TestHub>("/testhub");

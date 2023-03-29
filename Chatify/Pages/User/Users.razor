@@ -1,7 +1,9 @@
 ﻿@page "/Users/{SearchText}"
 @page "/Users"
+@attribute [Authorize]
 @inject IUserData userData
 @inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
 
 <h1 class="text-center text-uppercase fw-bold mb-4">Users</h1>
 
@@ -49,7 +51,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
         await FilterUsers();
     }
 

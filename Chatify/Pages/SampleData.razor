@@ -1,4 +1,5 @@
 ﻿@page "/sampleData"
+@attribute [Authorize(Policy = "Admin")]
 @inject IConversationData conversationData
 @inject IMessageData messageData
 @inject IUserData userData

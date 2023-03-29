@@ -140,3 +140,35 @@ a, .btn-link {
     color: white;
     opacity: 1; /* Firefox */
 }
+
+.NotAuthorized {
+    background-color: #282828 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+}
+
+.NotAuthorized-form-layout {
+    min-height: 100px;
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    padding: 2rem;
+}
+
+    .NotAuthorized-form-layout a {
+        font-weight: 700;
+        color: aqua;
+    }
+
+        .NotAuthorized-form-layout a:hover {
+            font-weight: 700;
+            color: aqua;
+            text-decoration: underline;
+        }
+
+.close-button-section {
+    display: flex;
+    justify-content: flex-end;
+}
