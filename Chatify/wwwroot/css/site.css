@@ -2,6 +2,8 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #121212 !important;
+    color: lightgray;
 }
 
 h1:focus {
@@ -66,3 +68,75 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+
+.form-layout {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+    border: 1px solid lightgray;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    border-style: solid;
+    width: 100%;
+    box-shadow: rgba(99, 99, 99, 0.2) 12px 12px 12px 5px;
+}
+    .form-layout:hover {
+        box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+        cursor: pointer;
+    }
+
+.form-layout-title {
+    flex: 20%;
+    border-bottom: 1px solid #282828;
+    background-color: #282828;
+    display: grid;
+    place-content: center;
+    color: white;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+.form-layout-body {
+    flex: 60%;
+    display: grid;
+    place-content: center;
+    font-size: x-large;
+}
+
+.form-layout-footer {
+    flex: 20%;
+    border-top: 1px solid #282828;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #282828;
+    color: white;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.btn-archive {
+    justify-content: flex-start;
+    float: left;
+}
+
+.friend-category {
+    background-color: #393939;
+    border-radius: 10px;
+    padding: 1rem;
+    color: #FFFFFF;
+}
+    .friend-category div {
+        margin-top: 1rem;
+    }
+        .friend-category div:hover {
+            cursor: pointer;
+        }
+
+
+.form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: white;
+    opacity: 1; /* Firefox */
+}

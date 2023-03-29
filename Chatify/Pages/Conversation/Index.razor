@@ -5,10 +5,10 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
-<h1 class="text-uppercase fw-bold text-center mb-4">Conversations</h1>
+<h1 class="text-uppercase fw-bold text-center mb-4 text-light">Conversations</h1>
 
 <div class="text-center">
-    <button class="btn btn-primary btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
+    <button class="btn btn-outline-light btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
 </div>
 
 <div class="row">
@@ -22,13 +22,13 @@
 <div class="row mt-2">
     <div class="col-md-12 col-xl-12">
         <input type="text" placeholder="Search"
-            aria-label="Search Box" class="form-control"
+            aria-label="Search Box" class="form-control bg-dark text-light"
             @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
     </div>
     <div class="col-12 d-block d-md-none">
         @if (categories is not null && showCategories)
         {
-            <div class="">
+            <div class="friend-category">
                 <span class="text-uppercase fw-bold">Category</span>
                 <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
                 @foreach (var c in categories)
@@ -52,13 +52,13 @@
     <div class="col-md-3 col-xl-2 d-none d-md-block">
         @if (loggedInUser is not null)
         {
-            <div>
+            <div class="friend-category">
                 <span class="text-uppercase fw-bold">Friends</span>
                 @if (loggedInUser.Friends.Count > 0)
                 {
                     @foreach (var f in loggedInUser.Friends)
                     {  
-                        <div>@f.FullName</div>   
+                        <div @onclick="(() => LoadUserDetails(f))">@f.FullName</div>   
                     }
                 }
                 else
@@ -72,44 +72,45 @@
         @if (conversations is not null)
         {
             <Virtualize Items="conversations" Context="c" OverscanCount="10">    
-                <div>
+                <div class="form-layout text-center">
                     @if (archivingConversation is null || archivingConversation.Id != c.Id)
                     {
-                        <div>
-                            <div @onclick="(() => OpenDetails(c))">@c.GroupName</div>
+                        <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
+                            <div>@c.GroupName</div>
                         </div>
-                        <div>
-                            <div @onclick="(() => OpenDetails(c))">Participants: @c.Participants.Count</div>
-                        </div>
-                        <div>
-                            <div @onclick="(() => OpenDetails(c))">@c.DateCreated</div>
+                        <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
+                            <div>Participants: @c.Participants.Count</div>
+                            <div>Owner: @c.Owner.FullName</div>
+                            <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
                         </div>
                         @if (c.Owner.Id == loggedInUser?.Id)
                         {
-                            <div>
+                            <div class="btn-archive mb-2">
                                 <button class="btn btn-danger" 
                                     @onclick="(() => archivingConversation = c)">
                                     Archived
                                 </button>
                             </div>
                         }
+                        <div class="form-layout-footer" @onclick="(() => OpenDetails(c))">
+                            <div>@c.Category.CategoryName</div>
+                        </div>
                     }
                     else
                     {
-                        <div>
-                            <div @onclick="(() => OpenDetails(c))">@c.GroupName</div>
+                        <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
+                            <div>@c.GroupName</div>
                         </div>
-                        <div>
-                            <div @onclick="(() => OpenDetails(c))">Participants: @c.Participants.Count</div>
-                        </div>
-                        <div>
-                            <div @onclick="(() => OpenDetails(c))">@c.DateCreated</div>
+                        <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
+                            <div>Participants: @c.Participants.Count</div>
+                            <div>Owner: @c.Owner.FullName</div>
+                            <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
                         </div>
 
                         @if (loggedInUser is not null)
                         {
-                            <div>
-                                <button class="btn btn-danger" 
+                            <div class="mb-1">
+                                <button class="btn btn-danger"
                                     @onclick="ArchiveConversation">
                                     Confirm
                                 </button>
@@ -119,6 +120,9 @@
                                 </button>
                             </div>
                         }
+                        <div class="form-layout-footer d-flex" @onclick="(() => OpenDetails(c))">
+                            <div>@c.Category.CategoryName</div>
+                        </div>
                     }
                 </div>      
             </Virtualize>
@@ -127,7 +131,7 @@
     <div class="col-md-3 col-xl-2 d-none d-md-block">
         @if (categories is not null)
         {
-            <div>
+            <div class="friend-category">
                 <span class="text-uppercase fw-bold">Category</span>
                 <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
                 @foreach (var c in categories)
@@ -259,6 +263,11 @@
         {
             navManager.NavigateTo("/login");
         }
+    }
+
+    private void LoadUserDetails(BasicUserModel user)
+    {
+        navManager.NavigateTo($"UserDetails/{user.Id}");
     }
 
     private string SortedByNewClass(bool isNew)
