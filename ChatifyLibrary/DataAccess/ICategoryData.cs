@@ -1,8 +1,7 @@
-﻿namespace ChatifyLibrary.DataAccess
+﻿namespace ChatifyLibrary.DataAccess;
+
+public interface ICategoryData
 {
-    public interface ICategoryData
-    {
-        Task CreateCategory(CategoryModel category);
-        Task<List<CategoryModel>> GetAllCategoriesAsync();
-    }
+    Task CreateCategory(CategoryModel category);
+    Task<List<CategoryModel>> GetAllCategoriesAsync();
 }
