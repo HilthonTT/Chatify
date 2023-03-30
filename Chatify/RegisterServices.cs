@@ -41,6 +41,8 @@ public static class RegisterServices
         builder.Services.AddSingleton<IUserData, MongoUserData>();
         builder.Services.AddSingleton<ICategoryData, MongoCategoryData>();
         builder.Services.AddSingleton<IFriendRequestData, MongoFriendRequestData>();
+        builder.Services.AddSingleton<IPrivateConversationData, MongoPrivateConversationData>();
+        builder.Services.AddSingleton<IPrivateMessageData, MongoPrivateMessageData>();
 
         builder.Services.AddSingleton<IFriendCodeGenerator, FriendCodeGenerator>();
     }

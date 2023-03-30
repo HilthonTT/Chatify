@@ -13,7 +13,9 @@ public class DbConnection : IDbConnection
     public string MessageCollectionName { get; private set; } = "messages";
     public string UserCollectionName { get; private set; } = "users";
     public string CategoryCollectionName { get; private set; } = "categories";
-    public string FriendRequestCollectionName { get; private set; } = "friendRequest";
+    public string FriendRequestCollectionName { get; private set; } = "friend-request";
+    public string PrivateConversationCollectionName { get; private set; } = "private-conversations";
+    public string PrivateMessageCollectionName { get; private set; } = "private-messages";
 
     public MongoClient Client { get; private set; }
     public IMongoCollection<ConversationModel> ConversationCollection { get; private set; }
@@ -21,6 +23,8 @@ public class DbConnection : IDbConnection
     public IMongoCollection<UserModel> UserCollection { get; private set; }
     public IMongoCollection<CategoryModel> CategoryCollection { get; private set; }
     public IMongoCollection<FriendRequestModel> FriendRequestCollection { get; private set; }
+    public IMongoCollection<PrivateConversationModel> PrivateConversationCollection { get; private set; }
+    public IMongoCollection<PrivateMessageModel> PrivateMessageCollection { get; private set; }
 
     public DbConnection(IConfiguration config)
     {
@@ -34,5 +38,7 @@ public class DbConnection : IDbConnection
         UserCollection = _db.GetCollection<UserModel>(UserCollectionName);
         CategoryCollection = _db.GetCollection<CategoryModel>(CategoryCollectionName);
         FriendRequestCollection = _db.GetCollection<FriendRequestModel>(FriendRequestCollectionName);
+        PrivateConversationCollection = _db.GetCollection<PrivateConversationModel>(PrivateConversationCollectionName);
+        PrivateMessageCollection = _db.GetCollection<PrivateMessageModel>(PrivateMessageCollectionName);
     }
 }
