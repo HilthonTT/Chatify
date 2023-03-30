@@ -13,7 +13,7 @@ public class DbConnection : IDbConnection
     public string MessageCollectionName { get; private set; } = "messages";
     public string UserCollectionName { get; private set; } = "users";
     public string CategoryCollectionName { get; private set; } = "categories";
-    public string FriendRequestCollectionName { get; private set; } = "friend-request";
+    public string FriendRequestCollectionName { get; private set; } = "friend-requests";
     public string PrivateConversationCollectionName { get; private set; } = "private-conversations";
     public string PrivateMessageCollectionName { get; private set; } = "private-messages";
 
