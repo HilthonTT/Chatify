@@ -1,0 +1,181 @@
+﻿@page "/PrivateConversation/{Id}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.SignalR.Client;
+@inject IPrivateConversationData privateConversationData
+@inject IUserData userData
+@inject IPrivateMessageData privateMessageData
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+@inject AuthenticationStateProvider authProvider
+@implements IAsyncDisposable
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private HubConnection? hubConnection;
+
+    private string messageText = "";
+    private string editingMessageText = "";
+    private string searchText = "";
+    private bool isSortedByNew = true;
+    private PrivateConversationModel conversation;
+    private List<PrivateMessageModel> messages = new();
+    private UserModel loggedInUser;
+    private PrivateMessageModel chosenMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        conversation = await privateConversationData.GetConversationAsync(Id);
+        if (conversation is not null)
+        {
+            messages = await privateMessageData.GetConversationMessagesAsync(conversation);
+        }
+
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(navManager.ToAbsoluteUri("/privatechathub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<PrivateMessageModel>("ReceiveMessage", OnReceiveMessage);
+
+        await hubConnection.StartAsync();
+        await hubConnection.InvokeAsync("JoinConversation", conversation);
+    }
+
+    private void OnReceiveMessage(PrivateMessageModel message)
+    {
+        messages.Add(message);
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(messageText));
+        messageText = stringResults.Success ? stringResults.Value : "";
+
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(messageText), messageText);
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+    }
+
+    private async Task FilterMessages()
+    {
+        var output = new List<PrivateMessageModel>();
+
+        if (conversation is not null)
+        {
+            await privateMessageData.GetConversationMessagesAsync(conversation);
+        }
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(m => m.Text.Contains(
+                searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(c => c.Timestamp).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(c => c.Timestamp).ToList();
+        }
+
+        messages = output;
+        await SaveFilterState();
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(messageText))
+        {
+            return;
+        }
+
+        PrivateMessageModel message = new()
+        {
+            Sender = new BasicUserModel(loggedInUser),
+            Text = messageText,
+            Conversation = conversation,
+        };
+
+        await privateMessageData.CreateMessage(message);
+
+        if (hubConnection is not null)
+        {
+            await hubConnection.InvokeAsync("SendMessage", message, conversation);
+        }
+
+        messageText = "";
+    }
+
+    private async Task UpdateMessage()
+    {
+        chosenMessage.Text = editingMessageText;
+        chosenMessage.LastEdited = DateTime.UtcNow;
+        await privateMessageData.UpdateMessageAsync(chosenMessage);
+        chosenMessage = null;
+    }
+
+    private async Task ArchiveMessage()
+    {
+        chosenMessage.Archived = true;
+        await privateMessageData.UpdateMessageAsync(chosenMessage);
+        chosenMessage = null;
+    }
+
+    private async Task OrderByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterMessages();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterMessages();
+    }
+
+    private void OnMessageClick(PrivateMessageModel message)
+    {
+        chosenMessage = message;
+        editingMessageText = message.Text;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.StopAsync();
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

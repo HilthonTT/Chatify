@@ -3,6 +3,8 @@
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject ICategoryData categoryData
+@inject IPrivateConversationData privateConversationData
+@inject IFriendCodeGenerator codeGenerator
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
@@ -59,7 +61,7 @@
                 {
                     @foreach (var f in loggedInUser.Friends)
                     {  
-                        <div @onclick="(() => LoadUserDetails(f))">@f.FullName</div>   
+                        <div @onclick="(() => OpenPrivateConversation(f))">@f.FullName</div>   
                     }
                 }
                 else
@@ -222,6 +224,7 @@
             {
                 if (string.IsNullOrWhiteSpace(loggedInUser.Id))
                 {
+                    loggedInUser.FriendCode = await codeGenerator.GenerateFriendCodeAsync();
                     await userData.CreateUser(loggedInUser);
                 }
                 else
@@ -251,6 +254,8 @@
 
     private async Task FilterConversations()
     {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+
         if (loggedInUser is null) return;
 
         var output = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
@@ -310,6 +315,28 @@
     private void OpenDetails(ConversationModel conversation)
     {
         navManager.NavigateTo($"/Conversation/{conversation.Id}");
+    }
+
+    private async Task OpenPrivateConversation(BasicUserModel user)
+    {
+        var conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id);
+
+        if (conversation is null)
+        {
+            PrivateConversationModel c = new()
+            {
+                FirstParticipant = new BasicUserModel(loggedInUser),
+                LastParticipant = user,
+            };
+
+            await privateConversationData.CreateConversation(c);
+            conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id);
+            navManager.NavigateTo($"/PrivateConversation/{conversation.Id}");
+        }
+        else
+        {
+            navManager.NavigateTo($"/PrivateConversation/{conversation.Id}");
+        }
     }
 
     private void LoadCreatePage()

@@ -42,6 +42,7 @@ app.UseRewriter(new RewriteOptions().Add(
 app.MapControllers();
 app.MapBlazorHub();
 app.MapHub<ChatHub>("/chathub");
+app.MapHub<PrivateChatHub>("/privatechathub");
 app.MapHub<TestHub>("/testhub");
 
 app.MapFallbackToPage("/_Host");
