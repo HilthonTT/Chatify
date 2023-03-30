@@ -60,6 +60,13 @@
         var user = await userData.GetUserFriendCodeAsync(request.FriendCode);
         var friendRequest = friendRequests.Where(f => f.Receiver.Id == user.Id).FirstOrDefault();
 
+        if (loggedInUser.Id == user.Id)
+        {
+            displayMessage = "You can't send a friend request to yourself.";
+            isSuccess = false;
+            return;
+        }
+
         if (user is null)
         {
             displayMessage = "Oops... no user have been founded having this friend code.";
