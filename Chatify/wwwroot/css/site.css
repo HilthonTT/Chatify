@@ -172,3 +172,75 @@ a, .btn-link {
     display: flex;
     justify-content: flex-end;
 }
+
+.chat-container {
+    position: relative;
+    height: 100%;
+}
+
+.chat-messages {
+    overflow-y: auto;
+    height: calc(100% - 60px); /* subtract the height of the message input */
+}
+
+.messages-container {
+    flex-grow: 1;
+    overflow-y: scroll;
+    padding: 8px;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+    padding: 8px;
+    max-width: 70%;
+    border-radius: 8px;
+}
+
+    .message.self {
+        align-self: flex-end;
+        background-color: #DCF8C6;
+    }
+
+    .message.editing {
+        background-color: #F8D0C6;
+    }
+
+.message-sender {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.message-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.message-timestamp {
+    font-size: small;
+    margin-top: 4px;
+}
+
+.input-container {
+    display: flex;
+    flex-direction: row;
+    padding: 8px;
+}
+
+    .input-container input[type="text"] {
+        flex-grow: 1;
+        margin-right: 8px;
+    }
+
+.message-input {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+}
+
+.participants-list {
+    background-color: #212529;
+    min-height: 700px !important;
+}
