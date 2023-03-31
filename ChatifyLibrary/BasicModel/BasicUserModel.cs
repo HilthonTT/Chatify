@@ -6,6 +6,7 @@ public class BasicUserModel
     public string Id { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
+    public string DisplayName { get; set; }
     public DateTime DateCreated { get; set; }
 
     public BasicUserModel()
@@ -19,6 +20,7 @@ public class BasicUserModel
         FirstName = user.FirstName;
         LastName = user.LastName;
         DateCreated = user.DateCreated;
+        DisplayName = user.DisplayName;
     }
 
     public string FullName

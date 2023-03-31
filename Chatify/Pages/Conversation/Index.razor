@@ -61,7 +61,7 @@
                 {
                     @foreach (var f in loggedInUser.Friends)
                     {  
-                        <div @onclick="(() => OpenPrivateConversation(f))">@f.FullName</div>   
+                        <div @onclick="(() => OpenPrivateConversation(f))">@f.DisplayName</div>   
                     }
                 }
                 else

@@ -14,7 +14,7 @@ public class PrivateConversationModel
     {
         get
         {
-            return $"{ FirstParticipant.FullName } and { LastParticipant.FullName }";
+            return $"{ FirstParticipant.DisplayName } and { LastParticipant.DisplayName }";
         }
     }
 }

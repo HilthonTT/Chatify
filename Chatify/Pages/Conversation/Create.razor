@@ -55,7 +55,7 @@
                             @if (selectedParticipant is null || selectedParticipant.Id != p.Id)
                             {
                                 <div class="" @onclick="(() => selectedParticipant = p)">
-                                    <div>@p.FullName</div>
+                                    <div>@p.DisplayName</div>
                                 </div>
                             }
                             else
@@ -97,7 +97,7 @@
                             else
                             {
                                 <div class="">
-                                    <div>@f.FullName</div>
+                                    <div>@f.DisplayName</div>
                                     <div>
                                         <div>
                                             @f.DateCreated

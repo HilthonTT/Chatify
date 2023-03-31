@@ -36,7 +36,7 @@
                     @if (chosenMessage is null || chosenMessage.Id != m.Id)
                     {
                         <div>
-                            <div>@m.Sender.FullName</div>
+                            <div>@m.Sender.DisplayName</div>
                         </div>
                         <div>
                             <div>@m.Text</div>
@@ -44,6 +44,12 @@
                         <div>
                             <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm")</div>
                         </div>
+                        @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                        {
+                            <div>
+                                <div>Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            </div>
+                        }
                         @if (m.Sender.Id == loggedInUser?.Id)
                         {
                             <div>
@@ -57,13 +63,13 @@
                     else
                     {
                         <div>
-                            <div>@m.Sender.FullName</div>
+                            <div>@m.Sender.DisplayName</div>
                         </div>
                         <div>
                             <InputText @bind-Value="@editingMessageText" class="form-control" />
                         </div>
                         <div>
-                            <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm")</div>
+                            <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                         </div>
                         <div class="btn-group">
                             <button class="btn btn-success" @onclick="UpdateMessage">Save</button>
@@ -84,7 +90,7 @@
             {
                 @foreach (var p in conversation.Participants)
                 {
-                    <div class="">@p.FullName</div>
+                    <div class="">@p.DisplayName</div>
                 }
             }
         </div>
