@@ -31,9 +31,15 @@ public class MongoPrivateConversationData : IPrivateConversationData
         var output = _cache.Get<PrivateConversationModel>($"{firstUserId} - {secondUserId}");
         if (output is null)
         {
-            var filter = Builders<PrivateConversationModel>.Filter.And(
-                Builders<PrivateConversationModel>.Filter.Eq(c => c.FirstParticipant.Id, firstUserId),
-                Builders<PrivateConversationModel>.Filter.Eq(c => c.LastParticipant.Id, secondUserId));
+            var filter = Builders<PrivateConversationModel>.Filter.Or(
+                Builders<PrivateConversationModel>.Filter.And(
+                    Builders<PrivateConversationModel>.Filter.Eq(c => c.FirstParticipant.Id, firstUserId),
+                    Builders<PrivateConversationModel>.Filter.Eq(c => c.LastParticipant.Id, secondUserId)),
+                Builders<PrivateConversationModel>.Filter.And(
+                    Builders<PrivateConversationModel>.Filter.Eq(c => c.FirstParticipant.Id, secondUserId),
+                    Builders<PrivateConversationModel>.Filter.Eq(c => c.LastParticipant.Id, firstUserId))
+            );
+
 
             output = await _conversations.Find(filter).FirstOrDefaultAsync();
 
