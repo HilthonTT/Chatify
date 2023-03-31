@@ -129,7 +129,7 @@
 
     private async Task FilterFriends()
     {
-        loggedInUser = await userData.GetUserFromAuthenticationAsync("abc-123");
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
 
         var conversation = await conversationData.GetConversationAsync(Id);
         var output = loggedInUser.Friends.Where(

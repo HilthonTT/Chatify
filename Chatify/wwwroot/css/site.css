@@ -185,8 +185,8 @@ a, .btn-link {
 
 .messages-container {
     flex-grow: 1;
-    overflow-y: scroll;
     padding: 8px;
+    margin-bottom: 10px;
 }
 
 .message {
@@ -194,13 +194,12 @@ a, .btn-link {
     flex-direction: column;
     margin-bottom: 16px;
     padding: 8px;
-    max-width: 70%;
+    max-width: 100%;
     border-radius: 8px;
 }
 
     .message.self {
         align-self: flex-end;
-        background-color: #DCF8C6;
     }
 
     .message.editing {
@@ -243,4 +242,8 @@ a, .btn-link {
 .participants-list {
     background-color: #212529;
     min-height: 700px !important;
+}
+
+.message-margin {
+    margin-bottom: 50px;
 }
