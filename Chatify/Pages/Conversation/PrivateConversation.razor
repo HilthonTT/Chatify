@@ -9,6 +9,79 @@
 @inject AuthenticationStateProvider authProvider
 @implements IAsyncDisposable
 
+<h1 class="text-uppercase fw-bold text-center">@conversation?.GroupName</h1>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-12">
+        <div class="row">
+            <div class="col-10">
+                <input type="text" placeholder="Message @conversation?.GroupName"
+                aria-label="Message Box" class="form-control"
+                @bind-value="messageText"/>
+            </div>
+            <div class="col-2">
+                <button class="btn btn-success form-control"
+                    @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-xl-10">
+        @if (messages is not null)
+        {
+            <Virtualize Items="messages" Context="m" OverscanCount="10">
+                <div class="mt-4">
+                    @if (chosenMessage is null || chosenMessage.Id != m.Id)
+                    {
+                        <div>
+                            <div>@m.Sender.FullName</div>
+                        </div>
+                        <div>
+                            <div>@m.Text</div>
+                        </div>
+                        <div>
+                            <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                        </div>
+                        @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                        {
+                            <div>
+                                <div>Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            </div>
+                        }
+                        @if (m.Sender.Id == loggedInUser?.Id)
+                        {
+                            <div>
+                                <button class="btn btn-danger"
+                                    @onclick="(() => OnMessageClick(m))">
+                                    Edit
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div>
+                            <div>@m.Sender.FullName</div>
+                        </div>
+                        <div>
+                            <InputText @bind-Value="@editingMessageText" class="form-control" />
+                        </div>
+                        <div>
+                            <div>Sended at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm")</div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success" @onclick="UpdateMessage">Save</button>
+                            <button class="btn btn-danger" @onclick="(() => chosenMessage = null)">Cancel</button>
+                        </div>
+                    }
+                </div>
+            </Virtualize>
+        }
+    </div>
+</div>
+
 @code {
     [Parameter]
     public string Id { get; set; }
@@ -55,6 +128,8 @@
     {
         if (firstRender)
         {
+            await LoadFilterState();
+            await FilterMessages();
             StateHasChanged();
         }
     }
