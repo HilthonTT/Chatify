@@ -35,32 +35,34 @@
                 </div>
                 <div class="row">
                     <div class="col-11">
-                        <input class="form-control search-input bg-dark text-white" type="text" placeholder="Search" aria-label="Search Box" @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+                        <input class="form-control search-input bg-dark text-white" 
+                            type="text" placeholder="Search" aria-label="Search Box" 
+                            @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-8">
+                <div class="row mt-2">
+                    <div class="col-11">
                         <InputRadioGroup id="friends" @bind-Value="selectedFriendId">
                             @if (friends.Count > 0)
                             {
                                 <Virtualize Items="friends" Context="f" OverscanCount="10">
                                     @if (selectedFriend is null || selectedFriend.Id != f.Id)
                                     {
-                                        <div class="friend">
-                                            <InputRadio Value="f.Id" @onclick="(() => selectedFriend = f)"/>
-                                            <label>@f.FullName</label>
+                                        <div class="radio-item-group" @onclick="(() => selectedFriend = f)">
+                                            <InputRadio Value="f.Id"/>
+                                            <label class="@SelectedUserClass(f)">@f.DisplayName</label>
                                         </div>
                                     }
                                     else
                                     {
-                                        <div class="friend">
-                                            <div class="friend-info">
+                                        <div class="radio-item-group">
+                                            <div class="friend-info mb-1">
                                                 <InputRadio Value="f.Id" />
-                                                <label>@f.FullName</label> 
+                                                <label class="@SelectedUserClass(f)">@f.DisplayName</label> 
                                             </div>
-                                            <div class="btn-group friend-actions">
-                                                <button class="btn btn-success" @onclick="(async() => await AddParticipant(f))">Add</button>
-                                                <button class="btn btn-danger" @onclick="(() => selectedFriend = null)">Cancel</button>
+                                            <div class="btn-group friend-actions w-100">
+                                                <button class="btn btn-success me-1 w-50" @onclick="(async() => await AddParticipant(f))">Add</button>
+                                                <button class="btn btn-danger w-50" @onclick="(() => selectedFriend = null)">Cancel</button>
                                             </div>
                                         </div>
                                     }
@@ -162,5 +164,18 @@
     private void ClosePage()
     {
         navManager.NavigateTo("/");
+    }
+
+    private string SelectedUserClass(BasicUserModel user)
+    {
+        if (selectedFriend is not null)
+        {
+            if (user.Id == selectedFriend.Id)
+            {
+                return "selected-item-group";
+            }
+        }
+
+        return "";
     }
 }

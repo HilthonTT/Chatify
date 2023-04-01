@@ -284,6 +284,13 @@ a, .btn-link {
     border: 1px white solid;
 }
 
+.selected-item-group {
+    background-color: #121212;
+    color: #FFFFFF;
+    width: 100%;
+    border: 1px white solid;
+}
+
 .radio-item-group {
     margin: 0.5rem;
 }

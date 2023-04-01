@@ -20,7 +20,7 @@
           @if (chosenMessage is null || chosenMessage.Id != m.Id)
           {
                 <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                    <div class="message-sender">@m.Sender.FullName</div>
+                    <div class="message-sender">@m.Sender.DisplayName</div>
                     <div class="message-text">@m.Text</div>
                     <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                     @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
@@ -38,7 +38,7 @@
           else
           {
                <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                    <div class="message-sender">@m.Sender.FullName</div>
+                    <div class="message-sender">@m.Sender.DisplayName</div>
                     <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
                     <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                     @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
@@ -80,7 +80,7 @@
             class="form-control bg-dark text-light" @bind-value="messageText" />
         </div>
         <div class="col-2">
-          <button class="btn btn-success form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+          <button class="btn btn-primary form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
         </div>
       </div>
     </div>

@@ -8,18 +8,20 @@
 
 <h1 class="text-center text-uppercase fw-bold mb-4">My Profile</h1>
 
-<div class="card bg-dark rounded rounded-3 shadow">
+<div class="rounded rounded-3 shadow">
   <div class="card-body">
-    <div class="row">
-      <div class="col-xl-12 col-lg-10">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-md-8 card bg-dark p-4">
         <div class="row">
           <div class="col-11">
             <div>
               <h2>My Account</h2>
-              <p>You are logged as: @loggedInUser?.FullName</p>
+              <p>You are logged as: @loggedInUser?.DisplayName</p>
+              <p>Your actual name is: @loggedInUser?.FullName</p>
               <p>You joined Chatify on @loggedInUser?.DateCreated.ToString("dd/MM/yyyy")</p>
-              <button class="btn btn-outline-warning" @onclick="EditProfilePage">Edit My Profile</button>
+              <button class="btn btn-outline-warning w-100" @onclick="EditProfilePage">Edit My Profile</button>
             </div>
+            <hr />
             @if (loggedInUser?.Friends.Count > 0)
             {
             <div>
@@ -28,7 +30,7 @@
               {
                 <div class="clickable" @onclick="(() => OpenDetailsFriend(f))">
                   <div class="fw-bold">
-                    @f.FullName
+                    @f.DisplayName
                   </div>
                   <div>
                     This user has joined Chatify on @f.DateCreated.ToString("dd/MM/yyyy")
@@ -37,9 +39,9 @@
               }
             </div>
             }
-            <hr class="hori"/>
+            <hr />
             @if (conversations?.Count > 0)
-              {
+            {
                 <h2 class="card-title mt-4">Your Conversations</h2>
                 @foreach (var c in conversations)
                 {
@@ -53,10 +55,10 @@
                         </div>
                     </div>
                 }
-              }
+            }
           </div>
           <div class="col-1">
-            <div class="d-flex justify-content-end">
+            <div class="close-button-section">
               <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
             </div>
           </div>
