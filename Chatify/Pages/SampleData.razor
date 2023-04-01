@@ -9,70 +9,72 @@
 
 <h1 class="text-uppercase text-center fw-bold">Sample Data</h1>
 
-<div class="row">
-    <div class="col-12 p-5">
-        <div class="row mt-4">
-            @if (userCreated)
-            {
-                <h4>User have been created.</h4>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="GenerateSampleData">Create User</button>
-            }
-        </div>
-        <div class="row mt-4">
-            @if (userUpdated)
-            {
-                <h4>User have been updated.</h4>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="UpdateUser">Update User</button>
-            }
-        </div>
-        <div class="row mt-4">
-            @if (categoriesCreated)
-            {
-                <h4>Categories Created</h4>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="CreateCategories">Create Category</button>
-            }
-        </div>
-        <div class="row mt-4">
-            @if (conversationsCreated)
-            {
-                <h4>Conversations have been created.</h4>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="CreateConversation">Create Conversations</button>
-            }
-        </div>
-        <div class="row mt-4">
-            @if (messagesCreated)
-            {
-                <h4>Messages have been created.</h4>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="CreateMessage">Create Messages</button>
-            }
-        </div>
-        <div class="row mt-4">
-            @if (friendRequestCreated)
-            {
-                <h4>Friend Request created.</h4>
-            }
-            else
-            {
-                <button class="btn btn-primary" @onclick="CreateFriendRequest">Create Friend Request</button>
-            }
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 p-5">
+            <div class="row mt-4">
+                @if (userCreated)
+                {
+                    <h4 class="text-success">User have been created.</h4>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="GenerateSampleData">Create User</button>
+                }
+            </div>
+            <div class="row mt-4">
+                @if (userUpdated)
+                {
+                    <h4 class="text-success">User have been updated.</h4>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="UpdateUser">Update User</button>
+                }
+            </div>
+            <div class="row mt-4">
+                @if (categoriesCreated)
+                {
+                    <h4 class="text-success">Categories Created</h4>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="CreateCategories">Create Category</button>
+                }
+            </div>
+            <div class="row mt-4">
+                @if (conversationsCreated)
+                {
+                    <h4 class="text-success">Conversations have been created.</h4>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="CreateConversation">Create Conversations</button>
+                }
+            </div>
+            <div class="row mt-4">
+                @if (messagesCreated)
+                {
+                    <h4 class="text-success">Messages have been created.</h4>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="CreateMessage">Create Messages</button>
+                }
+            </div>
+            <div class="row mt-4">
+                @if (friendRequestCreated)
+                {
+                    <h4 class="text-success">Friend Request created.</h4>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="CreateFriendRequest">Create Friend Request</button>
+                }
+            </div>
         </div>
     </div>
-</div>
+</div> 
 
 @code {
     private bool conversationsCreated = false;
