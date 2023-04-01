@@ -14,7 +14,7 @@ public class MongoConversationData : IConversationData
 
     public async Task<List<ConversationModel>> GetUserConversationsAsync(string userId)
     {
-        var output = _cache.Get<List<ConversationModel>>(userId);
+        var output = _cache.Get<List<ConversationModel>>($"{userId} - Conversations");
         if (output is null)
         {
             var filter = Builders<ConversationModel>.Filter.And(
@@ -23,7 +23,7 @@ public class MongoConversationData : IConversationData
 
             output = await _conversations.Find(filter).ToListAsync();
 
-            _cache.Set(userId, output, TimeSpan.FromMinutes(1));
+            _cache.Set($"{userId} - Conversations", output, TimeSpan.FromMinutes(1));
         }
 
         return output;
