@@ -65,7 +65,7 @@
                 {
                     @foreach (var p in conversation?.Participants)
                     {
-                        <li class="list-group-item mb-2">@p.DisplayName</li>
+                        <li class="list-group-item mb-2 clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</li>
                     }
                 }
             </ul>
@@ -264,5 +264,10 @@
     private void InviteFriendPage(ConversationModel conversation)
     {
         navManager.NavigateTo($"/InviteFriend/{conversation.Id}");
+    }
+
+    private void UserDetailsPage(BasicUserModel user)
+    {
+        navManager.NavigateTo($"/userDetails/{user.Id}");
     }
 }

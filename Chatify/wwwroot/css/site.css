@@ -6,6 +6,14 @@ html, body {
     color: lightgray;
 }
 
+hr {
+    margin: 1rem 0;
+    color: inherit;
+    background-color: currentColor;
+    border: 0;
+    opacity: 0.50;
+}
+
 h1:focus {
     outline: none;
 }
@@ -278,4 +286,81 @@ a, .btn-link {
 
 .radio-item-group {
     margin: 0.5rem;
+}
+
+.conversation-info {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.conversation-title {
+  margin-bottom: 5px;
+}
+
+.conversation-owner,
+.conversation-participants,
+.conversation-category {
+  font-weight: normal;
+}
+
+.search-input {
+  margin-top: 10px;
+}
+
+.friend {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.friend-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.friend-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 50%;
+}
+
+.no-friends {
+    margin-top: 5px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.user-card {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+    .user-card:hover {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    }
+
+.user-card__name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.user-card__friend-code {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.user-card__date {
+    font-size: 0.9rem;
+    color: #777;
 }

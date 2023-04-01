@@ -8,42 +8,34 @@
 
 <h1 class="text-center text-uppercase fw-bold mb-4">@user?.FullName's Profile</h1>
 
-<div class="row">
-    <div class="col-xl-12 col-lg-10">
-        <div class="row">
-            <div class="col-11">
-                <div>
-                    <div>
-                        <h2>@user?.FullName</h2>
-                        <p>Friend Code: @user?.FriendCode</p>
-                        <p>This user has joined Chatify on @user?.DateCreated.ToString("dd/MM/yyyy")</p>
-                    </div>
-                    @if (user?.Friends.Count > 0)
-                    {
-                        <div>
-                            <h2>@user?.FullName's Friends</h2>
-                            @foreach (var f in user.Friends)
-                            {
-                                <div @onclick="(() => OpenDetails(f))">
-                                    <div class="fw-bold">
-                                        @f.FullName
-                                    </div>
-                                    <div>
-                                        This user has joined Chatify on @f.DateCreated.ToString("dd/MM/yyyy")
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-md-8">
+    <div class="card text-white bg-dark">
+      <div class="card-header">
+        <h2 class="card-title">@user?.FullName</h2>
+        <h6 class="card-subtitle mb-2">Friend Code: @user?.FriendCode</h6>
+      </div>
+      <div class="card-body">
+        <p class="card-text">This user has joined Chatify on @user?.DateCreated.ToString("dd/MM/yyyy")</p>
+        @if (user?.Friends.Count > 0)
+        {
+          <h5 class="card-title">@user?.FullName's Friends</h5>
+          @foreach (var f in user.Friends)
+          {
+            <div class="card mb-2" style="cursor:pointer;" @onclick="(() => OpenDetails(f))">
+              <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">@f.FullName</h6>
+                <p class="card-text">This user has joined Chatify on @f.DateCreated.ToString("dd/MM/yyyy")</p>
+              </div>
             </div>
-            <div class="col-1">
-                <div>
-                    <button class="btn btn-close" @onclick="ClosePage"/>
-                </div>
-            </div>
-        </div>
+          }
+        }
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-outline-light" @onclick="ClosePage">Close</button>
+      </div>
     </div>
+  </div>
 </div>
 
 @code {

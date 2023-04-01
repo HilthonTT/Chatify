@@ -16,10 +16,10 @@
                     <div>
                         @foreach (var u in users)
                         {
-                            <div @onclick="(() => OpenDetails(u))">
-                                <div>@u.FullName</div>
-                                <div>Friend Code: @u.FriendCode</div>
-                                <div>@u.DateCreated.ToString("dd/MM/yyyy")</div>
+                            <div @onclick="(() => OpenDetails(u))" class="user-card bg-dark">
+                                <div class="user-card__name">@u.FullName</div>
+                                <div class="user-card__friend-code">Friend Code: @u.FriendCode</div>
+                                <div class="user-card__date">@u.DateCreated.ToString("dd/MM/yyyy")</div>
                             </div>
                         }
                     </div>
@@ -35,7 +35,7 @@
             </div>
             <div class="col-1">
                 <div>
-                    <button class="btn btn-close" @onclick="ClosePage"/>
+                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
                 </div>
             </div>
         </div>

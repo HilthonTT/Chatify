@@ -8,8 +8,8 @@
 <h1 class="text-uppercase fw-bold text-center mb-4">Friend Requests</h1>
 
 <div class="row">
-    <div class="text-uppercase fw-bold">You currently have @pendingRequests?.Count friend requests</div>
-    <div class="col-md-8 col-xl-12 btn-group">
+    <div class="col-12 col-md-8 col-xl-9 text-uppercase fw-bold">You currently have @pendingRequests?.Count @GetFriendRequestCount()</div>
+    <div class="col-12 col-md-4 col-xl-3 btn-group">
         <button class="btn text-uppercase fw-bold @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
         <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Old</button>
     </div>
@@ -17,36 +17,33 @@
 
 <div class="row mt-2">
     <div class="col-xl-12">
-        <input type="text" placeholder="Search"
-            aria-label="Search Box" class="form-control"
-            @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+        <input type="text" placeholder="Search" aria-label="Search Box" class="form-control bg-dark text-light"
+            @oninput="((txt) => OnSearchInput((string)txt.Value))">
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-9 col-xl-11">
+<div class="row mt-5">
+    <div class="col-md-10 col-xl-12">
         @if (pendingRequests is not null)
         {
             <Virtualize Items="pendingRequests" Context="p" OverscanCount="10">
-                <div>
+                <div class="card mt-2">
                     @if (selectedRequest is null || selectedRequest.Id != p.Id)
                     {
-                        <div>
-                            <div>Request sended by: @p.Sender.FullName</div>
-                            <div>Sended at @p.RequestDate UTC</div>
-                            <div>
-                                <button class="btn btn-success" @onclick="(() => selectedRequest = p)">Accept Request</button>
-                            </div>
+                        <div class="card-body bg-dark">
+                            <h5 class="card-title">Request sent by: @p.Sender.FullName</h5>
+                            <p class="card-text">Sent at @p.RequestDate UTC</p>
+                            <button class="btn btn-success w-100" @onclick="(() => selectedRequest = p)">Accept Request</button>
                         </div>
                     }
                     else
                     {
-                        <div>
-                            <div>Request sended by: @p.Sender.FullName</div>
-                            <div>Sended at @p.RequestDate UTC</div>
-                            <div class="btn-group">
-                                <button class="btn btn-success" @onclick="(async() => await AcceptRequest(p))">Accept</button>
-                                <button class="btn btn-danger" @onclick="(() => selectedRequest = null)">Reconsider</button>
+                        <div class="card-body bg-dark">
+                            <h5 class="card-title">Request sent by: @p.Sender.FullName</h5>
+                            <p class="card-text">Sent at @p.RequestDate UTC</p>
+                            <div class="btn-group w-100">
+                                <button class="btn btn-success me-1 w-50" @onclick="(async() => await AcceptRequest(p))">Accept</button>
+                                <button class="btn btn-danger w-50" @onclick="(() => selectedRequest = null)">Reconsider</button>
                             </div>
                         </div>
                     }
@@ -147,6 +144,16 @@
 
         pendingRequests.Remove(request);
         selectedRequest = null;
+    }
+
+    private string GetFriendRequestCount()
+    {
+        if (pendingRequests?.Count > 1)
+        {
+            return "Friend Requests";
+        }
+
+        return "Friend Request";
     }
 
     private string SortedByNewClass(bool isNew)

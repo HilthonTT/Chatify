@@ -60,8 +60,14 @@
         <div class="participants-list p-2">
             <h3 class="fw-bold text-uppercase">Participants</h3>
             <ul class="list-group">
-                <li class="list-group-item mb-2">@conversation?.FirstParticipant.DisplayName</li>
-                <li class="list-group-item">@conversation?.LastParticipant.DisplayName</li>
+                <li class="list-group-item mb-2 clickable" 
+                    @onclick="(() => UserDetailsPage(conversation?.FirstParticipant))">
+                    @conversation?.FirstParticipant.DisplayName
+                </li>
+                <li class="list-group-item clickable" 
+                    @onclick="(() => UserDetailsPage(conversation?.LastParticipant))">
+                    @conversation?.LastParticipant.DisplayName
+                </li>
             </ul>
         </div>
     </div>
@@ -251,5 +257,10 @@
             await hubConnection.StopAsync();
             await hubConnection.DisposeAsync();
         }
+    }
+
+    private void UserDetailsPage(BasicUserModel user)
+    {
+        navManager.NavigateTo($"/userDetails/{user.Id}");
     }
 }

@@ -8,58 +8,63 @@
 
 <h1 class="text-center text-uppercase fw-bold mb-4">My Profile</h1>
 
-<div class="row">
-    <div class="col-xl-12 col-lg-10">
+<div class="card bg-dark rounded rounded-3 shadow">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-xl-12 col-lg-10">
         <div class="row">
-            <div class="col-11">
-                <div>
-                    <div>
-                        <h2>My Account</h2>
-                        <p>You are logged as: @loggedInUser?.FullName</p>
-                        <p>You joined Chatify on @loggedInUser?.DateCreated.ToString("dd/MM/yyyy")</p>
+          <div class="col-11">
+            <div>
+              <h2>My Account</h2>
+              <p>You are logged as: @loggedInUser?.FullName</p>
+              <p>You joined Chatify on @loggedInUser?.DateCreated.ToString("dd/MM/yyyy")</p>
+              <button class="btn btn-outline-warning" @onclick="EditProfilePage">Edit My Profile</button>
+            </div>
+            @if (loggedInUser?.Friends.Count > 0)
+            {
+            <div>
+              <h2>Your Friends</h2>
+              @foreach (var f in loggedInUser.Friends)
+              {
+                <div class="clickable" @onclick="(() => OpenDetailsFriend(f))">
+                  <div class="fw-bold">
+                    @f.FullName
+                  </div>
+                  <div>
+                    This user has joined Chatify on @f.DateCreated.ToString("dd/MM/yyyy")
+                  </div>
+                </div>
+              }
+            </div>
+            }
+            <hr class="hori"/>
+            @if (conversations?.Count > 0)
+              {
+                <h2 class="card-title mt-4">Your Conversations</h2>
+                @foreach (var c in conversations)
+                {
+                    <div class="card card-body create-form-layout bg-black clickable" @onclick="(() => OpenDetailsConversation(c))">
+                        <div class="card-body">
+                            <div class="card-text mb-3">
+                            <div class="fw-bold">@c.GroupName</div>
+                            <div>@c.Participants.Count Participants</div>
+                            <div>@c.DateCreated.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        </div>
                     </div>
-                    @if (loggedInUser?.Friends.Count > 0)
-                    {
-                        <div>
-                            <h2>Your Friends</h2>
-                            @foreach (var f in loggedInUser.Friends)
-                            {
-                                <div @onclick="(() => OpenDetailsFriend(f))">
-                                    <div class="fw-bold">
-                                        @f.FullName
-                                    </div>
-                                    <div>
-                                        This user has joined Chatify on @f.DateCreated.ToString("dd/MM/yyyy")
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    @if (conversations?.Count > 0)
-                    {
-                        <div>
-                            <h2>Your Conversations</h2>
-                            @foreach (var c in conversations)
-                            {
-                                <div @onclick="(() => OpenDetailsConversation(c))">
-                                    <div class="fw-bold">@c.GroupName</div>
-                                    <div>@c.Participants.Count Participants</div>
-                                    <div>@c.DateCreated.ToString("dd/MM/yyyy")</div>
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
+                }
+              }
+          </div>
+          <div class="col-1">
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
             </div>
-            <div class="col-1">
-                <div>
-                    <button class="btn btn-close" @onclick="ClosePage"/>
-                </div>
-            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
-
 
 @code {
     private UserModel loggedInUser;
@@ -87,5 +92,10 @@
     private void OpenDetailsConversation(ConversationModel conversation)
     {
         navManager.NavigateTo($"/conversation/{conversation.Id}");
+    }
+
+    private void EditProfilePage()
+    {
+        navManager.NavigateTo("/MicrosoftIdentity/Account/EditProfile", true);
     }
 }

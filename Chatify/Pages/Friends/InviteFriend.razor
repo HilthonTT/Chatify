@@ -18,26 +18,24 @@
     }
     else
     {
-        <div class="row justify-content-center">
+        <div class="row justify-content-center bg-dark p-5">
             <div class="col-xl-12 col-lg-10">
                 <div class="row">
                     <div class="col-11">
-                        <div class="">
-                            <div class="">@conversation.GroupName</div>
-                            <div class="">Owner: @conversation.Owner.FullName</div>
-                            <div class="">@conversation.Participants.Count Participants</div>
-                            <div class="">@conversation.Category.CategoryName</div>
+                        <div class="conversation-info border border-2 p-2 border-white rounded-3">
+                            <div class="conversation-title">@conversation.GroupName</div>
+                            <div class="conversation-owner">Owner: @conversation.Owner.FullName</div>
+                            <div class="conversation-participants">@conversation.Participants.Count Participants</div>
+                            <div class="conversation-category">Category: @conversation.Category.CategoryName</div>
                         </div>
                     </div>
                     <div class="col-1 text-center">
-                        <button class="btn btn-close" @onclick="ClosePage" />
+                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"></button>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-11">
-                        <input class="form-control" type="text" placeholder="Search"
-                                aria-label="Search Box"
-                               @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+                        <input class="form-control search-input bg-dark text-white" type="text" placeholder="Search" aria-label="Search Box" @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
                     </div>
                 </div>
                 <div class="row">
@@ -48,19 +46,19 @@
                                 <Virtualize Items="friends" Context="f" OverscanCount="10">
                                     @if (selectedFriend is null || selectedFriend.Id != f.Id)
                                     {
-                                        <div class="">
+                                        <div class="friend">
                                             <InputRadio Value="f.Id" @onclick="(() => selectedFriend = f)"/>
                                             <label>@f.FullName</label>
                                         </div>
                                     }
                                     else
                                     {
-                                        <div class="">
-                                            <div class="">
+                                        <div class="friend">
+                                            <div class="friend-info">
                                                 <InputRadio Value="f.Id" />
                                                 <label>@f.FullName</label> 
                                             </div>
-                                            <div class="btn-group">
+                                            <div class="btn-group friend-actions">
                                                 <button class="btn btn-success" @onclick="(async() => await AddParticipant(f))">Add</button>
                                                 <button class="btn btn-danger" @onclick="(() => selectedFriend = null)">Cancel</button>
                                             </div>
@@ -70,7 +68,7 @@
                             }
                             else
                             {
-                                <div>
+                                <div class="no-friends mt-2">
                                     You do not have any friends that isn't already in conversation.
                                 </div>
                             }
