@@ -8,7 +8,7 @@
 
 <h1 class="text-center text-uppercase mb-4 fw-bold">Invite Friends</h1>
 
-@if (loggedInUser is not null && conversation is not null && friends is not null)
+@if (loggedInUser is not null && conversation is not null)
 {
     @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
     {

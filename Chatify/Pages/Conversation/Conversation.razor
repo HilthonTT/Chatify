@@ -11,81 +11,93 @@
 
 <h1 class="text-uppercase fw-bold text-center">@conversation?.GroupName</h1>
 
-<div class="container-fluid vh-100 d-flex flex-column">
-  <div class="row flex-grow-1">
-    <div class="col-md-8 col-xl-10 messages-container">
-      @if (messages is not null)
-      {
-        <Virtualize Items="messages" Context="m" OverscanCount="10">
-          @if (chosenMessage is null || chosenMessage.Id != m.Id)
-          {
-                <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                    <div class="message-sender">@m.Sender.FullName</div>
-                    <div class="message-text">@m.Text</div>
-                    <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                    @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
-                    {
-                      <div class="message-timestamp">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                    }
-                    @if (m.Sender.Id == loggedInUser?.Id)
-                    {
-                      <div class="btn-group">
-                        <button class="btn btn-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
+@if (loggedInUser is not null && conversation is not null)
+{
+    @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
+    {
+        <div class="alert alert-danger">
+            You are not authorized to view this page.
+        </div>
+    }
+    else
+    {
+        <div class="container-fluid vh-100 d-flex flex-column">
+          <div class="row flex-grow-1">
+            <div class="col-md-8 col-xl-10 messages-container">
+              @if (messages is not null)
+              {
+                <Virtualize Items="messages" Context="m" OverscanCount="10">
+                  @if (chosenMessage is null || chosenMessage.Id != m.Id)
+                  {
+                        <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                            <div class="message-sender">@m.Sender.FullName</div>
+                            <div class="message-text">@m.Text</div>
+                            <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                            {
+                              <div class="message-timestamp">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            }
+                            @if (m.Sender.Id == loggedInUser?.Id)
+                            {
+                              <div class="btn-group">
+                                <button class="btn btn-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
+                              </div>
+                            }
                       </div>
-                    }
-              </div>
-          }
-          else
-          {
-               <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                    <div class="message-sender">@m.Sender.FullName</div>
-                    <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
-                    <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                    @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
-                    {
-                      <div class="message-timestamp">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                    }
-                    @if (m.Sender.Id == loggedInUser?.Id)
-                    {
-                      <div class="btn-group">
-                        <button class="btn btn-success" @onclick="(() => UpdateMessage())">Save</button>
+                  }
+                  else
+                  {
+                       <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                            <div class="message-sender">@m.Sender.FullName</div>
+                            <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
+                            <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                            {
+                              <div class="message-timestamp">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            }
+                            @if (m.Sender.Id == loggedInUser?.Id)
+                            {
+                              <div class="btn-group">
+                                <button class="btn btn-success" @onclick="(() => UpdateMessage())">Save</button>
+                              </div>
+                            }
                       </div>
-                    }
+                  }
+                </Virtualize>
+              }
+            </div>
+            <div class="col-md-4 col-xl-2">
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Participants</h3>
+                    <button class="btn btn-success w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
+                    <ul class="list-group">
+                        @if (conversation is not null)
+                        {
+                            @foreach (var p in conversation?.Participants)
+                            {
+                                <li class="list-group-item mb-2 clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+          </div>
+          <div class="row fixed-bottom mb-4 mx-2">
+            <div class="col-xl-12 col-lg-12">
+              <div class="row">
+                <div class="col-10">
+                  <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
+                    class="form-control bg-dark text-light" @bind-value="messageText" />
+                </div>
+                <div class="col-2">
+                  <button class="btn btn-success form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+                </div>
               </div>
-          }
-        </Virtualize>
-      }
-    </div>
-    <div class="col-md-4 col-xl-2">
-        <div class="participants-list p-2">
-            <h3 class="fw-bold text-uppercase">Participants</h3>
-            <button class="btn btn-success w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
-            <ul class="list-group">
-                @if (conversation is not null)
-                {
-                    @foreach (var p in conversation?.Participants)
-                    {
-                        <li class="list-group-item mb-2 clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</li>
-                    }
-                }
-            </ul>
+            </div>
+          </div>
         </div>
-    </div>
-  </div>
-  <div class="row fixed-bottom mb-4 mx-2">
-    <div class="col-xl-12 col-lg-12">
-      <div class="row">
-        <div class="col-10">
-          <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
-            class="form-control bg-dark text-light" @bind-value="messageText" />
-        </div>
-        <div class="col-2">
-          <button class="btn btn-success form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+    }
+}
 
 @code {
     [Parameter]
