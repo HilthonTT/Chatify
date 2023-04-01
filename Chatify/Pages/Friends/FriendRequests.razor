@@ -9,8 +9,8 @@
 
 <div class="row">
     <div class="col-12 col-md-8 col-xl-9 text-uppercase fw-bold">You currently have @pendingRequests?.Count @GetFriendRequestCount()</div>
-    <div class="col-12 col-md-4 col-xl-3 btn-group">
-        <button class="btn text-uppercase fw-bold @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
+    <div class="col-12 col-md-4 col-xl-12 btn-group">
+        <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
         <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Old</button>
     </div>
 </div>
@@ -42,8 +42,8 @@
                             <h5 class="card-title">Request sent by: @p.Sender.FullName</h5>
                             <p class="card-text">Sent at @p.RequestDate UTC</p>
                             <div class="btn-group w-100">
-                                <button class="btn btn-success me-1 w-50" @onclick="(async() => await AcceptRequest(p))">Accept</button>
-                                <button class="btn btn-danger w-50" @onclick="(() => selectedRequest = null)">Reconsider</button>
+                                <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await AcceptRequest(p))">Accept</button>
+                                <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Reconsider</button>
                             </div>
                         </div>
                     }
@@ -160,9 +160,9 @@
     {
         if (isSortedByNew == isNew)
         {
-            return "btn-success";
+            return "btn-outline-success";
         }
 
-        return "btn-danger";
+        return "btn-outline-danger";
     }
 }
