@@ -17,7 +17,7 @@
 <div class="row">
     <div class="text-uppercase fw-bold">You are in @conversations?.Count conversations</div>
     <div class="col-md-8 col-xl-12 btn-group">
-        <button class="btn text-uppercase fw-bold @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
+        <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
         <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Popular</button>
     </div>
 </div>
@@ -61,7 +61,7 @@
                 {
                     @foreach (var f in loggedInUser.Friends)
                     {  
-                        <div @onclick="(() => OpenPrivateConversation(f))">@f.DisplayName</div>   
+                        <div @onclick="(() => OpenPrivateConversation(f))"><span class="oi oi-person me-1"></span>@f.DisplayName</div>   
                     }
                 }
                 else
@@ -88,10 +88,10 @@
                         </div>
                         @if (c.Owner.Id == loggedInUser?.Id)
                         {
-                            <div class="btn-archive mb-2">
-                                <button class="btn btn-danger" 
+                            <div class="btn-archive mb-3 m-3">
+                                <button class="btn btn-outline-danger text-uppercase w-100" 
                                     @onclick="(() => archivingConversation = c)">
-                                    Archived
+                                    Archive
                                 </button>
                             </div>
                         }
@@ -112,12 +112,12 @@
 
                         @if (loggedInUser is not null)
                         {
-                            <div class="mb-1">
-                                <button class="btn btn-danger"
+                            <div class="mb-1 w-100">
+                                <button class="btn btn-outline-success text-uppercase w-25"
                                     @onclick="ArchiveConversation">
                                     Confirm
                                 </button>
-                                <button class="btn btn-success" 
+                                <button class="btn btn-outline-danger text-uppercase w-25" 
                                     @onclick="(() => archivingConversation = null)">
                                     Cancel
                                 </button>
@@ -360,10 +360,10 @@
     {
         if (isNew == isSortedByNew)
         {
-            return "btn-success";
+            return "btn-outline-primary";
         }
 
-        return "btn-danger";
+        return "btn-outline-danger";
     }
 
     private string SelectedCategoryClass(string category = "All")

@@ -71,10 +71,12 @@
                     <ul class="list-group">
                         <li class="list-group-item mb-2 clickable" 
                             @onclick="(() => UserDetailsPage(conversation?.FirstParticipant))">
+                            <span class="oi oi-person me-1"></span>
                             @conversation?.FirstParticipant.DisplayName
                         </li>
                         <li class="list-group-item clickable" 
                             @onclick="(() => UserDetailsPage(conversation?.LastParticipant))">
+                            <span class="oi oi-person me-1"></span>
                             @conversation?.LastParticipant.DisplayName
                         </li>
                     </ul>
@@ -97,8 +99,6 @@
         </div>
     }
 }
-
-
 
 @code {
     [Parameter]

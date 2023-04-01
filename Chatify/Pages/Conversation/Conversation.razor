@@ -71,11 +71,27 @@
                     <h3 class="fw-bold text-uppercase">Participants</h3>
                     <button class="btn btn-success w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
                     <ul class="list-group">
-                        @if (conversation is not null)
+                        @foreach (var p in conversation?.Participants)
                         {
-                            @foreach (var p in conversation?.Participants)
+                            if (chosenUser is null || chosenUser.Id != p.Id)
                             {
-                                <li class="list-group-item mb-2 clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</li>
+                                <li class="list-group-item mb-2">
+                                    <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
+                                    @if (loggedInUser.Id != p.Id)
+                                    {
+                                        <button class="btn btn-primary btn-sm float-end" @onclick="(() => chosenUser = p)">Remove</button>
+                                    }
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="list-group-item mb-2">
+                                    <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
+                                    <div class="btn-group-sm float-end">
+                                        <button class="btn btn-success me-1" @onclick="(async() => await RemoveParticipant())">Remove</button>
+                                        <button class="btn btn-danger" @onclick="(() => chosenUser = null)">Cancel</button>
+                                    </div>
+                                </li>
                             }
                         }
                     </ul>
@@ -113,6 +129,7 @@
     private List<MessageModel> messages = new();
     private UserModel loggedInUser;
     private MessageModel chosenMessage;
+    private BasicUserModel chosenUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -230,6 +247,13 @@
         chosenMessage.LastEdited = DateTime.UtcNow;
         await messageData.UpdateMessageAsync(chosenMessage);
         chosenMessage = null;
+    }
+
+    private async Task RemoveParticipant()
+    {
+        conversation.Participants.Remove(chosenUser);
+        await conversationData.UpdateConversation(conversation, loggedInUser);
+        chosenUser = null;
     }
 
     private async Task ArchiveMessage()
