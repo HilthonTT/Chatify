@@ -20,10 +20,10 @@
           <label class="form-label fw-bold text-uppercase" for="friend-code">Friend Code</label>
           <div class="mb-1">Insert the friend code of the person you want to add.</div>
           <ValidationMessage For="(() => request.FriendCode)" />
-          <InputText class="form-control bg-dark text-light" id="friend-code" @bind-Value="request.FriendCode"/>
+          <InputText class="form-control bg-dark text-light input-section border-warning" id="friend-code" @bind-Value="request.FriendCode"/>
         </div>
         <div class="text-center mt-4">
-          <button type="submit" class="btn btn-primary btn-lg text-uppercase">Send Request</button>
+          <button type="submit" class="btn btn-outline-warning btn-lg text-uppercase">Send Request</button>
         </div>
         <div class="text-center mt-4">
           <button class="btn btn-outline-secondary" @onclick="ClosePage">Cancel</button>

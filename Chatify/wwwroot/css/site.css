@@ -278,7 +278,7 @@ a, .btn-link {
 }
 
 .radio-item-group input[type="radio"]:checked + label {
-    background-color: #121212;
+    background-color: #4f0008;
     color: #FFFFFF;
     width: 100%;
     border: 1px white solid;
@@ -370,4 +370,32 @@ a, .btn-link {
 .user-card__date {
     font-size: 0.9rem;
     color: #777;
+}
+
+.conversation {
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.conversation-edit-icon {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+    .conversation-edit-icon:hover {
+        color: #433679;
+    }
+
+.conversation-edit-form {
+    display: flex;
+}
+
+.conversation-edit-field {
+    flex: 1;
+    border-radius: 10px;
+}
+
+.input-section {
+    flex: 1;
+    border-radius: 10px;
 }

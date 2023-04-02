@@ -39,7 +39,7 @@
                             @if (m.Sender.Id == loggedInUser?.Id)
                             {
                               <div class="btn-group">
-                                <button class="btn btn-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
+                                <button class="btn btn-outline-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
                               </div>
                             }
                       </div>
@@ -88,10 +88,10 @@
               <div class="row">
                 <div class="col-10">
                   <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
-                    class="form-control bg-dark text-light" @bind-value="messageText" />
+                    class="form-control bg-dark text-light border-warning input-section" @bind-value="messageText" />
                 </div>
                 <div class="col-2">
-                  <button class="btn btn-primary form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+                  <button class="btn btn-outline-warning form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
                 </div>
               </div>
             </div>

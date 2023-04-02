@@ -156,7 +156,7 @@
     {
         conversation.Participants.Add(model);
 
-        await conversationData.UpdateConversation(conversation, loggedInUser);
+        await conversationData.UpdateConversation(conversation);
 
         friends.Remove(model);
     }
