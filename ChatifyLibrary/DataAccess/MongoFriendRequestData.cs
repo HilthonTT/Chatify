@@ -67,16 +67,33 @@ public class MongoFriendRequestData : IFriendRequestData
         return await results.FirstOrDefaultAsync();
     }
 
-    public Task CreateFriendRequest(FriendRequestModel request, UserModel user)
+    public async Task<FriendRequestModel> GetFriendRequestReceiverSenderAsync(
+        UserModel sender,
+        UserModel receiver)
     {
-        _cache.Remove($"{SendedCacheName}-{user.Id}");
+        var filter = Builders<FriendRequestModel>.Filter.Or(
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Receiver.Id, receiver.Id),
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Sender.Id, sender.Id),
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Sender.Id, receiver.Id),
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Receiver.Id, sender.Id));
+
+        var results = await _friendsRequest.FindAsync(filter);
+        return await results.FirstOrDefaultAsync();
+    }
+
+    public Task CreateFriendRequest(FriendRequestModel request)
+    {
         return _friendsRequest.InsertOneAsync(request);
     }
 
-    public async Task UpdateFriendRequest(FriendRequestModel request, UserModel user)
+    public async Task UpdateFriendRequest(FriendRequestModel request)
     {
         await _friendsRequest.ReplaceOneAsync(f => f.Id == request.Id, request);
         _cache.Remove(CacheName);
-        _cache.Remove($"{PendingCacheName}-{user.Id}");
+    }
+
+    public Task DeleteFriendRequestAsync(FriendRequestModel request)
+    {
+        return _friendsRequest.DeleteOneAsync(f => f.Id == request.Id);
     }
 }

@@ -34,7 +34,7 @@
                         <div class="card-body bg-dark">
                             <h5 class="card-title">Request sent by: @p.Sender.FullName</h5>
                             <p class="card-text">Sent at @p.RequestDate UTC</p>
-                            <button class="btn btn-success w-100" @onclick="(() => selectedRequest = p)">Accept Request</button>
+                            <button class="btn btn-outline-success w-100" @onclick="(() => selectedRequest = p)">Accept Request</button>
                         </div>
                     }
                     else
@@ -139,7 +139,7 @@
         loggedInUser.Friends.Add(request.Sender);
         sender.Friends.Add(new BasicUserModel(loggedInUser));
 
-        await requestData.UpdateFriendRequest(request, loggedInUser);
+        await requestData.UpdateFriendRequest(request);
         await userData.UpdateUser(loggedInUser);
         await userData.UpdateUser(sender);
 
@@ -161,7 +161,7 @@
     {
         if (isSortedByNew == isNew)
         {
-            return "btn-outline-success";
+            return "btn-outline-primary";
         }
 
         return "btn-outline-danger";

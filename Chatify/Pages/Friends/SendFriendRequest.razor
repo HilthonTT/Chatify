@@ -88,7 +88,7 @@
             Receiver = new BasicUserModel(user),
         };
 
-        await requestData.CreateFriendRequest(r, loggedInUser);
+        await requestData.CreateFriendRequest(r);
         friendRequests.Add(r);
         request = new();
         displayMessage = "The friend request have been sended";

@@ -2,10 +2,12 @@
 
 public interface IFriendRequestData
 {
-    Task CreateFriendRequest(FriendRequestModel request, UserModel user);
+    Task CreateFriendRequest(FriendRequestModel request);
+    Task DeleteFriendRequestAsync(FriendRequestModel request);
     Task<List<FriendRequestModel>> GetAllFriendRequestAsync();
     Task<FriendRequestModel> GetFriendRequestAsync(string id);
+    Task<FriendRequestModel> GetFriendRequestReceiverSenderAsync(UserModel sender, UserModel receiver);
     Task<List<FriendRequestModel>> GetUserPendingFriendRequestsAsync(string userId);
     Task<List<FriendRequestModel>> GetUserSendedFriendRequestsAsync(string userId);
-    Task UpdateFriendRequest(FriendRequestModel request, UserModel user);
+    Task UpdateFriendRequest(FriendRequestModel request);
 }

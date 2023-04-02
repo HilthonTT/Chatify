@@ -9,13 +9,36 @@
 
 <h1 class="text-center text-uppercase fw-bold mb-4">@user?.DisplayName's Profile</h1>
 
+@if (string.IsNullOrWhiteSpace(displayMessage) is false)
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-md-8">
+            <div class="row alert bg-warning text-black" role="alert">
+                <div class="col-11">
+                    <h4 class="alert-heading">Error!</h4>
+                    <p>@displayMessage</p>
+                    <hr>
+                    <p class="mb-0">You can wait to send another friend request later if you think this is a mistake.</p>
+                </div>
+                <div class="col-1">
+                    <div class="close-button-section">
+                        <button class="btn btn-close btn-close" @onclick="(() => displayMessage = string.Empty)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="rounded rounded-3 shadow">
   <div class="card-body">
     <div class="row justify-content-center">
       <div class="col-lg-10 col-md-8 card bg-dark p-4">
         <div class="row">
           <div class="col-11">
-            <h2>@user?.DisplayName's Account</h2>
+            <div class="d-flex justify-content-start">
+                <h2>@user?.DisplayName's Account</h2>
+            </div>
             <p>This user joined Chatify on @user?.DateCreated.ToString("dd/MM/yyyy")</p>
             @if (loggedInUser?.Id != user?.Id)
             {
@@ -24,8 +47,27 @@
                 </button>       
             }
             <hr />
+            <div>
+                <h2>Friend Request</h2>
+                <div class="btn-group w-100"> 
+                    @if (loggedInUser?.Friends.Where(u => u.Id == user?.Id).FirstOrDefault()?.Id == user?.Id)
+                    { 
+                        <button class="btn btn-outline-warning me-1" @onclick="(async() => await UnfriendUser(user))">
+                            Unfriend
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-warning me-1" @onclick="(async() => await SendFriendRequest())">
+                            Send Friend Request
+                        </button>
+                        
+                    }
+                </div>     
+            </div>
             @if (user?.Friends.Count > 0)
             {
+                <hr />
                 <div>
                   <h2>@user?.DisplayName's Friends</h2>
                   @foreach (var f in user.Friends)
@@ -41,21 +83,65 @@
                   }
                 </div>
             }
-            <hr />
             @if (conversations?.Count > 0)
             {
+                <hr />
                 <h2 class="card-title mt-4">@user?.DisplayName's Conversations</h2>
                 @foreach (var c in conversations)
                 {
-                    <div class="card card-body create-form-layout bg-black">
-                        <div class="card-body">
-                            <div class="card-text mb-3">
-                            <div class="fw-bold">@c.GroupName</div>
-                            <div>@c.Participants.Count Participants</div>
-                            <div>@c.DateCreated.ToString("dd/MM/yyyy")</div>
-                            </div>
+                    <div class="form-layout text-center">
+                    @if (archivingConversation is null || archivingConversation.Id != c.Id)
+                    {
+                        <div class="form-layout-title bg-black">
+                            <div>@c.GroupName</div>
                         </div>
-                    </div>
+                        <div class="form-layout-body">
+                            <div>Participants: @c.Participants.Count</div>
+                            <div>Owner: @c.Owner.FullName</div>
+                            <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
+                        </div>
+                        @if (c.Owner.Id == loggedInUser?.Id)
+                        {
+                            <div class="btn-archive mb-3 m-3">
+                                <button class="btn btn-outline-danger text-uppercase w-100" 
+                                    @onclick="(() => archivingConversation = c)">
+                                    Archive
+                                </button>
+                            </div>
+                        }
+                        <div class="form-layout-footer bg-black">
+                            <div>@c.Category.CategoryName</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-layout-title bg-black">
+                            <div>@c.GroupName</div>
+                        </div>
+                        <div class="form-layout-body">
+                            <div>Participants: @c.Participants.Count</div>
+                            <div>Owner: @c.Owner.FullName</div>
+                            <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
+                        </div>
+
+                        @if (loggedInUser is not null)
+                        {
+                            <div class="mb-1 w-100">
+                                <button class="btn btn-outline-success text-uppercase w-25"
+                                    @onclick="ArchiveConversation">
+                                    Confirm
+                                </button>
+                                <button class="btn btn-outline-danger text-uppercase w-25" 
+                                    @onclick="(() => archivingConversation = null)">
+                                    Cancel
+                                </button>
+                            </div>
+                        }
+                        <div class="form-layout-footer d-flex bg-black">
+                            <div>@c.Category.CategoryName</div>
+                        </div>
+                    }
+                </div>      
                 }
             }
           </div>
@@ -78,6 +164,12 @@
     private UserModel loggedInUser;
     private UserModel user;
     private List<ConversationModel> conversations;
+    private List<FriendRequestModel> friendRequests;
+    private ConversationModel archivingConversation;
+    private string displayMessage = "";
+    private bool isSuccess = false;
+
+    private UserModel chosenUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,7 +177,8 @@
         user = await userData.GetUserAsync(Id);
         if (loggedInUser is not null)
         {
-            conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);    
+            conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
+            friendRequests = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);
         }
     }
 
@@ -109,6 +202,74 @@
         {
             navManager.NavigateTo($"/PrivateConversation/{conversation.Id}");
         }
+    }
+
+    private async Task ArchiveConversation()
+    {
+        archivingConversation.Archived = true;
+        await conversationData.UpdateConversation(archivingConversation);
+        conversations.Remove(archivingConversation);
+        archivingConversation = null;
+    }
+
+    private async Task SendFriendRequest()
+    {
+        var model = await userData.GetUserFriendCodeAsync(user.FriendCode);
+        var friendRequest = friendRequests.FirstOrDefault(f => f.Receiver.Id == user.Id);
+        var isAlreadyFriendOrRequested = loggedInUser.Friends.Any(f => f.Id == model.Id) ||
+            friendRequest?.Sender.Id == loggedInUser.Id;
+
+        if (loggedInUser.Id == model.Id)
+        {
+            displayMessage = "You can't send a friend request to yourself.";
+            isSuccess = false;
+            return;
+        }
+
+        if (model is null)
+        {
+            displayMessage = "Oops... no user have been founded having this friend code.";
+            isSuccess = false;
+            return;
+        }
+
+        if (isAlreadyFriendOrRequested)
+        {
+            displayMessage = "You have already sent a friend request or have this person in your friend list.";
+            isSuccess = false;
+            return;
+        }
+
+        var newFriendRequest = new FriendRequestModel
+        {
+            Sender = new BasicUserModel(loggedInUser),
+            Receiver = new BasicUserModel(model),
+        };
+
+        await requestData.CreateFriendRequest(newFriendRequest);
+        navManager.NavigateTo($"/userDetails/{Id}", true);
+    }
+
+    private async Task UnfriendUser(UserModel user)
+    {
+        var friendRequest = await requestData.GetFriendRequestReceiverSenderAsync(loggedInUser, user);
+
+        var friendToRemove = user.Friends.FirstOrDefault(f => f.Id == new BasicUserModel(loggedInUser).Id);
+        if (friendToRemove != null)
+        {
+            user.Friends.Remove(friendToRemove);
+        }
+
+        var loggedInUserFriendToRemove = loggedInUser.Friends.FirstOrDefault(f => f.Id == new BasicUserModel(user).Id);
+        if (loggedInUserFriendToRemove != null)
+        {
+            loggedInUser.Friends.Remove(loggedInUserFriendToRemove);
+        }
+
+        await requestData.DeleteFriendRequestAsync(friendRequest);
+
+        await userData.UpdateUser(user);
+        await userData.UpdateUser(loggedInUser);
     }
 
     private void ClosePage()
