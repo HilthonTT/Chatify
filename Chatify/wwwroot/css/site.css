@@ -379,11 +379,12 @@ a, .btn-link {
 }
 
 .conversation-edit-icon {
+    margin-top: 0.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
 }
     .conversation-edit-icon:hover {
-        color: #433679;
+        color: #ffc107;
     }
 
 .conversation-edit-form {
