@@ -283,7 +283,7 @@
             Receiver = new BasicUserModel(foundUser)
         };
 
-        await requestData.CreateFriendRequest(request, new UserModel());
+        await requestData.CreateFriendRequest(request);
         friendRequestCreated = true;
     }
 }
