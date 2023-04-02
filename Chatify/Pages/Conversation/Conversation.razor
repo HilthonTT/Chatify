@@ -30,7 +30,7 @@
                   @if (chosenMessage is null || chosenMessage.Id != m.Id)
                   {
                         <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                            <div class="message-sender">@m.Sender.FullName</div>
+                            <div class="message-sender">@m.Sender.DisplayName</div>
                             <div class="message-text">@m.Text</div>
                             <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
@@ -40,7 +40,7 @@
                             @if (m.Sender.Id == loggedInUser?.Id)
                             {
                               <div class="btn-group">
-                                <button class="btn btn-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
+                                <button class="btn btn-outline-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
                               </div>
                             }
                       </div>
@@ -48,7 +48,7 @@
                   else
                   {
                        <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                            <div class="message-sender">@m.Sender.FullName</div>
+                            <div class="message-sender">@m.Sender.DisplayName</div>
                             <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
                             <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
@@ -67,9 +67,18 @@
               }
             </div>
             <div class="col-md-4 col-xl-2">
+                @if (loggedInUser?.Id == conversation?.Owner.Id)
+                {
+                    <div class="bg-dark p-2 mb-2">
+                        <h3>Settings</h3>
+                        <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => SettingsPage(conversation))">
+                            Edit
+                        </button>
+                    </div>
+                }
                 <div class="participants-list p-2">
                     <h3 class="fw-bold text-uppercase">Participants</h3>
-                    <button class="btn btn-success w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
+                    <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
                     <ul class="list-group">
                         @foreach (var p in conversation?.Participants)
                         {
@@ -103,10 +112,10 @@
               <div class="row">
                 <div class="col-10">
                   <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
-                    class="form-control bg-dark text-light" @bind-value="messageText" />
+                    class="form-control bg-dark text-light input-section border-warning" @bind-value="messageText" />
                 </div>
                 <div class="col-2">
-                  <button class="btn btn-success form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+                  <button class="btn btn-outline-warning form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
                 </div>
               </div>
             </div>
@@ -243,6 +252,12 @@
 
     private async Task UpdateMessage()
     {
+        if (chosenMessage.Text == editingMessageText)
+        {
+            chosenMessage = null;
+            return;
+        }
+
         chosenMessage.Text = editingMessageText;
         chosenMessage.LastEdited = DateTime.UtcNow;
         await messageData.UpdateMessageAsync(chosenMessage);
@@ -252,7 +267,7 @@
     private async Task RemoveParticipant()
     {
         conversation.Participants.Remove(chosenUser);
-        await conversationData.UpdateConversation(conversation, loggedInUser);
+        await conversationData.UpdateConversation(conversation);
         chosenUser = null;
     }
 
@@ -305,5 +320,10 @@
     private void UserDetailsPage(BasicUserModel user)
     {
         navManager.NavigateTo($"/userDetails/{user.Id}");
+    }
+
+    private void SettingsPage(ConversationModel conversation)
+    {
+        navManager.NavigateTo($"/UpdateConversation/{conversation.Id}");
     }
 }

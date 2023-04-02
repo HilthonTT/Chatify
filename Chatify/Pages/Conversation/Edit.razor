@@ -1,0 +1,155 @@
+﻿@page "/UpdateConversation/{Id}"
+@attribute [Authorize]
+@inject IConversationData conversationData
+@inject ICategoryData categoryData
+@inject IUserData userData
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+
+<h1 class="text-uppercase fw-bold text-center mb-4">Update @conversation?.GroupName</h1>
+
+@if (loggedInUser?.Id != conversation?.Owner.Id)
+{
+    <NotAuthorized />
+}
+else
+{
+    @if (conversation is not null)
+    {
+        <div class="rounded rounded-3 shadow">
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-8 card bg-dark p-4">
+                        <div class="row">
+                            <div class="col-11">
+                                <div>
+                                    @if (currentEditingGroupName == conversation.Id)
+                                    {
+                                        <EditForm class="conversation-edit-form" Model="editedGroupName" 
+                                            OnSubmit="(async() => await SaveGroupName(conversation))">
+
+                                            <InputText class="form-control bg-dark text-light conversation-edit-field border-warning" @bind-Value="editedGroupName"/>
+                                            <div class="btn-group">
+                                                <button class="btn btn-outline-success mx-1" type="submit">
+                                                    Save
+                                                </button>
+                                                <button class="btn btn-outline-danger" type="button" 
+                                                    @onclick="(() => currentEditingGroupName = string.Empty)">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </EditForm>
+                                    }
+                                    else
+                                    {
+                                        <h2>@conversation.GroupName</h2>
+                                        <button class="btn btn-outline-warning w-100" @onclick="(() => EditGroupName(conversation))">Edit Group Name</button>
+                                    }
+                                    <hr />
+                                    @if (currentEditingCategoryId == conversation.Id)
+                                    {
+                                        <EditForm class="conversation-edit-form" Model="editedCategoryId" 
+                                            OnSubmit="(async() => await SaveCategory(conversation))">
+                            
+                                            <InputRadioGroup id="category" @bind-Value="editedCategoryId">
+                                                @foreach (var c in categories)
+                                                {
+                                                    <div class="radio-item-group">
+                                                        <InputRadio Value="c.Id" id="@c.Id"/>
+                                                        <label for="@c.Id" class="h-100 w-100">
+                                                            <span class="fw-bold text-uppercase text-center h5">@c.CategoryName</span>
+                                                            <p>@c.CategoryDescription</p>
+                                                        </label>
+                                                    </div>
+                                                }  
+                                            </InputRadioGroup>
+                                            <div class="btn-group">
+                                                <button class="btn btn-outline-success me-1" type="submit">
+                                                    Save
+                                                </button>
+                                                <button class="btn btn-outline-danger" type="button" 
+                                                    @onclick="(() => currentEditingCategoryId = string.Empty)">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </EditForm>
+                                    }
+                                    else
+                                    {
+
+                                        <h2>@conversation.Category.CategoryName</h2>
+                                        <button class="btn btn-outline-warning w-100" @onclick="(() => EditCategory(conversation))">Edit Category</button>
+                                    }
+                                    <hr />
+                                    <p class="conversation-info">The Owner: @conversation.Owner.DisplayName</p>
+                                    <p class="conversation-info">This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+                            <div class="col-1">
+                                <div class="close-button-section">
+                                    <button class="btn btn-close btn-close-white" @onclick="(() => ClosePage(conversation))"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private ConversationModel conversation;
+    private ConversationModel editingModel;
+    private List<CategoryModel> categories;
+    private UserModel loggedInUser;
+    private string currentEditingGroupName = "";
+    private string editedGroupName = "";
+    private string currentEditingCategoryId = "";
+    private string editedCategoryId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryData.GetAllCategoriesAsync();
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        conversation = await conversationData.GetConversationAsync(Id);
+    }
+
+    private void EditGroupName(ConversationModel model)
+    {
+        editingModel = model;
+        editedGroupName = model.GroupName;
+        currentEditingGroupName = model.Id;
+        currentEditingCategoryId = "";
+    }
+
+    private async Task SaveGroupName(ConversationModel model)
+    {
+        currentEditingGroupName = string.Empty;
+        model.GroupName = editedGroupName;
+        await conversationData.UpdateConversation(model);
+    }
+
+    private void EditCategory(ConversationModel model)
+    {
+        editingModel = model;
+        editedCategoryId = model.Category.Id;
+        currentEditingGroupName = "";
+        currentEditingCategoryId = model.Id;
+    }
+
+    private async Task SaveCategory(ConversationModel model)
+    {
+        currentEditingCategoryId = string.Empty;
+        model.Category = categories.Where(c => c.Id == editedCategoryId).FirstOrDefault();
+        await conversationData.UpdateConversation(model);
+    }
+
+    private void ClosePage(ConversationModel conversation)
+    {
+        navManager.NavigateTo($"/Conversation/{conversation.Id}");
+    }
+}
