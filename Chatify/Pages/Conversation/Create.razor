@@ -151,8 +151,9 @@
 
         if (string.IsNullOrWhiteSpace(searchText) is false)
         {
-            output = output.Where(f => f.FirstName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase) ||
-                f.LastName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            output = output.Where(
+                f => f.DisplayName.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
 
         friends = output;

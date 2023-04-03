@@ -214,6 +214,8 @@
 
     private async Task SendFriendRequest()
     {
+        if (loggedInUser is null) return;
+
         var model = await userData.GetUserFriendCodeAsync(user.FriendCode);
         var friendRequest = friendRequests.FirstOrDefault(f => f.Receiver.Id == user.Id);
         var isAlreadyFriendOrRequested = loggedInUser.Friends.Any(f => f.Id == model.Id) ||
@@ -252,6 +254,8 @@
 
     private async Task UnfriendUser(UserModel user)
     {
+        if (loggedInUser is null) return;
+        
         var friendRequest = await requestData.GetFriendRequestReceiverSenderAsync(loggedInUser, user);
 
         var friendToRemove = user.Friends.FirstOrDefault(f => f.Id == new BasicUserModel(loggedInUser).Id);

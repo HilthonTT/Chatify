@@ -83,7 +83,7 @@
                         </div>
                         <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
                             <div>Participants: @c.Participants.Count</div>
-                            <div>Owner: @c.Owner.FullName</div>
+                            <div>Owner: @c.Owner.DisplayName</div>
                             <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
                         </div>
                         @if (c.Owner.Id == loggedInUser?.Id)
@@ -106,7 +106,7 @@
                         </div>
                         <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
                             <div>Participants: @c.Participants.Count</div>
-                            <div>Owner: @c.Owner.FullName</div>
+                            <div>Owner: @c.Owner.DisplayName</div>
                             <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
                         </div>
 
