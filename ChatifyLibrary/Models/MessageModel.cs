@@ -8,6 +8,7 @@ public class MessageModel
     public BasicUserModel Sender { get; set; }
     public List<BasicUserModel> Receivers { get; set; } = new();
     public string Text { get; set; }
+    public string FileName { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public DateTime LastEdited { get; set; } = DateTime.UtcNow;
     public ConversationModel Conversation { get; set; }

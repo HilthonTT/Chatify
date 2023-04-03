@@ -4,6 +4,7 @@
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject IMessageData messageData
+@inject IConfiguration config
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
@@ -140,6 +141,12 @@
     private MessageModel chosenMessage;
     private BasicUserModel chosenUser;
 
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+
+    private IBrowserFile? file;
+    private string errorMessage = "";
+
+
     protected override async Task OnInitializedAsync()
     {
         conversation = await conversationData.GetConversationAsync(Id);
@@ -226,28 +233,41 @@
 
     private async Task SendMessage()
     {
-        if (string.IsNullOrWhiteSpace(messageText))
+        try
         {
-            return;
+            errorMessage = "";
+
+            if (string.IsNullOrWhiteSpace(messageText))
+            {
+                return;
+            }
+
+            string relativePath = await CaptureFile();
+
+            MessageModel message = new()
+            {
+                Sender = new BasicUserModel(loggedInUser),
+                Text = messageText,
+                FileName = relativePath,
+                Receivers = conversation.Participants,
+                Conversation = conversation,
+                Archived = false,
+            };
+
+            await messageData.CreateMessage(message);
+
+            if (hubConnection is not null)
+            {
+                await hubConnection.InvokeAsync("SendMessage", message, conversation);
+            }
+
+            messageText = "";
+            file = null;
         }
-
-        MessageModel message = new()
+        catch (Exception ex)
         {
-            Sender = new BasicUserModel(loggedInUser),
-            Text = messageText,
-            Receivers = conversation.Participants,
-            Conversation = conversation,
-            Archived = false,
-        };
-
-        await messageData.CreateMessage(message);
-
-        if (hubConnection is not null)
-        {
-            await hubConnection.InvokeAsync("SendMessage", message, conversation);
+            errorMessage = ex.Message;
         }
-
-        messageText = "";
     }
 
     private async Task UpdateMessage()
@@ -325,5 +345,51 @@
     private void SettingsPage(ConversationModel conversation)
     {
         navManager.NavigateTo($"/UpdateConversation/{conversation.Id}");
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        errorMessage = "";
+
+        if (file is null || loggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage"), 
+                loggedInUser.DisplayName, 
+                newFileName);
+
+            string relativePath = Path.Combine(loggedInUser.DisplayName, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"), 
+                    loggedInUser.DisplayName));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"File: {file.Name} Error: {ex.Message}";
+            throw;
+        }
     }
 }

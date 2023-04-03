@@ -17,4 +17,8 @@
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.6.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploadedFiles\" />
+  </ItemGroup>
+
 </Project>
