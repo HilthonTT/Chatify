@@ -13,38 +13,80 @@
         <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
         <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Old</button>
     </div>
+    <div class="col-12 col-md-4 col-xl-12 mt-2">
+        <button class="btn btn-outline-success text-uppercase fw-bold w-100" 
+            @onclick="(() => viewSendedRequests = !viewSendedRequests)">
+            @GetPendingRequestButtonText(viewSendedRequests)
+        </button>
+    </div>
 </div>
 
 <div class="row mt-2">
     <div class="col-xl-12">
         <input type="text" placeholder="Search" aria-label="Search Box" 
             class="form-control bg-dark text-light input-section border-warning"
-            @oninput="((txt) => OnSearchInput((string)txt.Value))">
+            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))">
     </div>
 </div>
 
 <div class="row mt-5">
     <div class="col-md-10 col-xl-12">
-        @if (pendingRequests is not null)
+        @if (viewSendedRequests is false)
         {
-            <Virtualize Items="pendingRequests" Context="p" OverscanCount="10">
+            @if (pendingRequests is not null)
+            {
+                <Virtualize Items="pendingRequests" Context="p" OverscanCount="10">
+                    <div class="card mt-2">
+                        @if (selectedRequest is null || selectedRequest.Id != p.Id)
+                        {
+                            <div class="card-body bg-dark">
+                                <h5 class="card-title">Request sent by: @p.Sender.DisplayName</h5>
+                                <p class="card-text">Sent at @p.RequestDate UTC</p>
+                                <p class="card-text">Status: @GetStatusText(p)</p>
+                                <button class="btn btn-outline-success w-100" @onclick="(() => selectedRequest = p)">Accept Request</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card-body bg-dark">
+                                <h5 class="card-title">Request sent by: @p.Sender.DisplayName</h5>
+                                <p class="card-text">Sent at @p.RequestDate UTC</p>
+                                <p class="card-text">Status: @GetStatusText(p)</p>
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await AcceptRequest(p))">Accept</button>
+                                    <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Reconsider</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </Virtualize>
+            }
+        }
+        else
+        {
+            <Virtualize Items="sendedRequests" Context="s" OverscanCount="10">
                 <div class="card mt-2">
-                    @if (selectedRequest is null || selectedRequest.Id != p.Id)
+                    @if (selectedRequest is null || selectedRequest.Id != s.Id)
                     {
                         <div class="card-body bg-dark">
-                            <h5 class="card-title">Request sent by: @p.Sender.FullName</h5>
-                            <p class="card-text">Sent at @p.RequestDate UTC</p>
-                            <button class="btn btn-outline-success w-100" @onclick="(() => selectedRequest = p)">Accept Request</button>
+                            <h5 class="card-title">Request sent to: @s.Receiver.DisplayName</h5>
+                            <p class="card-text">Sent at @s.RequestDate UTC</p>
+                            <p class="card-text">Status: @GetStatusText(s)</p>
+                            @if (s.IsAccepted is false)
+                            {
+                                <button class="btn btn-outline-danger w-100" @onclick="(() => selectedRequest = s)">Delete Request</button>
+                            }
                         </div>
                     }
                     else
                     {
                         <div class="card-body bg-dark">
-                            <h5 class="card-title">Request sent by: @p.Sender.FullName</h5>
-                            <p class="card-text">Sent at @p.RequestDate UTC</p>
+                            <h5 class="card-title">Request sent to: @s.Receiver.DisplayName</h5>
+                            <p class="card-text">Sent at @s.RequestDate UTC</p>
+                            <p class="card-text">Status: @GetStatusText(s)</p>
                             <div class="btn-group w-100">
-                                <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await AcceptRequest(p))">Accept</button>
-                                <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Reconsider</button>
+                                <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await DeleteRequest(s))">Delete</button>
+                                <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Cancel</button>
                             </div>
                         </div>
                     }
@@ -57,9 +99,11 @@
 @code {
     private UserModel loggedInUser;
     private List<FriendRequestModel> pendingRequests;
+    private List<FriendRequestModel> sendedRequests;
     private FriendRequestModel selectedRequest;
     private string searchText = "";
     private bool isSortedByNew = true;
+    private bool viewSendedRequests = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,6 +111,7 @@
         if (loggedInUser is not null)
         {
             pendingRequests = await requestData.GetUserPendingFriendRequestsAsync(loggedInUser.Id);
+            sendedRequests = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);
         }
     }
 
@@ -75,7 +120,8 @@
         if (firstRender)
         {
             await LoadFilterState();
-            await FilterRequests();
+            await FilterPendingRequests();
+            await FilterSendedRequests();
             StateHasChanged();
         }
     }
@@ -86,15 +132,18 @@
         searchText = stringResults.Success ? stringResults.Value : "";
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
         isSortedByNew = boolResults.Success ? boolResults.Value : true;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(viewSendedRequests));
+        viewSendedRequests = boolResults.Success ? boolResults.Value : false;
     }
 
     private async Task SaveFilterState()
     {
         await sessionStorage.SetAsync(nameof(searchText), searchText);
         await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+        await sessionStorage.SetAsync(nameof(viewSendedRequests), viewSendedRequests);
     }
 
-    private async Task FilterRequests()
+    private async Task FilterPendingRequests()
     {
         loggedInUser = await authProvider.GetUserFromAuth(userData);
 
@@ -102,8 +151,8 @@
 
         if (string.IsNullOrWhiteSpace(searchText) is false)
         {
-            output = output.Where(f => f.Sender.FirstName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase) ||
-                f.Sender.LastName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            output = output.Where(f => f.Receiver.DisplayName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                f.Sender.DisplayName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
 
         if (isSortedByNew)
@@ -119,16 +168,57 @@
         await SaveFilterState();
     }
 
+    private async Task FilterSendedRequests()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+
+        var output = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(f => f.Receiver.DisplayName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                f.Sender.DisplayName.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(f => f.RequestDate).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(f => f.RequestDate).ToList();
+        }
+
+        sendedRequests = output;
+        await SaveFilterState();
+    }
+
     private async Task OrderByNew(bool isNew)
     {
         isSortedByNew = isNew;
-        await FilterRequests();
+
+        if (viewSendedRequests is false)
+        {
+            await FilterPendingRequests();
+        }
+        else
+        {
+            await FilterSendedRequests();
+        }
     }
 
     private async Task OnSearchInput(string searchInput)
     {
         searchText = searchInput;
-        await FilterRequests();
+
+        if (viewSendedRequests is false)
+        {
+            await FilterPendingRequests();
+        }
+        else
+        {
+            await FilterSendedRequests();
+        }
     }
 
     private async Task AcceptRequest(FriendRequestModel request)
@@ -144,6 +234,13 @@
         await userData.UpdateUser(sender);
 
         pendingRequests.Remove(request);
+        selectedRequest = null;
+    }
+
+    private async Task DeleteRequest(FriendRequestModel request)
+    {
+        await requestData.DeleteFriendRequestAsync(request);
+        sendedRequests.Remove(request);
         selectedRequest = null;
     }
 
@@ -165,5 +262,25 @@
         }
 
         return "btn-outline-danger";
+    }
+
+    private string GetStatusText(FriendRequestModel request)
+    {
+        if (request.IsAccepted)
+        {
+            return "Accepted";
+        }
+
+        return "Not Considered";
+    }
+
+    private string GetPendingRequestButtonText(bool isViewSendedRequests)
+    {
+        if (isViewSendedRequests is false)
+        {
+            return "View Pending Requests";
+        }
+
+        return "View Received Requests";
     }
 }
