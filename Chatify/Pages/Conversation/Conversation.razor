@@ -16,9 +16,7 @@
 {
     @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
     {
-        <div class="alert alert-danger">
-            You are not authorized to view this page.
-        </div>
+        <NotAuthorized />
     }
     else
     {
@@ -33,10 +31,10 @@
                         <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
                             <div class="message-sender">@m.Sender.DisplayName</div>
                             <div class="message-text">@m.Text</div>
-                            <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
                             {
-                              <div class="message-timestamp">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                              <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             }
                             @if (m.Sender.Id == loggedInUser?.Id)
                             {
@@ -51,15 +49,16 @@
                        <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
                             <div class="message-sender">@m.Sender.DisplayName</div>
                             <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
-                            <div class="message-timestamp">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                            <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
                             {
-                              <div class="message-timestamp">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                              <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             }
                             @if (m.Sender.Id == loggedInUser?.Id)
                             {
                               <div class="btn-group">
-                                <button class="btn btn-success" @onclick="(() => UpdateMessage())">Save</button>
+                                <button class="btn btn-success me-1" @onclick="(() => UpdateMessage())">Save</button>
+                                <button class="btn btn-danger" @onclick="(() => ArchiveMessage())">Archive</button>
                               </div>
                             }
                       </div>
@@ -111,9 +110,14 @@
           <div class="row fixed-bottom mb-4 mx-2">
             <div class="col-xl-12 col-lg-12">
               <div class="row">
-                <div class="col-10">
+                <div class="col-8">
                   <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
-                    class="form-control bg-dark text-light input-section border-warning" @bind-value="messageText" />
+                    class="form-control bg-dark text-light input-section border-warning" @bind-value="messageText" />  
+                </div>
+                <div class="col-2">
+                  <InputFile OnChange="LoadFiles" 
+                    class="form-control bg-dark text-light input-section border-warning"
+                    accept=".png,.jpg,.jpeg,.txt,.pdf"/>
                 </div>
                 <div class="col-2">
                   <button class="btn btn-outline-warning form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
@@ -145,6 +149,8 @@
 
     private IBrowserFile? file;
     private string errorMessage = "";
+    private string fileName = "";
+    private string fileExtension = "";
 
 
     protected override async Task OnInitializedAsync()
@@ -293,6 +299,7 @@
 
     private async Task ArchiveMessage()
     {
+        messages.Remove(chosenMessage);
         chosenMessage.Archived = true;
         await messageData.UpdateMessageAsync(chosenMessage);
         chosenMessage = null;
@@ -355,6 +362,15 @@
     private void LoadFiles(InputFileChangeEventArgs e)
     {
         file = e.File;
+    }
+
+    private void GetFileExtensionAndFileName(InputFileChangeEventArgs e)
+    {
+        fileName = string.Empty;
+        fileExtension = string.Empty;
+
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
     }
 
     private async Task<string> CaptureFile()
