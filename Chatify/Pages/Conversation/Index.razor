@@ -5,154 +5,163 @@
 @inject ICategoryData categoryData
 @inject IPrivateConversationData privateConversationData
 @inject IFriendCodeGenerator codeGenerator
+@inject IBanData banData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
-<h1 class="text-uppercase fw-bold text-center mb-4 text-light">Conversations</h1>
+@if (ban is null)
+{
+    <h1 class="text-uppercase fw-bold text-center mb-4 text-light">Conversations</h1>
 
-<div class="text-center">
-    <button class="btn btn-outline-light btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
-</div>
+    <div class="text-center">
+        <button class="btn btn-outline-light btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
+    </div>
 
-<div class="row">
-    <div class="text-uppercase fw-bold">You are in @conversations?.Count conversations</div>
-    <div class="col-md-8 col-xl-12 btn-group">
-        <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
-        <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Popular</button>
+    <div class="row">
+        <div class="text-uppercase fw-bold">You are in @conversations?.Count conversations</div>
+        <div class="col-md-8 col-xl-12 btn-group">
+            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
+            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Popular</button>
+        </div>
     </div>
-</div>
 
-<div class="row mt-2">
-    <div class="col-md-12 col-xl-12">
-        <input type="text" placeholder="Search"
-            aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
-            @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
-    </div>
-    <div class="col-12 d-block d-md-none">
-        @if (categories is not null && showCategories)
-        {
-            <div class="friend-category">
-                <span class="text-uppercase fw-bold">Category</span>
-                <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
-                @foreach (var c in categories)
-                {
-                    <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick(c.CategoryName))">
-                        @c.CategoryName
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="" @onclick="(() => showCategories = true)">
-                <span class="fw-bold">@selectedCategory</span>
-            </div>
-        }
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-3 col-xl-2 d-none d-md-block border-white">
-        @if (loggedInUser is not null)
-        {
-            <div class="friend-category">
-                <span class="text-uppercase fw-bold">Friends</span>
-                @if (loggedInUser.Friends.Count > 0)
-                {
-                    @foreach (var f in loggedInUser.Friends)
-                    {  
-                        <div @onclick="(() => OpenPrivateConversation(f))"><span class="oi oi-person me-1"></span>@f.DisplayName</div>   
-                    }
-                }
-                else
-                {
-                    <div>No Friends</div>
-                }
-            </div>
-        }
-    </div>
-    <div class="col-md-7 col-xl-8">
-        @if (conversations is not null)
-        {
-            <Virtualize Items="conversations" Context="c" OverscanCount="10">    
-                <div class="form-layout text-center">
-                    @if (archivingConversation is null || archivingConversation.Id != c.Id)
+    <div class="row mt-2">
+        <div class="col-md-12 col-xl-12">
+            <input type="text" placeholder="Search"
+                aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+                @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+        </div>
+        <div class="col-12 d-block d-md-none">
+            @if (categories is not null && showCategories)
+            {
+                <div class="friend-category">
+                    <span class="text-uppercase fw-bold">Category</span>
+                    <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
+                    @foreach (var c in categories)
                     {
-                        <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
-                            <div>@c.GroupName</div>
+                        <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick(c.CategoryName))">
+                            @c.CategoryName
                         </div>
-                        <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
-                            <div>Participants: @c.Participants.Count</div>
-                            <div>Owner: @c.Owner.DisplayName</div>
-                            <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
-                        </div>
-                        @if (c.Owner.Id == loggedInUser?.Id)
-                        {
-                            <div class="btn-archive mb-3 m-3">
-                                <button class="btn btn-outline-danger text-uppercase w-100" 
-                                    @onclick="(() => archivingConversation = c)">
-                                    Archive
-                                </button>
-                            </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="" @onclick="(() => showCategories = true)">
+                    <span class="fw-bold">@selectedCategory</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-3 col-xl-2 d-none d-md-block border-white">
+            @if (loggedInUser is not null)
+            {
+                <div class="friend-category">
+                    <span class="text-uppercase fw-bold">Friends</span>
+                    @if (loggedInUser.Friends.Count > 0)
+                    {
+                        @foreach (var f in loggedInUser.Friends)
+                        {  
+                            <div @onclick="(() => OpenPrivateConversation(f))"><span class="oi oi-person me-1"></span>@f.DisplayName</div>   
                         }
-                        <div class="form-layout-footer" @onclick="(() => OpenDetails(c))">
-                            <div>@c.Category.CategoryName</div>
-                        </div>
                     }
                     else
                     {
-                        <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
-                            <div>@c.GroupName</div>
-                        </div>
-                        <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
-                            <div>Participants: @c.Participants.Count</div>
-                            <div>Owner: @c.Owner.DisplayName</div>
-                            <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
-                        </div>
-
-                        @if (loggedInUser is not null)
+                        <div>No Friends</div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="col-md-7 col-xl-8">
+            @if (conversations is not null)
+            {
+                <Virtualize Items="conversations" Context="c" OverscanCount="10">    
+                    <div class="form-layout text-center">
+                        @if (archivingConversation is null || archivingConversation.Id != c.Id)
                         {
-                            <div class="mb-1 w-100">
-                                <button class="btn btn-outline-success text-uppercase w-25"
-                                    @onclick="ArchiveConversation">
-                                    Confirm
-                                </button>
-                                <button class="btn btn-outline-danger text-uppercase w-25" 
-                                    @onclick="(() => archivingConversation = null)">
-                                    Cancel
-                                </button>
+                            <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
+                                <div>@c.GroupName</div>
+                            </div>
+                            <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
+                                <div>Participants: @c.Participants.Count</div>
+                                <div>Owner: @c.Owner.DisplayName</div>
+                                <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
+                            </div>
+                            @if (c.Owner.Id == loggedInUser?.Id)
+                            {
+                                <div class="btn-archive mb-3 m-3">
+                                    <button class="btn btn-outline-danger text-uppercase w-100" 
+                                        @onclick="(() => archivingConversation = c)">
+                                        Archive
+                                    </button>
+                                </div>
+                            }
+                            <div class="form-layout-footer" @onclick="(() => OpenDetails(c))">
+                                <div>@c.Category.CategoryName</div>
                             </div>
                         }
-                        <div class="form-layout-footer d-flex" @onclick="(() => OpenDetails(c))">
-                            <div>@c.Category.CategoryName</div>
-                        </div>
+                        else
+                        {
+                            <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
+                                <div>@c.GroupName</div>
+                            </div>
+                            <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
+                                <div>Participants: @c.Participants.Count</div>
+                                <div>Owner: @c.Owner.DisplayName</div>
+                                <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
+                            </div>
+
+                            @if (loggedInUser is not null)
+                            {
+                                <div class="mb-1 w-100">
+                                    <button class="btn btn-outline-success text-uppercase w-25"
+                                        @onclick="ArchiveConversation">
+                                        Confirm
+                                    </button>
+                                    <button class="btn btn-outline-danger text-uppercase w-25" 
+                                        @onclick="(() => archivingConversation = null)">
+                                        Cancel
+                                    </button>
+                                </div>
+                            }
+                            <div class="form-layout-footer d-flex" @onclick="(() => OpenDetails(c))">
+                                <div>@c.Category.CategoryName</div>
+                            </div>
+                        }
+                    </div>      
+                </Virtualize>
+            }
+        </div>
+        <div class="col-md-3 col-xl-2 d-none d-md-block">
+            @if (categories is not null)
+            {
+                <div class="friend-category">
+                    <span class="text-uppercase fw-bold">Category</span>
+                    <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
+                    @foreach (var c in categories)
+                    {
+                        <div class="@SelectedCategoryClass(c.CategoryName)" 
+                            @onclick="(() => OnCategoryClick(c.CategoryName))">@c.CategoryName</div>    
                     }
-                </div>      
-            </Virtualize>
-        }
+                </div>
+            }
+        </div>
     </div>
-    <div class="col-md-3 col-xl-2 d-none d-md-block">
-        @if (categories is not null)
-        {
-            <div class="friend-category">
-                <span class="text-uppercase fw-bold">Category</span>
-                <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
-                @foreach (var c in categories)
-                {
-                    <div class="@SelectedCategoryClass(c.CategoryName)" 
-                        @onclick="(() => OnCategoryClick(c.CategoryName))">@c.CategoryName</div>    
-                }
-            </div>
-        }
-    </div>
-</div>
+}
+else
+{
+    <Banned />
+}
+
 
 @code {
     private UserModel loggedInUser;
     private List<ConversationModel> conversations;
     private List<CategoryModel> categories;
-
     private ConversationModel archivingConversation;
+    private BanModel ban;
     private string searchText = "";
     private string selectedCategory = "";
     private bool isSortedByNew = true;
@@ -165,6 +174,7 @@
         if (loggedInUser is not null)
         {
             conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
     }
 

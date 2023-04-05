@@ -404,3 +404,8 @@ a, .btn-link {
     flex: 1;
     border-radius: 10px;
 }
+
+.center-children {
+    display: flex;
+    justify-content: center;
+}

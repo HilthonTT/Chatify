@@ -5,184 +5,192 @@
 @inject IUserData userData
 @inject IMessageData messageData
 @inject IConfiguration config
+@inject IBanData banData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
 @implements IAsyncDisposable
 
-<h1 class="text-uppercase fw-bold text-center">@conversation?.GroupName</h1>
-
-@if (string.IsNullOrWhiteSpace(errorMessage) is false)
+@if (ban is null)
 {
-    <div class="row justify-content-center">
-        <div class="col-lg-10 col-md-8">
-            <div class="row alert bg-warning text-black" role="alert">
-                <div class="col-11">
-                    <h4 class="alert-heading">Error!</h4>
-                    <p>@errorMessage</p>
-                    <hr>
-                    <p class="mb-0">You can wait to send another friend request later if you think this is a mistake.</p>
-                </div>
-                <div class="col-1">
-                    <div class="close-button-section">
-                        <button class="btn btn-close btn-close" @onclick="(() => errorMessage = string.Empty)" />
+    <h1 class="text-uppercase fw-bold text-center">@conversation?.GroupName</h1>
+
+    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-8">
+                <div class="row alert bg-warning text-black" role="alert">
+                    <div class="col-11">
+                        <h4 class="alert-heading">Error!</h4>
+                        <p>@errorMessage</p>
+                        <hr>
+                        <p class="mb-0">You can wait to send another friend request later if you think this is a mistake.</p>
+                    </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close" @onclick="(() => errorMessage = string.Empty)" />
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-}
-
-@if (loggedInUser is not null && conversation is not null)
-{
-    @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
-    {
-        <NotAuthorized />
     }
-    else
+
+    @if (loggedInUser is not null && conversation is not null)
     {
-        <div class="container-fluid vh-100 d-flex flex-column">
-          <div class="row flex-grow-1">
-            <div class="col-md-8 col-xl-10 messages-container">
-              @if (messages is not null)
-              {
-                <Virtualize Items="messages" Context="m" OverscanCount="10">
-                  @if (chosenMessage is null || chosenMessage.Id != m.Id)
+        @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
+        {
+            <NotAuthorized />
+        }
+        else
+        {
+            <div class="container-fluid vh-100 d-flex flex-column">
+              <div class="row flex-grow-1">
+                <div class="col-md-8 col-xl-10 messages-container">
+                  @if (messages is not null)
                   {
-                        <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                            <div class="message-sender">@m.Sender.DisplayName</div>
-                            <div class="message-text">@m.Text</div>
-                            @if (string.IsNullOrWhiteSpace(m.FileName) is false)
-                            {
-                                @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
+                    <Virtualize Items="messages" Context="m" OverscanCount="10">
+                      @if (chosenMessage is null || chosenMessage.Id != m.Id)
+                      {
+                            <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                                <div class="message-sender">@m.Sender.DisplayName</div>
+                                <div class="message-text">@m.Text</div>
+                                @if (string.IsNullOrWhiteSpace(m.FileName) is false)
                                 {
-                                    <div class="text-center">
-                                        <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="message-text">
-                                        <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
-                                            @m.OriginalFileName
-                                        </a>
-                                    </div>
-                                }
-                            }
-                            <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                            @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
-                            {
-                              <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                            }
-                            @if (m.Sender.Id == loggedInUser?.Id)
-                            {
-                              <div class="btn-group">
-                                <button class="btn btn-outline-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
-                              </div>
-                            }
-                      </div>
-                  }
-                  else
-                  {
-                       <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                            <div class="message-sender">@m.Sender.DisplayName</div>
-                            <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
-                            @if (string.IsNullOrWhiteSpace(m.FileName) is false)
-                            {
-                                @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
-                                {
-                                    <div class="text-center">
-                                        <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName"/>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="message-text">
-                                        <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
-                                            @m.OriginalFileName
-                                        </a>
-                                    </div>
-                                }
-                            }
-                            <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                            @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
-                            {
-                              <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                            }
-                            @if (m.Sender.Id == loggedInUser?.Id)
-                            {
-                              <div class="btn-group">
-                                <button class="btn btn-success me-1" @onclick="(() => UpdateMessage())">Save</button>
-                                <button class="btn btn-danger" @onclick="(() => ArchiveMessage())">Archive</button>
-                              </div>
-                            }
-                      </div>
-                  }
-                </Virtualize>
-                <div class="messages-mb" />
-              }
-            </div>
-            <div class="col-md-4 col-xl-2">
-                @if (loggedInUser?.Id == conversation?.Owner.Id)
-                {
-                    <div class="bg-dark p-2 mb-2">
-                        <h3>Settings</h3>
-                        <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => SettingsPage(conversation))">
-                            Edit
-                        </button>
-                    </div>
-                }
-                <div class="participants-list p-2">
-                    <h3 class="fw-bold text-uppercase">Participants</h3>
-                    <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
-                    <ul class="list-group">
-                        @foreach (var p in conversation?.Participants)
-                        {
-                            if (chosenUser is null || chosenUser.Id != p.Id)
-                            {
-                                <li class="list-group-item mb-2">
-                                    <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
-                                    @if (loggedInUser.Id != p.Id)
+                                    @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
                                     {
-                                        <button class="btn btn-primary btn-sm float-end" @onclick="(() => chosenUser = p)">Remove</button>
+                                        <div class="text-center">
+                                            <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
+                                        </div>
                                     }
-                                </li>
-                            }
-                            else
+                                    else
+                                    {
+                                        <div class="message-text">
+                                            <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
+                                                @m.OriginalFileName
+                                            </a>
+                                        </div>
+                                    }
+                                }
+                                <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                                {
+                                  <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                }
+                                @if (m.Sender.Id == loggedInUser?.Id)
+                                {
+                                  <div class="btn-group">
+                                    <button class="btn btn-outline-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
+                                  </div>
+                                }
+                          </div>
+                      }
+                      else
+                      {
+                           <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                                <div class="message-sender">@m.Sender.DisplayName</div>
+                                <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
+                                @if (string.IsNullOrWhiteSpace(m.FileName) is false)
+                                {
+                                    @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
+                                    {
+                                        <div class="text-center">
+                                            <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName"/>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="message-text">
+                                            <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
+                                                @m.OriginalFileName
+                                            </a>
+                                        </div>
+                                    }
+                                }
+                                <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                                {
+                                  <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                }
+                                @if (m.Sender.Id == loggedInUser?.Id)
+                                {
+                                  <div class="btn-group">
+                                    <button class="btn btn-success me-1" @onclick="(() => UpdateMessage())">Save</button>
+                                    <button class="btn btn-danger" @onclick="(() => ArchiveMessage())">Archive</button>
+                                  </div>
+                                }
+                          </div>
+                      }
+                    </Virtualize>
+                    <div class="messages-mb" />
+                  }
+                </div>
+                <div class="col-md-4 col-xl-2">
+                    @if (loggedInUser?.Id == conversation?.Owner.Id)
+                    {
+                        <div class="bg-dark p-2 mb-2">
+                            <h3>Settings</h3>
+                            <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => SettingsPage(conversation))">
+                                Edit
+                            </button>
+                        </div>
+                    }
+                    <div class="participants-list p-2">
+                        <h3 class="fw-bold text-uppercase">Participants</h3>
+                        <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
+                        <ul class="list-group">
+                            @foreach (var p in conversation?.Participants)
                             {
-                                <li class="list-group-item mb-2">
-                                    <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
-                                    <div class="btn-group-sm float-end">
-                                        <button class="btn btn-success me-1" @onclick="(async() => await RemoveParticipant())">Remove</button>
-                                        <button class="btn btn-danger" @onclick="(() => chosenUser = null)">Cancel</button>
-                                    </div>
-                                </li>
+                                if (chosenUser is null || chosenUser.Id != p.Id)
+                                {
+                                    <li class="list-group-item mb-2">
+                                        <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
+                                        @if (loggedInUser.Id != p.Id)
+                                        {
+                                            <button class="btn btn-primary btn-sm float-end" @onclick="(() => chosenUser = p)">Remove</button>
+                                        }
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="list-group-item mb-2">
+                                        <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
+                                        <div class="btn-group-sm float-end">
+                                            <button class="btn btn-success me-1" @onclick="(async() => await RemoveParticipant())">Remove</button>
+                                            <button class="btn btn-danger" @onclick="(() => chosenUser = null)">Cancel</button>
+                                        </div>
+                                    </li>
+                                }
                             }
-                        }
-                    </ul>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-          </div>
-          <div class="row fixed-bottom mb-4 mx-2">
-            <div class="col-xl-12 col-lg-12">
-              <div class="row">
-                <div class="col-8">
-                  <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
-                    class="form-control bg-dark text-light input-section border-warning" @bind-value="messageText" />  
-                </div>
-                <div class="col-2">
-                  <InputFile OnChange="LoadFiles" 
-                    class="form-control bg-dark text-light input-section border-warning"
-                    accept=".png,.jpg,.jpeg,.txt,.pdf"/>
-                </div>
-                <div class="col-2">
-                  <button class="btn btn-outline-warning form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+              </div>
+              <div class="row fixed-bottom mb-4 mx-2">
+                <div class="col-xl-12 col-lg-12">
+                  <div class="row">
+                    <div class="col-8">
+                      <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
+                        class="form-control bg-dark text-light input-section border-warning" @bind-value="messageText" />  
+                    </div>
+                    <div class="col-2">
+                      <InputFile OnChange="LoadFiles" 
+                        class="form-control bg-dark text-light input-section border-warning"
+                        accept=".png,.jpg,.jpeg,.txt,.pdf"/>
+                    </div>
+                    <div class="col-2">
+                      <button class="btn btn-outline-warning form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+        }
     }
+}
+else
+{
+    <Banned />
 }
 
 @code {
@@ -200,6 +208,7 @@
     private UserModel loggedInUser;
     private MessageModel chosenMessage;
     private BasicUserModel chosenUser;
+    private BanModel ban;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
     private IBrowserFile? file;
@@ -216,6 +225,10 @@
         }
 
         loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(navManager.ToAbsoluteUri("/chathub"))

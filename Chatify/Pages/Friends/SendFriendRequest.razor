@@ -3,39 +3,48 @@
 @using Chatify.Models
 @inject IUserData userData
 @inject IFriendRequestData requestData
+@inject IBanData banData
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 
-<h1 class="text-center text-uppercase fw-bold mb-4">Send A Friend Request</h1>
+@if (ban is null)
+{
+    <h1 class="text-center text-uppercase fw-bold mb-4">Send A Friend Request</h1>
 
-<div class="row justify-content-center">
-  <div class="col-xl-10 col-lg-8 col-md-10 card bg-dark p-4">
-    @if (string.IsNullOrWhiteSpace(displayMessage) == false)
-    {
-        <div class="alert @GetAlertClass()">@displayMessage</div>
-    }
-    <EditForm Model="request" OnValidSubmit="(async() => await SendRequest())">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-          <label class="form-label fw-bold text-uppercase" for="friend-code">Friend Code</label>
-          <div class="mb-1">Insert the friend code of the person you want to add.</div>
-          <ValidationMessage For="(() => request.FriendCode)" />
-          <InputText class="form-control bg-dark text-light input-section border-warning" id="friend-code" @bind-Value="request.FriendCode"/>
-        </div>
-        <div class="text-center mt-4">
-          <button type="submit" class="btn btn-outline-warning btn-lg text-uppercase">Send Request</button>
-        </div>
-        <div class="text-center mt-4">
-          <button class="btn btn-outline-secondary" @onclick="ClosePage">Cancel</button>
-        </div>
-    </EditForm>
-  </div>
-</div>
+    <div class="row justify-content-center">
+      <div class="col-xl-10 col-lg-8 col-md-10 card bg-dark p-4">
+        @if (string.IsNullOrWhiteSpace(displayMessage) == false)
+        {
+            <div class="alert @GetAlertClass()">@displayMessage</div>
+        }
+        <EditForm Model="request" OnValidSubmit="(async() => await SendRequest())">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+              <label class="form-label fw-bold text-uppercase" for="friend-code">Friend Code</label>
+              <div class="mb-1">Insert the friend code of the person you want to add.</div>
+              <ValidationMessage For="(() => request.FriendCode)" />
+              <InputText class="form-control bg-dark text-light input-section border-warning" id="friend-code" @bind-Value="request.FriendCode"/>
+            </div>
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-outline-warning btn-lg text-uppercase">Send Request</button>
+            </div>
+            <div class="text-center mt-4">
+              <button class="btn btn-outline-secondary" @onclick="ClosePage">Cancel</button>
+            </div>
+        </EditForm>
+      </div>
+    </div>
+}
+else
+{
+    <Banned />
+}
 
 @code {
     private CreateFriendRequestModel request = new();
     private List<FriendRequestModel> friendRequests;
     private UserModel loggedInUser;
+    private BanModel ban;
     private string displayMessage = "";
     private bool isSuccess = false;
 
@@ -45,6 +54,7 @@
         if (loggedInUser is not null)
         {
             friendRequests = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
     }
 

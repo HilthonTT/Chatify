@@ -39,7 +39,7 @@ public class MongoBanData : IBanData
         {
             var filter = Builders<BanModel>.Filter.And(
                 Builders<BanModel>.Filter.Eq(b => b.UserBanned.Id, userId),
-                Builders<BanModel>.Filter.Where(b => b.BannedUntil < DateTime.UtcNow));
+                Builders<BanModel>.Filter.Where(b => b.BannedUntil > DateTime.UtcNow));
 
             output = await _bans.Find(filter).FirstOrDefaultAsync();
 

@@ -2,105 +2,114 @@
 @attribute [Authorize]
 @inject IFriendRequestData requestData
 @inject IUserData userData
+@inject IBanData banData
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
 
-<h1 class="text-uppercase fw-bold text-center mb-4">Friend Requests</h1>
+@if (ban is null)
+{
+    <h1 class="text-uppercase fw-bold text-center mb-4">Friend Requests</h1>
 
-<div class="row">
-    <div class="col-12 col-md-8 col-xl-9 text-uppercase fw-bold">You currently have @pendingRequests?.Count @GetFriendRequestCount()</div>
-    <div class="col-12 col-md-4 col-xl-12 btn-group">
-        <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
-        <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Old</button>
+    <div class="row">
+        <div class="col-12 col-md-8 col-xl-9 text-uppercase fw-bold">You currently have @pendingRequests?.Count @GetFriendRequestCount()</div>
+        <div class="col-12 col-md-4 col-xl-12 btn-group">
+            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
+            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Old</button>
+        </div>
+        <div class="col-12 col-md-4 col-xl-12 mt-2">
+            <button class="btn btn-outline-success text-uppercase fw-bold w-100" 
+                @onclick="(() => viewSendedRequests = !viewSendedRequests)">
+                @GetPendingRequestButtonText(viewSendedRequests)
+            </button>
+        </div>
     </div>
-    <div class="col-12 col-md-4 col-xl-12 mt-2">
-        <button class="btn btn-outline-success text-uppercase fw-bold w-100" 
-            @onclick="(() => viewSendedRequests = !viewSendedRequests)">
-            @GetPendingRequestButtonText(viewSendedRequests)
-        </button>
-    </div>
-</div>
 
-<div class="row mt-2">
-    <div class="col-xl-12">
-        <input type="text" placeholder="Search" aria-label="Search Box" 
-            class="form-control bg-dark text-light input-section border-warning"
-            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))">
+    <div class="row mt-2">
+        <div class="col-xl-12">
+            <input type="text" placeholder="Search" aria-label="Search Box" 
+                class="form-control bg-dark text-light input-section border-warning"
+                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))">
+        </div>
     </div>
-</div>
 
-<div class="row mt-5">
-    <div class="col-md-10 col-xl-12">
-        @if (viewSendedRequests is false)
-        {
-            @if (pendingRequests is not null)
+    <div class="row mt-5">
+        <div class="col-md-10 col-xl-12">
+            @if (viewSendedRequests is false)
             {
-                <Virtualize Items="pendingRequests" Context="p" OverscanCount="10">
+                @if (pendingRequests is not null)
+                {
+                    <Virtualize Items="pendingRequests" Context="p" OverscanCount="10">
+                        <div class="card mt-2">
+                            @if (selectedRequest is null || selectedRequest.Id != p.Id)
+                            {
+                                <div class="card-body bg-dark">
+                                    <h5 class="card-title">Request sent by: @p.Sender.DisplayName</h5>
+                                    <p class="card-text">Sent at @p.RequestDate UTC</p>
+                                    <p class="card-text">Status: @GetStatusText(p)</p>
+                                    <button class="btn btn-outline-success w-100" @onclick="(() => selectedRequest = p)">Accept Request</button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="card-body bg-dark">
+                                    <h5 class="card-title">Request sent by: @p.Sender.DisplayName</h5>
+                                    <p class="card-text">Sent at @p.RequestDate UTC</p>
+                                    <p class="card-text">Status: @GetStatusText(p)</p>
+                                    <div class="btn-group w-100">
+                                        <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await AcceptRequest(p))">Accept</button>
+                                        <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Reconsider</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </Virtualize>
+                }
+            }
+            else
+            {
+                <Virtualize Items="sendedRequests" Context="s" OverscanCount="10">
                     <div class="card mt-2">
-                        @if (selectedRequest is null || selectedRequest.Id != p.Id)
+                        @if (selectedRequest is null || selectedRequest.Id != s.Id)
                         {
                             <div class="card-body bg-dark">
-                                <h5 class="card-title">Request sent by: @p.Sender.DisplayName</h5>
-                                <p class="card-text">Sent at @p.RequestDate UTC</p>
-                                <p class="card-text">Status: @GetStatusText(p)</p>
-                                <button class="btn btn-outline-success w-100" @onclick="(() => selectedRequest = p)">Accept Request</button>
+                                <h5 class="card-title">Request sent to: @s.Receiver.DisplayName</h5>
+                                <p class="card-text">Sent at @s.RequestDate UTC</p>
+                                <p class="card-text">Status: @GetStatusText(s)</p>
+                                @if (s.IsAccepted is false)
+                                {
+                                    <button class="btn btn-outline-danger w-100" @onclick="(() => selectedRequest = s)">Delete Request</button>
+                                }
                             </div>
                         }
                         else
                         {
                             <div class="card-body bg-dark">
-                                <h5 class="card-title">Request sent by: @p.Sender.DisplayName</h5>
-                                <p class="card-text">Sent at @p.RequestDate UTC</p>
-                                <p class="card-text">Status: @GetStatusText(p)</p>
+                                <h5 class="card-title">Request sent to: @s.Receiver.DisplayName</h5>
+                                <p class="card-text">Sent at @s.RequestDate UTC</p>
+                                <p class="card-text">Status: @GetStatusText(s)</p>
                                 <div class="btn-group w-100">
-                                    <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await AcceptRequest(p))">Accept</button>
-                                    <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Reconsider</button>
+                                    <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await DeleteRequest(s))">Delete</button>
+                                    <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Cancel</button>
                                 </div>
                             </div>
                         }
                     </div>
                 </Virtualize>
             }
-        }
-        else
-        {
-            <Virtualize Items="sendedRequests" Context="s" OverscanCount="10">
-                <div class="card mt-2">
-                    @if (selectedRequest is null || selectedRequest.Id != s.Id)
-                    {
-                        <div class="card-body bg-dark">
-                            <h5 class="card-title">Request sent to: @s.Receiver.DisplayName</h5>
-                            <p class="card-text">Sent at @s.RequestDate UTC</p>
-                            <p class="card-text">Status: @GetStatusText(s)</p>
-                            @if (s.IsAccepted is false)
-                            {
-                                <button class="btn btn-outline-danger w-100" @onclick="(() => selectedRequest = s)">Delete Request</button>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="card-body bg-dark">
-                            <h5 class="card-title">Request sent to: @s.Receiver.DisplayName</h5>
-                            <p class="card-text">Sent at @s.RequestDate UTC</p>
-                            <p class="card-text">Status: @GetStatusText(s)</p>
-                            <div class="btn-group w-100">
-                                <button class="btn btn-outline-success me-1 w-50" @onclick="(async() => await DeleteRequest(s))">Delete</button>
-                                <button class="btn btn-outline-danger w-50" @onclick="(() => selectedRequest = null)">Cancel</button>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </Virtualize>
-        }
+        </div>
     </div>
-</div>
+}
+else
+{
+    <Banned />
+}
 
 @code {
     private UserModel loggedInUser;
     private List<FriendRequestModel> pendingRequests;
     private List<FriendRequestModel> sendedRequests;
     private FriendRequestModel selectedRequest;
+    private BanModel ban;
     private string searchText = "";
     private bool isSortedByNew = true;
     private bool viewSendedRequests = false;
@@ -112,6 +121,7 @@
         {
             pendingRequests = await requestData.GetUserPendingFriendRequestsAsync(loggedInUser.Id);
             sendedRequests = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
     }
 

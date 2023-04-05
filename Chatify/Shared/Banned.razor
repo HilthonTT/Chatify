@@ -1,0 +1,64 @@
+﻿@inject IUserData userData
+@inject IBanData banData
+@inject AuthenticationStateProvider authState
+@inject NavigationManager navManager
+
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-12 NotAuthorized NotAuthorized-form-layout">
+        <div class="row w-100">
+           <div class="col-11">
+                <div class="fw-bold mb-2 fs-2 text-warning">You are banned!</div>
+                <p class="fs-5">
+                    @ban?.Reason
+                </p>
+                <p>
+                    If you think this is a mistake, you can make an appeal here. <span class="link-warning clickable" @onclick="OpenAppeal">Appeal Here</span>
+                </p>
+                <div class="fw-bold text-uppercase fs-5">Banned for: @ConvertBanToDays()</div>
+           </div>
+           <div class="col-1 close-button-section">
+               <a class="btn btn-close btn-close-white" href="MicrosoftIdentity/Account/SignIn"></a>
+           </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private UserModel loggedInUser;
+    private BanModel ban;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authState.GetUserFromAuth(userData);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+    }
+
+    private string ConvertBanToDays()
+    {
+        if (ban is not null)
+        {
+            var bannedUntil = ban.BannedUntil - DateTime.UtcNow;
+            var banToDays = Math.Ceiling(bannedUntil.TotalDays).ToString();
+
+            if (banToDays == "1")
+            {
+                return "1 day";
+            }
+            else
+            {
+                return banToDays + " days";
+            }
+        }
+
+        return "";
+    }
+
+    private void OpenAppeal()
+    {
+        navManager.NavigateTo("/Appeal");
+    }
+}

@@ -4,107 +4,115 @@
 @inject ICategoryData categoryData
 @inject IConversationData conversationData
 @inject IUserData userData
+@inject IBanData banData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
 
-<h1 class="text-center text-uppercase fw-bold mb-4">Make A Conversation</h1>
+@if (ban is null)
+{
+    <h1 class="text-center text-uppercase fw-bold mb-4">Make A Conversation</h1>
 
-<div class="row">
-    <div class="col-xl-12 col-lg-10 p-5 bg-dark create-form-layout">
-        <EditForm Model="conversation" OnValidSubmit="(async() => await CreateConversation())">
-            <DataAnnotationsValidator />
-            <div class="row">
-                <div class="col-2">
-                    <div class="participants-list p-2">
-                        <h3 class="fw-bold text-uppercase">Friends</h3>
-                        <label class="form-label">You can add your friends to the conversation by clicking on their name.</label>
-                        <input type="text" placeholder="Search"
-                            aria-label="Search" class="form-control bg-dark text-white mb-2"
-                            @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
-                        <ul class="list-group">
-                            @if (friends is not null)
-                            {
-                                <Virtualize Items="friends" Context="f" OverscanCount="10">
+    <div class="row">
+        <div class="col-xl-12 col-lg-10 p-5 bg-dark create-form-layout">
+            <EditForm Model="conversation" OnValidSubmit="(async() => await CreateConversation())">
+                <DataAnnotationsValidator />
+                <div class="row">
+                    <div class="col-2">
+                        <div class="participants-list p-2">
+                            <h3 class="fw-bold text-uppercase">Friends</h3>
+                            <label class="form-label">You can add your friends to the conversation by clicking on their name.</label>
+                            <input type="text" placeholder="Search"
+                                aria-label="Search" class="form-control bg-dark text-white mb-2"
+                                @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+                            <ul class="list-group">
+                                @if (friends is not null)
+                                {
+                                    <Virtualize Items="friends" Context="f" OverscanCount="10">
+                                        @if (selectedFriend is null || selectedFriend.Id != f.Id)
+                                        {
+                                            <li class="list-group-item mb-2" @onclick="(() => selectedFriend = f)"><span class="oi oi-person me-1"></span>@f.DisplayName</li>
+                                        }
+                                        else
+                                        {
+                                            <li class="list-group-item mb-2"><span class="oi oi-person me-1"></span>@f.DisplayName</li>
+                                            <div class="btn-group">
+                                                <button class="btn btn-success me-2" type="button" @onclick="(() => AddParticipant(f))">Add</button>
+                                                <button class="btn btn-danger" type="button" @onclick="(() => selectedFriend = null)">Cancel</button>
+                                            </div>
+                                        }
+                                    </Virtualize>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-7">  
+                        @if (categories is not null)
+                        {  
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="conversation-group-name">Group Name</label>
+                                <div class="mt-1">Name your group name. Its name will represent the group name.</div>
+                                <ValidationMessage For="(() => conversation.GroupName)" />
+                                <InputText class="form-control bg-dark text-white" id="conversation-group-name" @bind-Value="conversation.GroupName"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="category">Category</label>
+                                <ValidationMessage For="(() => conversation.CategoryId)" />
+                                <div class="mt-1">Choose a category that suits your conversation.</div>
+                                <InputRadioGroup id="category" @bind-Value="conversation.CategoryId">
+                                    @foreach (var c in categories)
+                                    {
+                                        <div class="radio-item-group">
+                                            <InputRadio Value="@c.Id" id="@c.Id"/>
+                                            <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
+                                        </div>
+                                    }
+                                </InputRadioGroup>
+                            </div>
+                            <div class="center-children">
+                                <button class="btn btn-success btn-lg text-uppercase mt-4" type="submit">Create Conversation</button>
+                            </div>
+                        }  
+                    </div>
+                    <div class="col-2">
+                       <div class="participants-list p-2">
+                            <h3 class="fw-bold text-uppercase">Participants</h3>
+                            <label class="form-label">These are members that will be automatically added.</label>
+                            <input type="text" placeholder="Search"
+                                aria-label="Search" class="form-control bg-dark text-white mb-2"
+                                @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+                            <ul class="list-group">
+                                <Virtualize Items="conversation.Participants" Context="f" OverscanCount="10">
                                     @if (selectedFriend is null || selectedFriend.Id != f.Id)
                                     {
-                                        <li class="list-group-item mb-2" @onclick="(() => selectedFriend = f)"><span class="oi oi-person me-1"></span>@f.DisplayName</li>
+                                        <li class="list-group-item mb-2" @onclick="(() => selectedFriend = f)">@f.DisplayName</li>
                                     }
                                     else
                                     {
-                                        <li class="list-group-item mb-2"><span class="oi oi-person me-1"></span>@f.DisplayName</li>
+                                        <li class="list-group-item mb-2">@f.DisplayName</li>
                                         <div class="btn-group">
-                                            <button class="btn btn-success me-2" type="button" @onclick="(() => AddParticipant(f))">Add</button>
+                                            <button class="btn btn-success me-2" type="button" @onclick="(() => RemoveParticipant(f))">Remove</button>
                                             <button class="btn btn-danger" type="button" @onclick="(() => selectedFriend = null)">Cancel</button>
                                         </div>
                                     }
                                 </Virtualize>
-                            }
-                        </ul>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close-white" type="button" @onclick="ClosePage" />
+                        </div>
                     </div>
                 </div>
-                <div class="col-7">  
-                    @if (categories is not null)
-                    {  
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="conversation-group-name">Group Name</label>
-                            <div class="mt-1">Name your group name. Its name will represent the group name.</div>
-                            <ValidationMessage For="(() => conversation.GroupName)" />
-                            <InputText class="form-control bg-dark text-white" id="conversation-group-name" @bind-Value="conversation.GroupName"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="category">Category</label>
-                            <ValidationMessage For="(() => conversation.CategoryId)" />
-                            <div class="mt-1">Choose a category that suits your conversation.</div>
-                            <InputRadioGroup id="category" @bind-Value="conversation.CategoryId">
-                                @foreach (var c in categories)
-                                {
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="@c.Id" id="@c.Id"/>
-                                        <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
-                                    </div>
-                                }
-                            </InputRadioGroup>
-                        </div>
-                        <div class="text-center">
-                            <button class="btn btn-success btn-lg text-uppercase mt-4" type="submit">Create Conversation</button>
-                        </div>
-                    }  
-                </div>
-                <div class="col-2">
-                   <div class="participants-list p-2">
-                        <h3 class="fw-bold text-uppercase">Participants</h3>
-                        <label class="form-label">These are members that will be automatically added.</label>
-                        <input type="text" placeholder="Search"
-                            aria-label="Search" class="form-control bg-dark text-white mb-2"
-                            @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
-                        <ul class="list-group">
-                            <Virtualize Items="conversation.Participants" Context="f" OverscanCount="10">
-                                @if (selectedFriend is null || selectedFriend.Id != f.Id)
-                                {
-                                    <li class="list-group-item mb-2" @onclick="(() => selectedFriend = f)">@f.DisplayName</li>
-                                }
-                                else
-                                {
-                                    <li class="list-group-item mb-2">@f.DisplayName</li>
-                                    <div class="btn-group">
-                                        <button class="btn btn-success me-2" type="button" @onclick="(() => RemoveParticipant(f))">Remove</button>
-                                        <button class="btn btn-danger" type="button" @onclick="(() => selectedFriend = null)">Cancel</button>
-                                    </div>
-                                }
-                            </Virtualize>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-1">
-                    <div class="close-button-section">
-                        <button class="btn btn-close btn-close-white" type="button" @onclick="ClosePage" />
-                    </div>
-                </div>
-            </div>
-        </EditForm>
+            </EditForm>
+        </div>
     </div>
-</div>
+}
+else
+{
+    <Banned />
+}
 
 @code {
     private CreateConversationModel conversation = new();
@@ -112,6 +120,7 @@
     private List<BasicUserModel> friends;
     private UserModel loggedInUser;
     private BasicUserModel selectedFriend;
+    private BanModel ban;
     private string searchText = "";
 
     protected override async Task OnInitializedAsync()
@@ -119,6 +128,10 @@
         categories = await categoryData.GetAllCategoriesAsync();
         loggedInUser = await authProvider.GetUserFromAuth(userData);
         friends = loggedInUser.Friends;
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

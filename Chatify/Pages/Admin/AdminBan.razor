@@ -1,0 +1,100 @@
+﻿@page "/AdminBan/{Id}"
+@attribute [Authorize(Policy = "Admin")]
+@inject IBanData banData
+@inject IUserData userData
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+
+<h1 class="text-center text-uppercase fw-bold mb-4">Admin Ban of: @user?.DisplayName</h1>
+
+<div class="row justify-content-center">
+    <div class="col-xl-12 col-lg-10 p-5 bg-dark create-form-layout">
+        <div class="close-button-section">
+            <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+        </div>
+        <EditForm Model="ban" OnValidSubmit="(async() => await CreateBan())">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label class="form-label fw-bold text-uppercase" for="ban-reason">Reason</label>
+                <div class="mt-1">Please describe the reason which the user gets ban for. Specify what they did wrong and how they can improve.</div>
+                <ValidationMessage For="(() => ban.Reason)"/>
+                <InputText class="form-control bg-dark text-white" id="ban-reason" @bind-Value="ban.Reason"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-uppercase" for="ban-banned-until">Banned Until</label>
+                <div class="mt-1">Please enter the date on which they will be unbanned.</div>
+                <ValidationMessage For="(() => ban.BannedUntil)"/>
+                <InputDate class="form-control bg-dark text-white" id="ban-banned-until" @bind-Value="ban.BannedUntil"/>
+            </div>
+            <div class="center-children">
+                @if (userId != user?.Id)
+                {
+                    <button class="btn btn-outline-success btn-lg text-uppercase mt-4" type="button" @onclick="(() => userId = user.Id)">
+                        Ban @user?.DisplayName
+                    </button>
+                }
+                else
+                {
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="alert bg-warning fw-bold text-uppercase text-black" role="alert">
+                                    Are you sure you want to ban @user?.DisplayName ?
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-success btn-lg text-uppercase me-1" type="submit">
+                                        Ban @user?.DisplayName
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-lg text-uppercase" type="button" @onclick="(() => userId = string.Empty)">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private CreateBanModel ban = new();
+    private UserModel loggedInUser;
+    private UserModel user;
+
+    private string userId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        user = await userData.GetUserAsync(Id);
+        ban.BannedUntil = DateTime.UtcNow;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private async Task CreateBan()
+    {
+        BanModel b = new()
+        {
+            UserBanned = new BasicUserModel(user),
+            BannedAt = DateTime.UtcNow,
+            BannedUntil = ban.BannedUntil,
+            Reason = ban.Reason,
+            Admin = new BasicUserModel(loggedInUser),
+        };
+
+        await banData.CreateBan(b);
+        ban = new();
+        ClosePage();
+    }
+}
