@@ -173,7 +173,10 @@
         if (firstRender)
         {
             await LoadFilterState();
-            await FilterConversations();
+            @if (loggedInUser is not null)
+            {
+                await FilterConversations();
+            }
             StateHasChanged();
         }
     }
@@ -254,10 +257,6 @@
 
     private async Task FilterConversations()
     {
-        loggedInUser = await authProvider.GetUserFromAuth(userData);
-
-        if (loggedInUser is null) return;
-
         var output = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
 
         if (selectedCategory != "All")

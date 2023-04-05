@@ -12,6 +12,27 @@
 
 <h1 class="text-uppercase fw-bold text-center">@conversation?.GroupName</h1>
 
+@if (string.IsNullOrWhiteSpace(errorMessage) is false)
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-md-8">
+            <div class="row alert bg-warning text-black" role="alert">
+                <div class="col-11">
+                    <h4 class="alert-heading">Error!</h4>
+                    <p>@errorMessage</p>
+                    <hr>
+                    <p class="mb-0">You can wait to send another friend request later if you think this is a mistake.</p>
+                </div>
+                <div class="col-1">
+                    <div class="close-button-section">
+                        <button class="btn btn-close btn-close" @onclick="(() => errorMessage = string.Empty)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (loggedInUser is not null && conversation is not null)
 {
     @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
@@ -31,6 +52,23 @@
                         <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
                             <div class="message-sender">@m.Sender.DisplayName</div>
                             <div class="message-text">@m.Text</div>
+                            @if (string.IsNullOrWhiteSpace(m.FileName) is false)
+                            {
+                                @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
+                                {
+                                    <div class="text-center">
+                                        <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="message-text">
+                                        <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
+                                            @m.OriginalFileName
+                                        </a>
+                                    </div>
+                                }
+                            }
                             <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
                             {
@@ -49,6 +87,23 @@
                        <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
                             <div class="message-sender">@m.Sender.DisplayName</div>
                             <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
+                            @if (string.IsNullOrWhiteSpace(m.FileName) is false)
+                            {
+                                @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
+                                {
+                                    <div class="text-center">
+                                        <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName"/>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="message-text">
+                                        <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
+                                            @m.OriginalFileName
+                                        </a>
+                                    </div>
+                                }
+                            }
                             <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                             @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
                             {
@@ -64,6 +119,7 @@
                       </div>
                   }
                 </Virtualize>
+                <div class="messages-mb" />
               }
             </div>
             <div class="col-md-4 col-xl-2">
@@ -140,18 +196,16 @@
     private string searchText = "";
     private bool isSortedByNew = true;
     private ConversationModel conversation;
-    private List<MessageModel> messages = new();
+    private List<MessageModel> messages;
     private UserModel loggedInUser;
     private MessageModel chosenMessage;
     private BasicUserModel chosenUser;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
-
     private IBrowserFile? file;
     private string errorMessage = "";
     private string fileName = "";
     private string fileExtension = "";
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -243,11 +297,8 @@
         {
             errorMessage = "";
 
-            if (string.IsNullOrWhiteSpace(messageText))
-            {
-                return;
-            }
-
+            if (string.IsNullOrWhiteSpace(messageText)) return;
+            
             string relativePath = await CaptureFile();
 
             MessageModel message = new()
@@ -255,6 +306,8 @@
                 Sender = new BasicUserModel(loggedInUser),
                 Text = messageText,
                 FileName = relativePath,
+                OriginalFileName = fileName,
+                FileExtension = fileExtension,
                 Receivers = conversation.Participants,
                 Conversation = conversation,
                 Archived = false,
@@ -269,6 +322,8 @@
 
             messageText = "";
             file = null;
+            fileName = string.Empty;
+            fileExtension = string.Empty;
         }
         catch (Exception ex)
         {
@@ -359,11 +414,6 @@
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
     }
 
-    private void LoadFiles(InputFileChangeEventArgs e)
-    {
-        file = e.File;
-    }
-
     private void GetFileExtensionAndFileName(InputFileChangeEventArgs e)
     {
         fileName = string.Empty;
@@ -371,6 +421,12 @@
 
         fileName = file.Name;
         fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName(e);
     }
 
     private async Task<string> CaptureFile()
