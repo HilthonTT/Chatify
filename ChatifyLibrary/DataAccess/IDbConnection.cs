@@ -18,4 +18,6 @@ public interface IDbConnection
     IMongoCollection<PrivateConversationModel> PrivateConversationCollection { get; }
     string PrivateMessageCollectionName { get; }
     IMongoCollection<PrivateMessageModel> PrivateMessageCollection { get; }
+    IMongoCollection<BanModel> BanCollection { get; }
+    string BanCollectionName { get; }
 }

@@ -16,6 +16,7 @@ public class DbConnection : IDbConnection
     public string FriendRequestCollectionName { get; private set; } = "friend-requests";
     public string PrivateConversationCollectionName { get; private set; } = "private-conversations";
     public string PrivateMessageCollectionName { get; private set; } = "private-messages";
+    public string BanCollectionName { get; private set; } = "bans";
 
     public MongoClient Client { get; private set; }
     public IMongoCollection<ConversationModel> ConversationCollection { get; private set; }
@@ -25,6 +26,7 @@ public class DbConnection : IDbConnection
     public IMongoCollection<FriendRequestModel> FriendRequestCollection { get; private set; }
     public IMongoCollection<PrivateConversationModel> PrivateConversationCollection { get; private set; }
     public IMongoCollection<PrivateMessageModel> PrivateMessageCollection { get; private set; }
+    public IMongoCollection<BanModel> BanCollection { get; private set; }
 
     public DbConnection(IConfiguration config)
     {
@@ -40,5 +42,6 @@ public class DbConnection : IDbConnection
         FriendRequestCollection = _db.GetCollection<FriendRequestModel>(FriendRequestCollectionName);
         PrivateConversationCollection = _db.GetCollection<PrivateConversationModel>(PrivateConversationCollectionName);
         PrivateMessageCollection = _db.GetCollection<PrivateMessageModel>(PrivateMessageCollectionName);
+        BanCollection = _db.GetCollection<BanModel>(BanCollectionName);
     }
 }
