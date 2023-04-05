@@ -229,6 +229,10 @@ a, .btn-link {
     margin-top: 4px;
 }
 
+.messages-mb {
+    margin-bottom: 80px;
+}
+
 .input-container {
     display: flex;
     flex-direction: row;
