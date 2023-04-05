@@ -12,9 +12,7 @@
 {
     @if (conversation.Participants.Any(p => p.Id == loggedInUser.Id) is false)
     {
-        <div class="alert alert-danger">
-            You are not authorized to view this page.
-        </div>
+        <NotAuthorized />
     }
     else
     {
