@@ -5,6 +5,5 @@ Features to add:
 	- Ban Model
 	- Add Ban Model to user Class
 
-	* Upload files system
 	* Make sure the Conversation doesn't exceed more than 10 participants
 	* Make server class, people need to send invites in order to join the server or type in the server address.
