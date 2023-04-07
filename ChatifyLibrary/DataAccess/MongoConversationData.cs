@@ -23,7 +23,7 @@ public class MongoConversationData : IConversationData
 
             output = await _conversations.Find(filter).ToListAsync();
 
-            _cache.Set($"{userId} - Conversations", output, TimeSpan.FromMinutes(1));
+            _cache.Set($"{userId} - Conversations", output, TimeSpan.FromMinutes(10));
         }
 
         return output;
@@ -37,7 +37,7 @@ public class MongoConversationData : IConversationData
             var results = await _conversations.FindAsync(c => c.Archived == false);
             output = await results.ToListAsync();
 
-            _cache.Set(CacheName, output, TimeSpan.FromMinutes(1));
+            _cache.Set(CacheName, output, TimeSpan.FromMinutes(10));
         }
 
         return output;

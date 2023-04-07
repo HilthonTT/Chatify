@@ -20,7 +20,7 @@ public class MongoBanData : IBanData
             var results = await _bans.FindAsync(_ => true);
             output = await results.ToListAsync();
 
-            _cache.Set(CacheName, output, TimeSpan.FromMinutes(1));
+            _cache.Set(CacheName, output, TimeSpan.FromHours(5));
         }
 
         return output;
@@ -43,7 +43,7 @@ public class MongoBanData : IBanData
 
             output = await _bans.Find(filter).FirstOrDefaultAsync();
 
-            _cache.Set(userId, output, TimeSpan.FromMinutes(1));
+            _cache.Set(userId, output, TimeSpan.FromHours(1));
         }
 
         return output;

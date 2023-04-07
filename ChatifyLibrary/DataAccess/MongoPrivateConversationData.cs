@@ -20,7 +20,7 @@ public class MongoPrivateConversationData : IPrivateConversationData
             var results = await _conversations.FindAsync(c => c.Archived == false);
             output = await results.ToListAsync();
 
-            _cache.Set(CacheName, output, TimeSpan.FromMinutes(1));
+            _cache.Set(CacheName, output, TimeSpan.FromDays(1));
         }
 
         return output;
@@ -43,7 +43,7 @@ public class MongoPrivateConversationData : IPrivateConversationData
 
             output = await _conversations.Find(filter).FirstOrDefaultAsync();
 
-            _cache.Set($"{firstUserId} - {secondUserId}", output, TimeSpan.FromMinutes(1));
+            _cache.Set($"{firstUserId} - {secondUserId}", output, TimeSpan.FromHours(1));
         }
 
         return output;

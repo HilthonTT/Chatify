@@ -20,7 +20,7 @@ public class MongoPrivateMessageData : IPrivateMessageData
             var results = await _messages.FindAsync(m => m.Archived == false);
             output = await results.ToListAsync();
 
-            _cache.Set(CacheName, output, TimeSpan.FromMinutes(1));
+            _cache.Set(CacheName, output, TimeSpan.FromDays(1));
         }
 
         return output;
@@ -37,7 +37,7 @@ public class MongoPrivateMessageData : IPrivateMessageData
 
             output = await _messages.Find(filter).ToListAsync();
 
-            _cache.Set(conversation.Id, output, TimeSpan.FromMinutes(1));
+            _cache.Set(conversation.Id, output, TimeSpan.FromMinutes(10));
         }
 
         return output;
