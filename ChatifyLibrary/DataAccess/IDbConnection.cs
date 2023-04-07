@@ -20,4 +20,6 @@ public interface IDbConnection
     IMongoCollection<PrivateMessageModel> PrivateMessageCollection { get; }
     IMongoCollection<BanModel> BanCollection { get; }
     string BanCollectionName { get; }
+    string BanAppealCollectionName { get; }
+    IMongoCollection<BanAppealModel> BanAppealCollection { get; }
 }
