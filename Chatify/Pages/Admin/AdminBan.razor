@@ -18,7 +18,7 @@
                 <label class="form-label fw-bold text-uppercase" for="ban-reason">Reason</label>
                 <div class="mt-1">Please describe the reason which the user gets ban for. Specify what they did wrong and how they can improve.</div>
                 <ValidationMessage For="(() => ban.Reason)"/>
-                <InputText class="form-control bg-dark text-white" id="ban-reason" @bind-Value="ban.Reason"/>
+                <InputTextArea class="form-control bg-dark text-white" id="ban-reason" @bind-Value="ban.Reason"/>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold text-uppercase" for="ban-banned-until">Banned Until</label>

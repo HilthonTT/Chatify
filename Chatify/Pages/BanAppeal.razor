@@ -1,0 +1,122 @@
+﻿@page "/Appeal/{Id}"
+@attribute [Authorize]
+@inject IBanData banData
+@inject IBanAppealData appealData
+@inject IUserData userData
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+
+<h1 class="text-center text-uppercase fw-bold mb-4">Ban Appeal</h1>
+
+@if (banAppeal is null)
+{
+    <div class="row">
+        <div class="col-xl-12 col-lg-10 p-5 bg-dark create-form-layout">
+            <div class="close-button-section">
+                <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+            </div>
+            <EditForm Model="appeal" OnValidSubmit="(async() => await CreateBanAppeal())">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase">Reason of ban</label>
+                    <div class="mt-1">@ban?.Reason</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="appeal-reason">Appeal Reason</label>
+                    <div class="mt-1">Please explain why your ban was a mistake or threated unfairly.</div>
+                    <InputTextArea class="form-control bg-dark text-white" id="appeal-reason" @bind-Value="appeal.AppealReason"/>
+                    <ValidationMessage For="(() => appeal.AppealReason)"/>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-outline-success btn-lg text-uppercase">
+                        Appeal
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-12 NotAuthorized NotAuthorized-form-layout">
+            <div class="row w-100">
+                <div class="col-11">
+                    <div class="fw-bold mb-2 fs-2 text-warning">You've already sent a ban appeal!</div>
+                    <div class="fs-5">
+                        <p>If you didn't sent your previous appeal on purpose, you can sent it.</p>
+                        <p class="text-danger">WARNING: It will delete your previous appeal!</p>
+                        @if (banAppealId != banAppeal.Id)
+                        {
+                            <button class="btn btn-outline-warning" @onclick="(() => banAppealId = banAppeal.Id)">
+                                Click here to resend.
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="btn-group">
+                                <button class="btn btn-outline-success me-1" @onclick="(async() => await ReCreateBanAppeal())">
+                                    Permit
+                                </button>
+                                <button class="btn btn-outline-danger" @onclick="(() => banAppealId = string.Empty)">
+                                    Cancel
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-1 close-button-section">
+                    <a class="btn btn-close btn-close-white" href="/" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private UserModel loggedInUser;
+    private CreateBanAppealModel appeal = new();
+    private BanModel ban;
+    private BanAppealModel banAppeal;
+    private string banAppealId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        ban = await banData.GetBanAsync(Id);
+        banAppeal = await appealData.GetBanAppealFromBan(ban);
+
+        if (ban?.UserBanned.Id != loggedInUser?.Id) navManager.NavigateTo("/");
+    }
+
+    private async Task CreateBanAppeal()
+    {
+        BanAppealModel b = new()
+        {
+            Ban = ban,
+            AppealingUser = new BasicUserModel(loggedInUser),
+            AppealReason = appeal.AppealReason,
+            IsApproved = false
+        };
+
+        if (ban is null) return;
+
+        await appealData.CreateBanAppeal(b);
+        appeal = new();
+        ClosePage();
+    }
+
+    private async Task ReCreateBanAppeal()
+    {
+        await appealData.DeleteAppeal(banAppeal);
+        banAppeal = null;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+}

@@ -12,7 +12,10 @@
                     @ban?.Reason
                 </p>
                 <p>
-                    If you think this is a mistake, you can make an appeal here. <span class="link-warning clickable" @onclick="OpenAppeal">Appeal Here</span>
+                    If you think this is a mistake, you can make an appeal here. 
+                    <span class="link-warning clickable" @onclick="(() => OpenAppeal(ban))">
+                        Appeal Here
+                    </span>
                 </p>
                 <div class="fw-bold text-uppercase fs-5">Banned for: @ConvertBanToDays()</div>
            </div>
@@ -52,8 +55,8 @@
         return "";
     }
 
-    private void OpenAppeal()
+    private void OpenAppeal(BanModel ban)
     {
-        navManager.NavigateTo("/Appeal");
+        navManager.NavigateTo($"/Appeal/{ban.Id}");
     }
 }

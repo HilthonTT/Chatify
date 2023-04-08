@@ -63,4 +63,9 @@ public class MongoBanAppealData : IBanAppealData
         var filter = Builders<BanAppealModel>.Filter.Eq("Id", appeal.Id);
         return _banAppeals.ReplaceOneAsync(filter, appeal, new ReplaceOptions { IsUpsert = true });
     }
+
+    public Task DeleteAppeal(BanAppealModel appeal)
+    {
+        return _banAppeals.DeleteOneAsync(a => a.Id == appeal.Id);
+    }
 }
