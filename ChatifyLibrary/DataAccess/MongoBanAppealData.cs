@@ -58,10 +58,11 @@ public class MongoBanAppealData : IBanAppealData
         return _banAppeals.InsertOneAsync(appeal);
     }
 
-    public Task UpdateAppeal(BanAppealModel appeal)
+    public async Task UpdateAppeal(BanAppealModel appeal)
     {
         var filter = Builders<BanAppealModel>.Filter.Eq("Id", appeal.Id);
-        return _banAppeals.ReplaceOneAsync(filter, appeal, new ReplaceOptions { IsUpsert = true });
+        await _banAppeals.ReplaceOneAsync(filter, appeal, new ReplaceOptions { IsUpsert = true });
+        _cache.Remove(CacheName);
     }
 
     public Task DeleteAppeal(BanAppealModel appeal)

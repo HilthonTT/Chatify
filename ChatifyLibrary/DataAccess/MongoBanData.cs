@@ -47,7 +47,8 @@ public class MongoBanData : IBanData
         {
             var filter = Builders<BanModel>.Filter.And(
                 Builders<BanModel>.Filter.Eq(b => b.UserBanned.Id, userId),
-                Builders<BanModel>.Filter.Where(b => b.BannedUntil > DateTime.UtcNow));
+                Builders<BanModel>.Filter.Where(b => b.BannedUntil > DateTime.UtcNow),
+                Builders<BanModel>.Filter.Eq(b => b.IsActive, true));
 
             output = await _bans.Find(filter).FirstOrDefaultAsync();
 
@@ -62,9 +63,10 @@ public class MongoBanData : IBanData
         return _bans.InsertOneAsync(ban);
     }
 
-    public Task UpdateBan(BanModel ban)
+    public async Task UpdateBan(BanModel ban)
     {
         var filter = Builders<BanModel>.Filter.Eq("Id", ban.Id);
-        return _bans.ReplaceOneAsync(filter, ban, new ReplaceOptions { IsUpsert = true });
+        await _bans.ReplaceOneAsync(filter, ban, new ReplaceOptions { IsUpsert = true });
+        _cache.Remove(_helper.BanCachingString(ban.UserBanned.Id));
     }
 }
