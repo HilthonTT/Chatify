@@ -10,4 +10,5 @@ public class BanModel
     public DateTime BannedUntil { get; set;}
     public string Reason { get; set; }
     public BasicUserModel Admin { get; set; }
+    public bool IsActive { get; set; }
 }

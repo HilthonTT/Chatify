@@ -11,5 +11,7 @@ public class BanAppealModel
     public string AppealReason { get; set; }
     public bool IsApproved { get; set; }
     public BasicUserModel ApprovedAdmin { get; set; }
+    public BasicUserModel DisapprovedAdmin { get; set; }
     public DateTime ApprovedAt { get; set; }
+    public DateTime DisapprovedAt { get; set; }
 }
