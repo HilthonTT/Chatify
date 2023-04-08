@@ -42,16 +42,11 @@
         if (ban is not null)
         {
             var bannedUntil = ban.BannedUntil - DateTime.UtcNow;
-            var banToDays = Math.Ceiling(bannedUntil.TotalDays).ToString();
+            string banToDays = Math.Ceiling(bannedUntil.TotalDays).ToString();
 
-            if (banToDays == "1")
-            {
-                return "1 day";
-            }
-            else
-            {
-                return banToDays + " days";
-            }
+            if (banToDays == "1") return "1 day";
+           
+            return banToDays + " days";     
         }
 
         return "";
