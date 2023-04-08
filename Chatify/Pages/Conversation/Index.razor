@@ -16,7 +16,6 @@
     <div class="text-center">
         <button class="btn btn-outline-light btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
     </div>
-
     <div class="row">
         <div class="text-uppercase fw-bold">You are in @conversations?.Count conversations</div>
         <div class="col-md-8 col-xl-12 btn-group">
@@ -39,7 +38,7 @@
                     <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
                     @foreach (var c in categories)
                     {
-                        <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick(c.CategoryName))">
+                        <div class="@SelectedCategoryClass(c.CategoryName)" @onclick="(() => OnCategoryClick(c.CategoryName))">
                             @c.CategoryName
                         </div>
                     }
@@ -305,20 +304,29 @@ else
     private async Task OrderByNew(bool isNew)
     {
         isSortedByNew = isNew;
-        await FilterConversations();
+        if (loggedInUser is not null)
+        {
+            await FilterConversations();
+        }
     }
 
     private async Task OnSearchInput(string searchInput)
     {
         searchText = searchInput;
-        await FilterConversations();
+        if (loggedInUser is not null)
+        {
+            await FilterConversations();
+        }
     }
 
     private async Task OnCategoryClick(string category = "All")
     {
         selectedCategory = category;
         showCategories = false;
-        await FilterConversations();
+        if (loggedInUser is not null)
+        {
+            await FilterConversations();
+        }
     }
 
     private void OpenDetails(ConversationModel conversation)

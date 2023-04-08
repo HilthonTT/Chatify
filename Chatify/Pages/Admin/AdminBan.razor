@@ -91,6 +91,7 @@
             BannedUntil = ban.BannedUntil,
             Reason = ban.Reason,
             Admin = new BasicUserModel(loggedInUser),
+            IsActive = true,
         };
 
         await banData.CreateBan(b);

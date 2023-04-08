@@ -1,0 +1,238 @@
+﻿@page "/BanAppeals"
+@attribute [Authorize(Policy = "Admin")]
+@inject IUserData userData
+@inject IBanAppealData appealData
+@inject AuthenticationStateProvider authProvider
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+
+<h1 class="text-uppercase fw-bold text-center mb-4 text-light">Ban Appeals</h1>
+
+<div class="row">
+    <div class="text-uppercase fw-bold">@appeals?.Count Ban Appeals</div>
+    <div class="col-md-8 col-xl-12 btn-group">
+        <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+            @onclick="(async() => await OrderByNew(true))">
+            New
+        </button>
+        <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+            @onclick="(async() => await OrderByNew(false))">
+            Old
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="mt-2 col-md-8 col-xl-12 btn-group">
+        <button class="btn text-uppercase fw-bold w-50 me-2 @FilterByApprovedClass(false)" 
+            @onclick="(async() => await FilterByApprovedClick(false))">
+            Pending
+        </button>
+        <button class="btn text-uppercase fw-bold w-50 @FilterByApprovedClass(true)" 
+            @onclick="(async() => await FilterByApprovedClick(true))">
+            Approved
+        </button>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-md-12 col-xl-12">
+        <input type="text" placeholder="Search"
+            aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+    </div>
+    <div class="col-12 d-block d-md-none">
+        @if (users is not null && showUsernames)
+        {
+            <div class="friend-category">
+                <span class="text-uppercase fw-bold">Usernames</span>
+                <div class="@SelectedUsernameClass()" @onclick="(() => OnUsernameClick())">All</div>
+                <Virtualize Items="users" Context="u" OverscanCount="10">
+                    <div class="@SelectedUsernameClass(u.DisplayName)" @onclick="(() => OnUsernameClick(u.DisplayName))">
+                        @u.DisplayName
+                    </div>
+                </Virtualize>
+            </div>
+        }
+        else
+        {
+            <div @onclick="(() => showUsernames = true)">
+                <span class="fw-bold">@selectedUsername</span>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-9 col-xl-10">
+        @if (appeals is not null)
+        {
+            <Virtualize Items="appeals" Context="a" OverscanCount="10">
+                <div class="user-card bg-dark" @onclick="(() => OpenDetails(a))">
+                    <div class="user-card__name">@a.AppealingUser.DisplayName</div>
+                    <div class="user-card__friend-code">Banned Until: @a.Ban.BannedUntil.ToString("dd/MM/yyyy")</div>
+                    <div class="user-card__date">Status: @((a.IsApproved ? "Approved" : "Pending"))</div>
+                </div>
+            </Virtualize>
+        }
+    </div>
+    <div class="col-md-3 col-xl-2 d-none d-md-block">
+        @if (users is not null)
+        {
+            <div class="friend-category">
+                <span class="text-uppercase fw-bold">Usernames</span>
+                <div class="@SelectedUsernameClass()" @onclick="(() => OnUsernameClick())">All</div>
+                <Virtualize Items="users" Context="u" OverscanCount="10">
+                    <div class="@SelectedUsernameClass(u.DisplayName)" @onclick="(() => OnUsernameClick(u.DisplayName))">
+                        @u.DisplayName
+                    </div>
+                </Virtualize>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private UserModel loggedInUser;
+    private List<BanAppealModel> appeals;
+    private List<UserModel> users;
+    private string searchText = "";
+    private string selectedUsername = "";
+    private bool isSortedByNew = true;
+    private bool showUsernames = false;
+    private bool filterByApproved = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        appeals = await appealData.GetAllBanAppealsAsync();
+        users = await userData.GetAllUsersAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterAppeals();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(selectedUsername));
+        selectedUsername = stringResults.Success ? stringResults.Value : "";
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(filterByApproved));
+        filterByApproved = boolResults.Success ? boolResults.Value : false;
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(selectedUsername), selectedUsername);
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+        await sessionStorage.SetAsync(nameof(filterByApproved), filterByApproved);
+    }
+
+    private async Task FilterAppeals()
+    {
+        var output = await appealData.GetAllBanAppealsAsync();
+
+        if (selectedUsername != "All")
+        {
+            output = output.Where(a => a.AppealingUser?.DisplayName == selectedUsername).ToList();
+        }
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(a => a.AppealReason.Contains(
+                searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (filterByApproved)
+        {
+            output = output.Where(a => a.IsApproved).ToList();
+        }
+        else
+        {
+            output = output.Where(a => a.IsApproved is false).ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(a => a.SubmittedAt).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(a => a.SubmittedAt).ToList();
+        }
+
+        appeals = output;
+        await SaveFilterState();
+    }
+
+    private async Task OrderByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterAppeals();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterAppeals();
+    }
+
+    private async Task OnUsernameClick(string username = "All")
+    {
+        selectedUsername = username;
+        showUsernames = false;
+        await FilterAppeals();
+    }
+
+    private async Task FilterByApprovedClick(bool isApproved)
+    {
+        filterByApproved = isApproved;
+        await FilterAppeals();
+    }
+
+    private void OpenDetails(BanAppealModel appeal)
+    {
+        navManager.NavigateTo($"/BanAppealDetails/{appeal.Id}");
+    }
+
+    private string SortedByNewClass(bool isNew)
+    {
+        if (isNew == isSortedByNew)
+        {
+            return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
+    }
+
+    private string FilterByApprovedClass(bool isApproved)
+    {
+        if (isApproved == filterByApproved)
+        {
+            return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
+    }
+
+    private string SelectedUsernameClass(string username = "All")
+    {
+        if (username == selectedUsername)
+        {
+            return "fw-bold";
+        }
+
+        return "";
+    }
+}

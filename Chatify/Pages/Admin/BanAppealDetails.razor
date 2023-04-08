@@ -1,0 +1,176 @@
+﻿@page "/BanAppealDetails/{Id}"
+@attribute [Authorize]
+@inject IUserData userData
+@inject IBanAppealData appealData
+@inject IBanData banData
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+
+<h1 class="text-center text-uppercase fw-bold mb-4">Ban Appeal Details</h1>
+
+<div class="rounded rounded-3">
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-8 card bg-dark p-4">
+                <div class="row">
+                    <div class="col-11">
+                        <div>
+                            @if (appeal is not null)
+                            {
+                                <div class="d-flex justify-content-start">
+                                    <h2>@appeal.AppealingUser.DisplayName's appeal</h2>
+                                </div>
+                                <p class="fs-5 text-warning">
+                                    This appeal was submitted on @appeal.SubmittedAt.ToString("dd/MM/yyyy")
+                                </p>
+                                <hr />
+                                <div>
+                                    <h2>Appeal Reason</h2>
+                                    <p class="fs-5 text-warning">
+                                        @appeal.AppealReason
+                                    </p>
+                                </div>
+                                <hr />
+                                <div>
+                                    <h2>Status</h2>
+                                    <p class="fs-5 text-warning">
+                                        @((appeal.IsApproved) ? "Has Been Approved" : "Pending")
+                                    </p>
+                                </div>
+                                @if (appeal.ApprovedAdmin is not null)
+                                {
+                                    <hr />
+                                    <div>
+                                        <h2>Approved By</h2>
+                                        <p class="fs-5 text-warning">
+                                            @appeal.ApprovedAdmin.DisplayName - @appeal.ApprovedAdmin.Id
+                                        </p>
+                                        <p class="fs-5 text-warning">
+                                            @appeal.ApprovedAt.ToString("dd/MM/yyyy")
+                                        </p>
+                                    </div>
+                                }
+                                @if (appeal.DisapprovedAdmin is not null)
+                                {
+                                    <hr />
+                                    <div>
+                                        <h2>Disapproved By</h2>
+                                        <p class="fs-5 text-warning">
+                                            @appeal.DisapprovedAdmin.DisplayName - @appeal.DisapprovedAdmin.Id
+                                        </p>
+                                        <p class="fs-5 text-warning">
+                                            @appeal.DisapprovedAt.ToString("dd/MM/yyyy")
+                                        </p>
+                                    </div>
+                                }
+                                @if (appeal.IsApproved is false)
+                                {
+                                    @if (appealId == appeal.Id)
+                                    {
+                                        <div class="btn-group w-100">
+                                            <button class="btn btn-outline-success me-1" @onclick="(async() => await ApproveAppeal())">
+                                                Approve
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="(() => appealId = string.Empty)">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-warning w-100" @onclick="(() => appealId = appeal.Id)">
+                                            Approve
+                                        </button>
+                                    }
+                                }
+                                else
+                                {
+                                    @if (appealId == appeal.Id)
+                                    {
+                                        <div class="btn-group w-100">
+                                            <button class="btn btn-outline-success me-1" @onclick="(async() => await DisapproveAppeal())">
+                                                Disapprove
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="(() => appealId = string.Empty)">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-warning w-100" @onclick="(() => appealId = appeal.Id)">
+                                            Disapprove
+                                        </button>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private UserModel loggedInUser;
+    private BanModel ban;
+    private BanAppealModel appeal;
+    private string appealId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        appeal = await appealData.GetBanAppealAsync(Id);
+        if (appeal is not null)
+        {
+            ban = await banData.GetBanAsync(appeal.Ban.Id);
+        }
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/BanAppeals");
+    }
+
+    private async Task ApproveAppeal()
+    {
+        appeal.IsApproved = true;
+        appeal.ApprovedAt = DateTime.UtcNow;
+        appeal.ApprovedAdmin = new BasicUserModel(loggedInUser);
+
+        if (ban is not null)
+        {
+            ban.IsActive = false;
+            await banData.UpdateBan(ban);
+        }
+
+        await appealData.UpdateAppeal(appeal);
+        ClosePage();
+    }
+
+    private async Task DisapproveAppeal()
+    {
+        appeal.IsApproved = false;
+        appeal.DisapprovedAdmin = new BasicUserModel(loggedInUser);
+        appeal.DisapprovedAt = DateTime.UtcNow;
+
+        await appealData.UpdateAppeal(appeal);
+
+        if (ban is not null)
+        {
+            ban.IsActive = true;
+            await banData.UpdateBan(ban);
+        }
+
+        ClosePage();
+    }
+}
