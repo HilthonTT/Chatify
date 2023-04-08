@@ -1,14 +1,20 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.Helper;
+
+namespace ChatifyLibrary.DataAccess;
 
 public class MongoMessageData : IMessageData
 {
     private readonly IMongoCollection<MessageModel> _messages;
     private readonly IMemoryCache _cache;
+    private readonly ICachingHelper _helper;
     private const string CacheName = "MessageData";
 
-    public MongoMessageData(IDbConnection db, IMemoryCache cache)
+    public MongoMessageData(IDbConnection db,
+                            IMemoryCache cache,
+                            ICachingHelper helper)
     {
         _cache = cache;
+        _helper = helper;
         _messages = db.MessageCollection;
     }
 
@@ -28,7 +34,9 @@ public class MongoMessageData : IMessageData
 
     public async Task<List<MessageModel>> GetConversationMessagesAsync(ConversationModel conversation)
     {
-        var output = _cache.Get<List<MessageModel>>(conversation.Id);
+        string cachingString = _helper.MessageCachingString(conversation.Id);
+
+        var output = _cache.Get<List<MessageModel>>(cachingString);
         if (output is null)
         {
             var filter = Builders<MessageModel>.Filter.And(
@@ -37,7 +45,7 @@ public class MongoMessageData : IMessageData
 
             output = await _messages.Find(filter).ToListAsync();
 
-            _cache.Set(conversation.Id, output, TimeSpan.FromMinutes(10));
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(10));
         }
 
         return output;

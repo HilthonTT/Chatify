@@ -1,5 +1,6 @@
 ﻿using Chatify.Helpers;
 using ChatifyLibrary.DataAccess;
+using ChatifyLibrary.Helper;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Identity.Web;
@@ -45,6 +46,7 @@ public static class RegisterServices
         builder.Services.AddSingleton<IPrivateMessageData, MongoPrivateMessageData>();
         builder.Services.AddSingleton<IBanData, MongoBanData>();
         builder.Services.AddSingleton<IBanAppealData, MongoBanAppealData>();
+        builder.Services.AddSingleton<ICachingHelper, CachingHelper>();
 
         builder.Services.AddSingleton<IFriendCodeGenerator, FriendCodeGenerator>();
     }

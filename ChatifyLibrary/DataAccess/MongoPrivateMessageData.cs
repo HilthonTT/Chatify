@@ -1,14 +1,20 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.Helper;
+
+namespace ChatifyLibrary.DataAccess;
 
 public class MongoPrivateMessageData : IPrivateMessageData
 {
     private readonly IMongoCollection<PrivateMessageModel> _messages;
     private readonly IMemoryCache _cache;
+    private readonly ICachingHelper _helper;
     private const string CacheName = "PrivateMessageData";
 
-    public MongoPrivateMessageData(IDbConnection db, IMemoryCache cache)
+    public MongoPrivateMessageData(IDbConnection db,
+                                   IMemoryCache cache,
+                                   ICachingHelper helper)
     {
         _cache = cache;
+        _helper = helper;
         _messages = db.PrivateMessageCollection;
     }
 
@@ -28,7 +34,9 @@ public class MongoPrivateMessageData : IPrivateMessageData
 
     public async Task<List<PrivateMessageModel>> GetConversationMessagesAsync(PrivateConversationModel conversation)
     {
-        var output = _cache.Get<List<PrivateMessageModel>>(conversation.Id);
+        string cachingString = _helper.PrivateMessageCachingString(conversation.Id);
+
+        var output = _cache.Get<List<PrivateMessageModel>>(cachingString);
         if (output is null)
         {
             var filter = Builders<PrivateMessageModel>.Filter.And(
@@ -37,7 +45,7 @@ public class MongoPrivateMessageData : IPrivateMessageData
 
             output = await _messages.Find(filter).ToListAsync();
 
-            _cache.Set(conversation.Id, output, TimeSpan.FromMinutes(10));
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(10));
         }
 
         return output;

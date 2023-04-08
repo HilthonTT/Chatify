@@ -1,22 +1,28 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.Helper;
+
+namespace ChatifyLibrary.DataAccess;
 
 public class MongoFriendRequestData : IFriendRequestData
 {
     private readonly IMongoCollection<FriendRequestModel> _friendsRequest;
     private readonly IMemoryCache _cache;
+    private readonly ICachingHelper _helper;
     private const string CacheName = "FriendRequestData";
-    private const string PendingCacheName = "Pending-Request";
-    private const string SendedCacheName = "Sended-Request";
 
-    public MongoFriendRequestData(IDbConnection db, IMemoryCache cache)
+    public MongoFriendRequestData(IDbConnection db,
+                                  IMemoryCache cache,
+                                  ICachingHelper helper)
     {
         _cache = cache;
+        _helper = helper;
         _friendsRequest = db.FriendRequestCollection;
     }
 
     public async Task<List<FriendRequestModel>> GetUserPendingFriendRequestsAsync(string userId)
     {
-        var output = _cache.Get<List<FriendRequestModel>>($"{PendingCacheName}-{userId}");
+        string cachingString = _helper.ReceivedFriendRequestCachingString(userId);
+
+        var output = _cache.Get<List<FriendRequestModel>>(cachingString);
         if (output is null)
         {
             var filter = Builders<FriendRequestModel>.Filter.And(
@@ -25,7 +31,7 @@ public class MongoFriendRequestData : IFriendRequestData
 
             output = await _friendsRequest.Find(filter).ToListAsync();
 
-            _cache.Set($"{PendingCacheName}-{userId}", output, TimeSpan.FromMinutes(10));
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(10));
         }
 
         return output;
@@ -33,7 +39,9 @@ public class MongoFriendRequestData : IFriendRequestData
 
     public async Task<List<FriendRequestModel>> GetUserSendedFriendRequestsAsync(string userId)
     {
-        var output = _cache.Get<List<FriendRequestModel>>($"{SendedCacheName}-{userId}");
+        string cachingString = _helper.SendedFriendRequestCachingString(userId);
+
+        var output = _cache.Get<List<FriendRequestModel>>(cachingString);
         if (output is null)
         {
             var filter = Builders<FriendRequestModel>.Filter.And(
@@ -41,7 +49,7 @@ public class MongoFriendRequestData : IFriendRequestData
 
             output = await _friendsRequest.Find(filter).ToListAsync();
 
-            _cache.Set(userId, output, TimeSpan.FromMinutes(10));
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(10));
         }
 
         return output;

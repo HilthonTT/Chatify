@@ -1,14 +1,20 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.Helper;
+
+namespace ChatifyLibrary.DataAccess;
 
 public class MongoPrivateConversationData : IPrivateConversationData
 {
     private readonly IMongoCollection<PrivateConversationModel> _conversations;
     private readonly IMemoryCache _cache;
+    private readonly ICachingHelper _helper;
     private const string CacheName = "PrivateConversationData";
 
-    public MongoPrivateConversationData(IDbConnection db, IMemoryCache cache)
+    public MongoPrivateConversationData(IDbConnection db,
+                                        IMemoryCache cache,
+                                        ICachingHelper helper)
     {
         _cache = cache;
+        _helper = helper;
         _conversations = db.PrivateConversationCollection;
     }
 
@@ -28,7 +34,9 @@ public class MongoPrivateConversationData : IPrivateConversationData
 
     public async Task<PrivateConversationModel> GetUsersConversationAsync(string firstUserId, string secondUserId)
     {
-        var output = _cache.Get<PrivateConversationModel>($"{firstUserId} - {secondUserId}");
+        string cachingString = _helper.PrivateConversationCachingString(firstUserId, secondUserId);
+
+        var output = _cache.Get<PrivateConversationModel>(cachingString);
         if (output is null)
         {
             var filter = Builders<PrivateConversationModel>.Filter.Or(
@@ -37,13 +45,11 @@ public class MongoPrivateConversationData : IPrivateConversationData
                     Builders<PrivateConversationModel>.Filter.Eq(c => c.LastParticipant.Id, secondUserId)),
                 Builders<PrivateConversationModel>.Filter.And(
                     Builders<PrivateConversationModel>.Filter.Eq(c => c.FirstParticipant.Id, secondUserId),
-                    Builders<PrivateConversationModel>.Filter.Eq(c => c.LastParticipant.Id, firstUserId))
-            );
-
+                    Builders<PrivateConversationModel>.Filter.Eq(c => c.LastParticipant.Id, firstUserId)));
 
             output = await _conversations.Find(filter).FirstOrDefaultAsync();
 
-            _cache.Set($"{firstUserId} - {secondUserId}", output, TimeSpan.FromHours(1));
+            _cache.Set(cachingString, output, TimeSpan.FromHours(1));
         }
 
         return output;

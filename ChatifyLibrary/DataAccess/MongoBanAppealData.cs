@@ -1,14 +1,20 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.Helper;
+
+namespace ChatifyLibrary.DataAccess;
 
 public class MongoBanAppealData : IBanAppealData
 {
     private readonly IMongoCollection<BanAppealModel> _banAppeals;
     private readonly IMemoryCache _cache;
+    private readonly ICachingHelper _helper;
     private const string CacheName = "BanAppealsData";
 
-    public MongoBanAppealData(IDbConnection db, IMemoryCache cache)
+    public MongoBanAppealData(IDbConnection db,
+                              IMemoryCache cache,
+                              ICachingHelper helper)
     {
         _cache = cache;
+        _helper = helper;
         _banAppeals = db.BanAppealCollection;
     }
 
@@ -34,12 +40,14 @@ public class MongoBanAppealData : IBanAppealData
 
     public async Task<BanAppealModel> GetBanAppealFromBan(BanModel ban)
     {
-        var output = _cache.Get<BanAppealModel>(ban.Id);
+        string cachingString = _helper.BanAppealCachingString(ban.Id);
+
+        var output = _cache.Get<BanAppealModel>(cachingString);
         if (output is null)
         {
             output = await _banAppeals.Find(b => b.Ban.Id == ban.Id).FirstOrDefaultAsync();
 
-            _cache.Set(ban.Id, output, TimeSpan.FromHours(5));
+            _cache.Set(cachingString, output, TimeSpan.FromHours(5));
         }
 
         return output;
