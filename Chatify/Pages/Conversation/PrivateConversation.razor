@@ -20,16 +20,14 @@
         <div class="row justify-content-center">
             <div class="col-lg-10 col-md-8">
                 <div class="row alert bg-warning text-black" role="alert">
-                    <div class="col-11">
+                    <div class="close-button-section">
+                        <button class="btn btn-close" @onclick="(() => errorMessage = string.Empty)" />
+                    </div>
+                    <div class="col-12">
                         <h4 class="alert-heading">Error!</h4>
                         <p>@errorMessage</p>
-                        <hr>
-                        <p class="mb-0">You can wait to send another friend request later if you think this is a mistake.</p>
-                    </div>
-                    <div class="col-1">
-                        <div class="close-button-section">
-                            <button class="btn btn-close btn-close" @onclick="(() => errorMessage = string.Empty)" />
-                        </div>
+                        <hr />
+                        <p class="mb-0">If you think this is a bug, please contact the administrator.</p>
                     </div>
                 </div>
             </div>

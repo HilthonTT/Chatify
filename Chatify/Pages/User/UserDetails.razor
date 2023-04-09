@@ -12,21 +12,19 @@
 {
     <h1 class="text-center text-uppercase fw-bold mb-4">@user?.DisplayName's Profile</h1>
 
-    @if (string.IsNullOrWhiteSpace(displayMessage) is false)
+    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
     {
         <div class="row justify-content-center">
             <div class="col-lg-10 col-md-8">
                 <div class="row alert bg-warning text-black" role="alert">
-                    <div class="col-11">
-                        <h4 class="alert-heading">Error!</h4>
-                        <p>@displayMessage</p>
-                        <hr>
-                        <p class="mb-0">You can wait to send another friend request later if you think this is a mistake.</p>
+                    <div class="close-button-section">
+                        <button class="btn btn-close" @onclick="(() => errorMessage = string.Empty)" />
                     </div>
-                    <div class="col-1">
-                        <div class="close-button-section">
-                            <button class="btn btn-close btn-close" @onclick="(() => displayMessage = string.Empty)" />
-                        </div>
+                    <div class="col-12">
+                        <h4 class="alert-heading">Error!</h4>
+                        <p>@errorMessage</p>
+                        <hr />
+                        <p class="mb-0">If you think this is a bug, please contact the administrator.</p>
                     </div>
                 </div>
             </div>
@@ -190,7 +188,7 @@ else
     private List<FriendRequestModel> friendRequests;
     private ConversationModel archivingConversation;
     private BanModel ban;
-    private string displayMessage = "";
+    private string errorMessage = "";
     private bool isSuccess = false;
 
     private UserModel chosenUser;
@@ -248,21 +246,21 @@ else
 
         if (loggedInUser.Id == model.Id)
         {
-            displayMessage = "You can't send a friend request to yourself.";
+            errorMessage = "You can't send a friend request to yourself.";
             isSuccess = false;
             return;
         }
 
         if (model is null)
         {
-            displayMessage = "Oops... no user have been founded having this friend code.";
+            errorMessage = "Oops... no user have been founded having this friend code.";
             isSuccess = false;
             return;
         }
 
         if (isAlreadyFriendOrRequested)
         {
-            displayMessage = "You have already sent a friend request or have this person in your friend list.";
+            errorMessage = "You have already sent a friend request or have this person in your friend list.";
             isSuccess = false;
             return;
         }
