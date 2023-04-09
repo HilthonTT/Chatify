@@ -64,7 +64,7 @@ public class MongoConversationData : IConversationData
 
     public async Task UpdateConversation(ConversationModel conversation)
     {
-        await _conversations.ReplaceOneAsync(c => c.Id == conversation.Id, conversation);
-        _cache.Remove(CacheName);
+        var filter = Builders<ConversationModel>.Filter.Eq("Id", conversation.Id);
+        await _conversations.ReplaceOneAsync(filter, conversation, new ReplaceOptions { IsUpsert = true });
     }
 }

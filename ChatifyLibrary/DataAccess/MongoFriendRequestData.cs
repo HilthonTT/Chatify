@@ -96,8 +96,12 @@ public class MongoFriendRequestData : IFriendRequestData
 
     public async Task UpdateFriendRequest(FriendRequestModel request)
     {
-        await _friendsRequest.ReplaceOneAsync(f => f.Id == request.Id, request);
-        _cache.Remove(CacheName);
+        var filter = Builders<FriendRequestModel>.Filter.Eq("Id", request.Id);
+        await _friendsRequest.ReplaceOneAsync(filter, request, new ReplaceOptions { IsUpsert = true });
+        _cache.Remove(_helper.ReceivedFriendRequestCachingString(request.Sender.Id));
+        _cache.Remove(_helper.ReceivedFriendRequestCachingString(request.Receiver.Id));
+        _cache.Remove(_helper.SendedFriendRequestCachingString(request.Sender.Id));
+        _cache.Remove(_helper.SendedFriendRequestCachingString(request.Sender.Id));
     }
 
     public Task DeleteFriendRequestAsync(FriendRequestModel request)

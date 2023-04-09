@@ -1,4 +1,5 @@
 ﻿using ChatifyLibrary.Helper;
+using System.Runtime.CompilerServices;
 
 namespace ChatifyLibrary.DataAccess;
 
@@ -68,7 +69,7 @@ public class MongoPrivateConversationData : IPrivateConversationData
 
     public async Task UpdateConversation(PrivateConversationModel conversation)
     {
-        await _conversations.ReplaceOneAsync(c => c.Id == conversation.Id, conversation);
-        _cache.Remove(CacheName);
+        var filter = Builders<PrivateConversationModel>.Filter.Eq("Id", conversation.Id);
+        await _conversations.ReplaceOneAsync(filter, conversation, new ReplaceOptions { IsUpsert = true });
     }
 }

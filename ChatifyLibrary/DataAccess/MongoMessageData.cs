@@ -64,7 +64,7 @@ public class MongoMessageData : IMessageData
 
     public async Task UpdateMessageAsync(MessageModel message)
     {
-        await _messages.ReplaceOneAsync(m => m.Id == message.Id, message);
-        _cache.Remove(CacheName);
+        var filter = Builders<MessageModel>.Filter.Eq("Id", message.Id);
+        await _messages.ReplaceOneAsync(filter, message, new ReplaceOptions { IsUpsert = true });
     }
 }
