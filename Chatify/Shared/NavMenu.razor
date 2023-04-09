@@ -57,6 +57,21 @@
                     </ul>
                 </Authorized>
             </AuthorizeView>
+            <AuthorizeView Policy="Admin">
+                <Authorized>
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Admin
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-dark  accordion-body" aria-labelledby="navbarDarkDropdownMenuLink">
+                                <a class="dropdown-item" href="/Bans">Bans</a>
+                                <a class="dropdown-item" href="/BanAppeals">BanAppeals</a>
+                            </div>
+                        </li>
+                    </ul>
+                </Authorized>
+            </AuthorizeView>
             <input class="form-control me-2 text-light bg-dark border-warning input-section" type="search" placeholder="Search User" aria-label="Search User" 
             @oninput="((txt) => searchText = (string)txt.Value)"/>
             <button class="btn btn-outline-warning" type="submit" @onclick="GoToUsers">Search</button>
