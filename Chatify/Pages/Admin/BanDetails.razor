@@ -1,0 +1,211 @@
+﻿@page "/BanDetails/{Id}"
+@attribute [Authorize(Policy = "Admin")]
+@inject IBanData banData
+@inject IUserData userData
+@inject IBanAppealData appealData
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+
+<h1 class="text-uppercase fw-bold text-center mb-4">Ban Details</h1>
+
+@if (ban is not null)
+{
+    <div class="rounded rounded-3">
+        <div class="card-body">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-md-8 card bg-dark p-4 shadow">
+                    <div class="row">
+                        <div class="col-11">
+                            <div>
+                                @if (currentEditingReason == ban.Id)
+                                {
+                                    <EditForm class="conversation-edit-form" Model="editedReason"
+                                        OnSubmit="(async() => await SaveReason(ban))">
+
+                                        <InputTextArea class="form-control bg-dark text-light conversation-edit-field border-warning"
+                                            @bind-Value="editedReason" />
+                                        <div class="btn-group">
+                                            <button class="btn btn-outline-success mx-1" type="submit">
+                                                Save
+                                            </button>
+                                            <button class="btn btn-outline-danger" type="button"
+                                                @onclick="(() => currentEditingReason = string.Empty)">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </EditForm>
+                                }
+                                else
+                                {
+                                    <h2>Reason:</h2>
+                                    <label class="h5 text-warning">@ban.Reason</label>
+                                    <button class="btn btn-outline-warning w-100" 
+                                        @onclick="(() => EditReason(ban))">
+                                        Edit Reason
+                                    </button>
+                                }
+                                <hr />
+                                @if (currentEditingBannedUntil == ban.Id)
+                                {
+                                    <EditForm class="conversation-edit-form" Model="editedBannedUntil"
+                                        OnSubmit="(async() => await SaveBannedUntil(ban))">
+
+                                        <InputDate class="form-control bg-dark text-light conversation-edit-field border-warning" 
+                                            @bind-Value="editedBannedUntil" />
+                                        <div class="btn-group">
+                                            <button class="btn btn-outline-success mx-1" type="submit">
+                                                Save
+                                            </button>
+                                            <button class="btn btn-outline-danger" type="button">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </EditForm>
+                                }
+                                else
+                                {
+                                    <h2>Banned Until:</h2>
+                                    <label class="h5 text-warning">@ban.BannedUntil.ToString("dd/MM/yyyy")</label>
+                                    <button class="btn btn-outline-warning w-100"
+                                        @onclick="(() => EditBannedUntil(ban))">
+                                        Edit Banned Period
+                                    </button>
+                                }
+                                <hr />
+                                @if (currentEditingActivity == ban.Id)
+                                {
+                                    <EditForm class="conversation-edit" Model="editedActivity"
+                                        OnSubmit="(async() => await SaveActivity(ban))">
+
+                                        <InputRadioGroup id="activity" @bind-Value="editedActivity">
+                                            <div class="radio-item-group">
+                                                <InputRadio Value="true" id="@TrueStringName"/>
+                                                <label for="@TrueStringName" class="h-100 w-100">
+                                                    <span class="fw-bold text-uppercase text-center h5">Make it active</span>
+                                                </label>
+                                            </div>
+                                            <div class="radio-item-group">
+                                                <InputRadio Value="false" id="@FalseStringName"/>
+                                                <label for="@FalseStringName" class="h-100 w-100">
+                                                    <span class="fw-bold text-uppercase text-center h5">Make it inactive</span>
+                                                </label>
+                                            </div>
+                                        </InputRadioGroup>
+                                        <div class="btn-group w-100">
+                                            <button class="btn btn-outline-success me-1 w-50" type="submit">
+                                                Save
+                                            </button>
+                                            <button class="btn btn-outline-danger w-50" type="button"
+                                                @onclick="(() => currentEditingActivity = string.Empty)">
+                                                Cancel
+                                            </button>
+                                        </div>
+
+                                    </EditForm>
+                                }
+                                else
+                                {
+                                    <h2>Status:</h2>
+                                    <label class="h5 text-warning">@((ban.IsActive ? "Active" : "Inactive"))</label>
+                                    <button class="btn btn-outline-warning w-100"
+                                        @onclick="(() => EditActivity(ban))">
+                                        Edit Activity
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-1">
+                            <div class="close-button-section">
+                                <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private UserModel loggedInUser;
+    private BanModel ban;
+    private BanModel editingModel;
+    private BanAppealModel appeal;
+
+    private const string TrueStringName = "TrueString";
+    private const string FalseStringName = "FalseString";
+
+    private string currentEditingReason = "";
+    private string editedReason = "";
+    private string currentEditingBannedUntil = "";
+    private DateTime editedBannedUntil = DateTime.MinValue;
+    private string currentEditingActivity = "";
+    private bool editedActivity = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        ban = await banData.GetBanAsync(Id);
+        if (ban is not null)
+        {
+            appeal = await appealData.GetBanAppealFromBan(ban);
+        }
+    }
+
+    private void EditReason(BanModel model)
+    {
+        editingModel = model;
+        editedReason = model.Reason;
+        currentEditingReason = model.Id;
+        currentEditingBannedUntil = "";
+        currentEditingActivity = "";
+    }
+
+    private async Task SaveReason(BanModel model)
+    {
+        currentEditingReason = string.Empty;
+        model.Reason = editedReason;
+        await banData.UpdateBan(model);
+    }
+
+    private void EditBannedUntil(BanModel model)
+    {
+        editingModel = model;
+        editedBannedUntil = model.BannedUntil;
+        currentEditingReason = "";
+        currentEditingBannedUntil = model.Id;
+        currentEditingActivity = "";
+    }
+
+    private async Task SaveBannedUntil(BanModel model)
+    {
+        currentEditingBannedUntil = string.Empty;
+        model.BannedUntil = editedBannedUntil;
+        await banData.UpdateBan(model);
+    }
+
+    private void EditActivity(BanModel model)
+    {
+        editingModel = model;
+        editedActivity = model.IsActive;
+        currentEditingReason = "";
+        currentEditingBannedUntil = "";
+        currentEditingActivity = model.Id;
+    }
+
+    private async Task SaveActivity(BanModel model)
+    {
+        currentEditingActivity = string.Empty;
+        model.IsActive = editedActivity;
+        await banData.UpdateBan(model);
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/Bans");
+    }
+}
