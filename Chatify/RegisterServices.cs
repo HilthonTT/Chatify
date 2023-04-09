@@ -47,6 +47,8 @@ public static class RegisterServices
         builder.Services.AddSingleton<IBanData, MongoBanData>();
         builder.Services.AddSingleton<IBanAppealData, MongoBanAppealData>();
         builder.Services.AddSingleton<ICachingHelper, CachingHelper>();
+        builder.Services.AddSingleton<IServerData, MongoServerData>();
+        builder.Services.AddSingleton<IChannelData, MongoChannelData>();
 
         builder.Services.AddSingleton<IFriendCodeGenerator, FriendCodeGenerator>();
     }

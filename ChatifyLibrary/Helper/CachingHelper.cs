@@ -41,4 +41,14 @@ public class CachingHelper : ICachingHelper
     {
         return $"PrivateMessageData-{id}";
     }
+
+    public string ChannelCachingString(string id)
+    {
+        return $"ChannelData-{id}";
+    }
+
+    public string ServerCachingString(string id)
+    {
+        return $"ServerData-{id}";
+    }
 }

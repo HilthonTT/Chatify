@@ -22,4 +22,8 @@ public interface IDbConnection
     string BanCollectionName { get; }
     string BanAppealCollectionName { get; }
     IMongoCollection<BanAppealModel> BanAppealCollection { get; }
+    IMongoCollection<ChannelModel> ChannelCollection { get; }
+    IMongoCollection<ServerModel> ServerCollection { get; }
+    string ServerCollectionName { get; }
+    string ChannelCollectionName { get; }
 }
