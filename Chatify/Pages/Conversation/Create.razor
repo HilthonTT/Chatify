@@ -42,7 +42,7 @@
                             <h3 class="fw-bold text-uppercase">Friends</h3>
                             <label class="form-label">You can add your friends to the conversation by clicking on their name.</label>
                             <input type="text" placeholder="Search"
-                                aria-label="Search" class="form-control bg-dark text-white mb-2"
+                                aria-label="Search" class="form-control bg-dark text-white mb-2 input-section border-warning"
                                 @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
                             <ul class="list-group">
                                 @if (friends is not null)
@@ -72,7 +72,7 @@
                                 <label class="form-label fw-bold text-uppercase" for="conversation-group-name">Group Name</label>
                                 <div class="mt-1">Name your group name. Its name will represent the group name.</div>
                                 <ValidationMessage For="(() => conversation.GroupName)" />
-                                <InputText class="form-control bg-dark text-white" id="conversation-group-name" @bind-Value="conversation.GroupName"/>
+                                <InputText class="form-control bg-dark text-white input-section border-warning" id="conversation-group-name" @bind-Value="conversation.GroupName"/>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-uppercase" for="category">Category</label>
@@ -89,7 +89,7 @@
                                 </InputRadioGroup>
                             </div>
                             <div class="center-children">
-                                <button class="btn btn-success btn-lg text-uppercase mt-4" type="submit">Create Conversation</button>
+                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">Create Conversation</button>
                             </div>
                         }  
                     </div>
@@ -98,7 +98,7 @@
                             <h3 class="fw-bold text-uppercase">Participants</h3>
                             <label class="form-label">These are members that will be automatically added.</label>
                             <input type="text" placeholder="Search"
-                                aria-label="Search" class="form-control bg-dark text-white mb-2"
+                                aria-label="Search" class="form-control bg-dark text-white mb-2 input-section border-warning"
                                 @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
                             <ul class="list-group">
                                 <Virtualize Items="conversation.Participants" Context="f" OverscanCount="10">

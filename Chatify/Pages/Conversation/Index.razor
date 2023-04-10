@@ -4,7 +4,7 @@
 @inject IUserData userData
 @inject ICategoryData categoryData
 @inject IPrivateConversationData privateConversationData
-@inject IFriendCodeGenerator codeGenerator
+@inject ICodeGenerator codeGenerator
 @inject IBanData banData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
@@ -14,13 +14,19 @@
     <h1 class="text-uppercase fw-bold text-center mb-4 text-light">Conversations</h1>
 
     <div class="text-center">
-        <button class="btn btn-outline-light btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
+        <button class="btn btn-outline-warning btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
     </div>
     <div class="row">
         <div class="text-uppercase fw-bold">You are in @conversations?.Count conversations</div>
         <div class="col-md-8 col-xl-12 btn-group">
-            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
-            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Popular</button>
+            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+                @onclick="(async() => await OrderByNew(true))">
+                New
+            </button>
+            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                @onclick="(async() => await OrderByNew(false))">
+                Popular
+            </button>
         </div>
     </div>
 
@@ -28,17 +34,18 @@
         <div class="col-md-12 col-xl-12">
             <input type="text" placeholder="Search"
                 aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
-                @oninput="((txt) => OnSearchInput((string)txt.Value))"/>
+                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
         </div>
         <div class="col-12 d-block d-md-none">
             @if (categories is not null && showCategories)
             {
                 <div class="friend-category">
                     <span class="text-uppercase fw-bold">Category</span>
-                    <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
+                    <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
                     @foreach (var c in categories)
                     {
-                        <div class="@SelectedCategoryClass(c.CategoryName)" @onclick="(() => OnCategoryClick(c.CategoryName))">
+                        <div class="@SelectedCategoryClass(c.CategoryName)" 
+                            @onclick="(async() => await OnCategoryClick(c.CategoryName))">
                             @c.CategoryName
                         </div>
                     }
@@ -46,7 +53,7 @@
             }
             else
             {
-                <div class="" @onclick="(() => showCategories = true)">
+                <div class="friend-category mt-1" @onclick="(() => showCategories = true)">
                     <span class="fw-bold">@selectedCategory</span>
                 </div>
             }
@@ -63,7 +70,7 @@
                     {
                         @foreach (var f in loggedInUser.Friends)
                         {  
-                            <div @onclick="(() => OpenPrivateConversation(f))"><span class="oi oi-person me-1"></span>@f.DisplayName</div>   
+                            <div @onclick="(async() => await OpenPrivateConversation(f))"><span class="oi oi-person me-1"></span>@f.DisplayName</div>   
                         }
                     }
                     else
@@ -138,11 +145,13 @@
             {
                 <div class="friend-category">
                     <span class="text-uppercase fw-bold">Category</span>
-                    <div class="@SelectedCategoryClass()" @onclick="(() => OnCategoryClick())">All</div>
+                    <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
                     @foreach (var c in categories)
                     {
                         <div class="@SelectedCategoryClass(c.CategoryName)" 
-                            @onclick="(() => OnCategoryClick(c.CategoryName))">@c.CategoryName</div>    
+                            @onclick="(async() => await OnCategoryClick(c.CategoryName))">
+                            @c.CategoryName
+                        </div>    
                     }
                 </div>
             }
