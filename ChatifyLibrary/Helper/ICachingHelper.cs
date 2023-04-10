@@ -12,4 +12,5 @@ public interface ICachingHelper
     string ReceivedFriendRequestCachingString(string id);
     string ChannelCachingString(string id);
     string ServerCachingString(string id);
+    string ServerInvitationCachingString(string id);
 }

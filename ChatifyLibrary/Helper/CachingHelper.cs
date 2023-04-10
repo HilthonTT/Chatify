@@ -51,4 +51,9 @@ public class CachingHelper : ICachingHelper
     {
         return $"ServerData-{id}";
     }
+
+    public string ServerInvitationCachingString(string id)
+    {
+        return $"InvitationData-{id}";
+    }
 }

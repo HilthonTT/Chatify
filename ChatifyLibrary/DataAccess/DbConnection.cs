@@ -19,8 +19,9 @@ public class DbConnection : IDbConnection
     public string BanCollectionName { get; private set; } = "bans";
     public string BanAppealCollectionName { get; private set; } = "ban-appeals";
     public string ServerCollectionName { get; private set; } = "servers";
-    public string ChannelCollectionName { get; private set; } = "channels";
-
+    public string ServerInvitationCollectionName { get; private set; } = "server-invitations";
+    public string ChannelCollectionName { get; private set; } = "channels"; 
+    
     public MongoClient Client { get; private set; }
     public IMongoCollection<ConversationModel> ConversationCollection { get; private set; }
     public IMongoCollection<MessageModel> MessageCollection { get; private set; }
@@ -32,8 +33,9 @@ public class DbConnection : IDbConnection
     public IMongoCollection<BanModel> BanCollection { get; private set; }
     public IMongoCollection<BanAppealModel> BanAppealCollection { get; private set; }
     public IMongoCollection<ServerModel> ServerCollection { get; private set; }
+    public IMongoCollection<ServerInvitationModel> ServerInvitationCollection { get; private set; }
     public IMongoCollection<ChannelModel> ChannelCollection { get; private set; }
-
+    
     public DbConnection(IConfiguration config)
     {
         _config = config;
@@ -51,6 +53,7 @@ public class DbConnection : IDbConnection
         BanCollection = _db.GetCollection<BanModel>(BanCollectionName);
         BanAppealCollection = _db.GetCollection<BanAppealModel>(BanAppealCollectionName);
         ServerCollection = _db.GetCollection<ServerModel>(ServerCollectionName);
+        ServerInvitationCollection = _db.GetCollection<ServerInvitationModel>(ServerInvitationCollectionName);
         ChannelCollection = _db.GetCollection<ChannelModel>(ChannelCollectionName);
     }
 }

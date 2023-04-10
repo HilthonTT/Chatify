@@ -26,4 +26,6 @@ public interface IDbConnection
     IMongoCollection<ServerModel> ServerCollection { get; }
     string ServerCollectionName { get; }
     string ChannelCollectionName { get; }
+    string ServerInvitationCollectionName { get; }
+    IMongoCollection<ServerInvitationModel> ServerInvitationCollection { get; }
 }
