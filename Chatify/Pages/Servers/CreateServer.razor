@@ -168,11 +168,8 @@ else
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
     }
 
-    private void GetFileExtensionAndFileName(InputFileChangeEventArgs e)
+    private void GetFileExtensionAndFileName()
     {
-        fileName = string.Empty;
-        fileExtension = string.Empty;
-
         fileName = file.Name;
         fileExtension = Path.GetExtension(file.Name);
     }
@@ -180,7 +177,7 @@ else
     private void LoadFiles(InputFileChangeEventArgs e)
     {
         file = e.File;
-        GetFileExtensionAndFileName(e);
+        GetFileExtensionAndFileName();
     }
 
     private async Task<string> CaptureFile()
@@ -197,15 +194,15 @@ else
 
             string path = Path.Combine(
                 config.GetValue<string>("FileStorage"), 
-                loggedInUser.DisplayName, 
+                loggedInUser.Email, 
                 newFileName);
 
-            string relativePath = Path.Combine(loggedInUser.DisplayName, newFileName);
+            string relativePath = Path.Combine(loggedInUser.Email, newFileName);
 
             Directory.CreateDirectory(
                 Path.Combine(
                     config.GetValue<string>("FileStorage"), 
-                    loggedInUser.DisplayName));
+                    loggedInUser.Email));
 
             await using FileStream fs = new(path, FileMode.Create);
             await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
