@@ -1,0 +1,286 @@
+﻿@page "/Servers"
+@attribute [Authorize]
+@inject AuthenticationStateProvider authProvider
+@inject IServerData serverData
+@inject ICategoryData categoryData
+@inject IUserData userData
+@inject IBanData banData
+@inject IConfiguration config
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+
+@if (ban is null)
+{
+    <h1 class="text-uppercase fw-bold text-center mb-4 text-light">Explore Servers!</h1>
+
+    <div class="text-center">
+        <button class="btn btn-outline-warning btn-lg text-uppercase" @onclick="LoadCreatePage">
+            Create A Server
+        </button>
+    </div>
+    <div class="row">
+        <div class="text-uppercase fw-bold">@servers?.Count servers</div>
+        <div class="col-md-8 col-xl-12 btn-group">
+            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(false)" 
+                @onclick="(async() => await OrderByNew(false))">
+                Popular
+            </button>
+            <button class="btn text-uppercase fw-bold @SortedByNewClass(true)" 
+                @onclick="(async() => await OrderByNew(true))">
+                New
+            </button>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-md-12 col-xl-12">
+            <input type="text" placeholder="Search" 
+                aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+        </div>
+        <div class="col-12 d-block d-md-none">
+            @if (categories is not null && showCategories)
+            {
+                <div class="friend-category">
+                    <span class="text-uppercase fw-bold">Category</span>
+                    <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
+                    <Virtualize Items="categories" Context="c" OverscanCount="10">
+                        <div class="@SelectedCategoryClass(c.CategoryName)" 
+                            @onclick="(async() => await OnCategoryClick(c.CategoryName))">
+                            @c.CategoryName
+                        </div>
+                    </Virtualize>
+                </div>
+            }
+            else
+            {
+                <div class="friend-category mt-1" @onclick="(() => showCategories = true)">
+                    <span class="fw-bold">@selectedCategory</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-9 col-xl-10">
+            <div class="row mb-4">
+                @if (servers is not null)
+                {
+                    <Virtualize Items="servers" Context="s" OverscanCount="10">
+                        <div class="col-xl-4 col-lg-6 mb-3 center-children">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card bg-dark text-light border-warning p-2 w-100 h-100" style="width: 20rem;">
+                                        @if (string.IsNullOrWhiteSpace(s.PictureName) is false)
+                                        {
+                                            <img src="@CreateWebPath(s.PictureName)" class="card-img-top w-100 h-100" alt="@s.OriginalPictureName">
+                                        }
+                                        else
+                                        {
+                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." class="card-img-top w-100 h-100" alt="Placeholder Image">
+                                        }
+                                        <div class="card-body">
+                                        <h5 class="card-title">@s.ServerName</h5>
+                                        <p class="card-text">@s.ServerDescription</p>
+                                        <p class="card-text"><small class="text-muted">Owner: @s.Owner.DisplayName</small></p>
+                                        <p class="card-text"><small class="text-danger">@s.Members.Count Members</small></p>
+                                        @if (IsUserInServer(s))
+                                        {
+                                            <button class="btn btn-outline-warning w-100" @onclick="(() => OpenDetails(s))">
+                                                Join Server
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-danger w-100" @onclick="(() => OpenDetails(s))">
+                                                Leave Server
+                                            </button>
+                                        }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Virtualize>
+                }
+            </div>
+        </div>
+        <div class="col-md-3 col-xl-2 d-none d-md-block">
+            @if (categories is not null)
+            {
+                <div class="friend-category">
+                    <span class="text-uppercase fw-bold">Category</span>
+                    <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
+                    <Virtualize Items="categories" Context="c" OverscanCount="10">
+                        <div class="@SelectedCategoryClass(c.CategoryName)"
+                                @onclick="(async() => await OnCategoryClick(c.CategoryName))">
+                            @c.CategoryName
+                        </div>
+                    </Virtualize>
+                </div>
+            }
+        </div>
+    </div>
+
+}
+else
+{
+    <Banned />
+}
+
+@code {
+    private UserModel loggedInUser;
+    private List<ServerModel> servers;
+    private List<ServerModel> serversThatUserIsIn;
+    private List<CategoryModel> categories;
+    private BanModel ban;
+    private string searchText = "";
+    private string selectedCategory = "";
+    private bool isSortedByNew = false;
+    private bool showCategories = false;
+    private bool showServersThatUserIsIn = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        categories = await categoryData.GetAllCategoriesAsync();
+        if (loggedInUser is not null)
+        {
+            serversThatUserIsIn = await serverData.GetUserServersAsync(loggedInUser.Id);
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            await FilterServers();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(selectedCategory));
+        selectedCategory = stringResults.Success ? stringResults.Value : "All";
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(showServersThatUserIsIn));
+        showServersThatUserIsIn = boolResults.Success ? boolResults.Value : true;
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(selectedCategory), selectedCategory);
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+        await sessionStorage.SetAsync(nameof(showServersThatUserIsIn), showServersThatUserIsIn);
+    }
+
+    private async Task FilterServers()
+    {
+        var output = await serverData.GetAllServersAsync();
+
+        if (selectedCategory != "All")
+        {
+            output = output.Where(s => s.Category?.CategoryName == selectedCategory).ToList();
+        }
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(s => s.ServerName.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                s.Owner.DisplayName.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase))
+                    .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(s => s.DateCreated).ToList();
+        }
+        else
+        {
+            output = output.OrderByDescending(s => s.Members.Count)
+                .ThenByDescending(s => s.DateCreated).ToList();
+        }
+
+        servers = output;
+        await SaveFilterState();
+    }
+
+    private async Task OrderByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterServers();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterServers();
+    }
+
+    private async Task OnCategoryClick(string category = "All")
+    {
+        selectedCategory = category;
+        showCategories = false;
+        await FilterServers();
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void OpenDetails(ServerModel server)
+    {
+        navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private void LoadCreatePage()
+    {
+        if (loggedInUser is not null)
+        {
+            navManager.NavigateTo("/Create");
+        }
+        else
+        {
+            navManager.NavigateTo("/MicrosoftIdentity/Account/SignIn", true);
+        }
+    }
+
+    private string SortedByNewClass(bool isNew)
+    {
+        if (isNew == isSortedByNew)
+        {
+            return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
+    }
+
+    private string SelectedCategoryClass(string category = "All")
+    {
+        if (category == selectedCategory)
+        {
+            return "fw-bold";
+        }
+
+        return "";
+    }
+
+    private bool IsUserInServer(ServerModel server)
+    {
+        if (server.Members.Select(m => m.Id == loggedInUser.Id).FirstOrDefault())
+        {
+            return false;
+        }
+
+        return true;
+    }
+}

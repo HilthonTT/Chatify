@@ -1,0 +1,221 @@
+﻿@page "/CreateServer"
+@attribute [Authorize]
+@using Chatify.Models;
+@inject IServerData serverData
+@inject ICategoryData categoryData
+@inject IUserData userData
+@inject IBanData banData
+@inject ICodeGenerator codeGenerator
+@inject IConfiguration config
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+
+@if (ban is null)
+{
+    <h1 class="text-center text-uppercase fw-bold mb-4">Make A Server</h1>
+
+    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-12 col-md-10">
+                <div class="row alert bg-warning text-black" role="alert">
+                    <div class="close-button-section">
+                        <button class="btn btn-close" @onclick="(() => errorMessage = string.Empty)" />
+                    </div>
+                    <div class="col-12">
+                        <h4 class="alert-heading">Error!</h4>
+                        <p>@errorMessage</p>
+                        <hr />
+                        <p class="mb-0">If you think this is a bug, please contact the administrator.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="row">
+        <div class="col-xl-12 col-lg-10 p-5 bg-dark create-form-layout">
+            <EditForm Model="server" OnValidSubmit="(async() => await Create())">
+                <DataAnnotationsValidator />
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
+                            <div class="mt-1">Name your server name. Its name will represent the server name.</div>
+                            <ValidationMessage For="(() => server.ServerName)"/>
+                            <InputText class="form-control bg-dark text-white input-section border-warning" id="server-name" @bind-Value="server.ServerName"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="server-icon">Server Icon</label>
+                            <div class="mt-1">Select an image for your server. This is not required.</div>
+                            <ValidationMessage For="(() => server.PictureName)"/>
+                            <InputFile OnChange="LoadFiles"
+                                class="form-control bg-dark text-light input-section border-warning"
+                                accept=".png,.jpg,.jpeg"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="category">Category</label>
+                            <ValidationMessage For="(() => server.CategoryId)" />
+                            <div class="mt-1">Choose a category that suits your server's brand.</div>
+                            <InputRadioGroup id="category" @bind-Value="server.CategoryId">
+                                @if (categories is not null)
+                                {
+                                    <Virtualize Items="categories" Context="c" OverscanCount="10">
+                                        <div class="radio-item-group">
+                                            <InputRadio Value="@c.Id" id="@c.Id"/>
+                                            <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
+                                        </div>
+                                    </Virtualize>
+                                }
+                            </InputRadioGroup>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="server-description">Description</label>
+                            <div class="mt-1">
+                                Describe your server's purpose, which type of people would want to join it, etc...
+                            </div>
+                            <ValidationMessage For="(() => server.ServerDescription)"/>
+                            <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="server-description" @bind-Value="server.ServerDescription"/>
+                        </div>
+                        <div class="center-children">
+                            <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
+                                Create Server
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+else
+{
+    <Banned />
+}
+
+@code {
+    private CreateServerModel server = new();
+    private List<CategoryModel> categories;
+    private UserModel loggedInUser;
+    private BanModel ban;
+
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+    private IBrowserFile? file;
+    private string errorMessage = "";
+    private string fileName = "";
+    private string fileExtension = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryData.GetAllCategoriesAsync();
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+    }
+
+    private void OpenServerDetails(ServerModel server)
+    {
+        navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private async Task Create()
+    {
+        try
+        {
+            errorMessage = "";
+
+            string relativePath = await CaptureFile();
+            string invitationCode = await codeGenerator.GenerateServerInvationCodeAsync();
+
+            ServerModel s = new()
+            {
+                Owner = new BasicUserModel(loggedInUser),
+                Category = categories.Where(c => c.Id == server.CategoryId).FirstOrDefault(),
+                ServerName = server.ServerName,
+                ServerDescription = server.ServerDescription,
+                PictureName = relativePath,
+                OriginalPictureName = fileName,
+                PictureExtension = fileExtension,
+                InvitationCode = invitationCode,
+                Archived = false,
+            };
+
+            if (s.Category is null)
+            {
+                server.CategoryId = "";
+                return;
+            }
+
+            file = null;
+            fileName = string.Empty;
+            fileExtension = string.Empty;
+
+            await serverData.CreateServer(s);
+            var newServer = await serverData.GetServerByInvitationCodeAsync(invitationCode);
+            server = new();
+
+            OpenServerDetails(newServer);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void GetFileExtensionAndFileName(InputFileChangeEventArgs e)
+    {
+        fileName = string.Empty;
+        fileExtension = string.Empty;
+
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName(e);
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        errorMessage = "";
+
+        if (file is null || loggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage"), 
+                loggedInUser.DisplayName, 
+                newFileName);
+
+            string relativePath = Path.Combine(loggedInUser.DisplayName, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"), 
+                    loggedInUser.DisplayName));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"File: {file.Name} Error: {ex.Message}";
+            throw;
+        }
+    }
+}
