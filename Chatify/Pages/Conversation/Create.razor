@@ -5,6 +5,7 @@
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject IBanData banData
+@inject IConfiguration config
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
@@ -75,6 +76,14 @@
                                 <InputText class="form-control bg-dark text-white input-section border-warning" id="conversation-group-name" @bind-Value="conversation.GroupName"/>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="conversation-icon">Icon</label>
+                                <div class="mt-1">Select an image for your conversation. This is not required.</div>
+                                <ValidationMessage For="(() => conversation.PictureName)"/>
+                                <InputFile OnChange="LoadFiles"
+                                    class="form-control bg-dark text-light input-section border-warning"
+                                    accept=".png,.jpg,.jpeg"/>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label fw-bold text-uppercase" for="category">Category</label>
                                 <ValidationMessage For="(() => conversation.CategoryId)" />
                                 <div class="mt-1">Choose a category that suits your conversation.</div>
@@ -142,6 +151,11 @@ else
     private BanModel ban;
     private string searchText = "";
     private string errorMessage = "";
+
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+    private IBrowserFile? file;
+    private string fileName = "";
+    private string fileExtension = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -216,34 +230,50 @@ else
 
     private async Task CreateConversation()
     {
-        errorMessage = "";
-
-        ConversationModel c = new()
+        try
         {
-            Owner = new BasicUserModel(loggedInUser),
-            Participants = conversation.Participants,
-            Category = categories.Where(c => c.Id == conversation.CategoryId).FirstOrDefault(),
-            GroupName = conversation.GroupName,
-            IsGroupChat = true,
-        };
+            errorMessage = "";
 
-        c.Participants.Add(new BasicUserModel(loggedInUser));
+            string relativePath = await CaptureFile();
 
-        if (c.Category is null)
-        {
-            conversation.CategoryId = "";
-            return;
+            ConversationModel c = new()
+            {
+                Owner = new BasicUserModel(loggedInUser),
+                Participants = conversation.Participants,
+                Category = categories.Where(c => c.Id == conversation.CategoryId).FirstOrDefault(),
+                PictureName = relativePath,
+                OriginalPictureName = fileName,
+                PictureExtension = fileExtension,
+                GroupName = conversation.GroupName,
+                IsGroupChat = true,
+            };
+
+            c.Participants.Add(new BasicUserModel(loggedInUser));
+
+            if (c.Category is null)
+            {
+                conversation.CategoryId = "";
+                return;
+            }
+
+            if (c.Participants.Count > 10)
+            {
+                errorMessage = "You cannot have more than 10 participants in a conversation.\n Try making a server instead.";
+                return;
+            }
+
+            file = null;
+            fileName = string.Empty;
+            fileExtension = string.Empty;
+
+            await conversationData.CreateConversation(c);
+            conversation = new();
+            ClosePage();
         }
-
-        if (c.Participants.Count > 10)
+        catch (Exception ex)
         {
-            errorMessage = "You cannot have more than 10 participants in a conversation.\n Try making a server instead.";
-            return;
+            errorMessage = ex.Message;
         }
-
-        await conversationData.CreateConversation(c);
-        conversation = new();
-        ClosePage();
     }
 
     private async Task OnSearchInput(string searchInput)
@@ -251,4 +281,55 @@ else
         searchText = searchInput;
         await FilterFriends();
     }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void GetFileExtensionAndFileName()
+    {
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName();
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        errorMessage = "";
+
+        if (file is null || loggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(config.GetValue<string>("FileStorage"), loggedInUser.Email, newFileName);
+
+            string relativePath = Path.Combine(loggedInUser.Email, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"),
+                    loggedInUser.Email));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"File: {file.Name} Error: {ex.Message}";
+            throw;
+        }
+    }
+
 }

@@ -427,11 +427,8 @@ else
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
     }
 
-    private void GetFileExtensionAndFileName(InputFileChangeEventArgs e)
+    private void GetFileExtensionAndFileName()
     {
-        fileName = string.Empty;
-        fileExtension = string.Empty;
-
         fileName = file.Name;
         fileExtension = Path.GetExtension(file.Name);
     }
@@ -439,7 +436,7 @@ else
     private void LoadFiles(InputFileChangeEventArgs e)
     {
         file = e.File;
-        GetFileExtensionAndFileName(e);
+        GetFileExtensionAndFileName();
     }
 
     private async Task<string> CaptureFile()

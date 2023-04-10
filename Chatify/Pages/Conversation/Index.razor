@@ -6,6 +6,7 @@
 @inject IPrivateConversationData privateConversationData
 @inject ICodeGenerator codeGenerator
 @inject IBanData banData
+@inject IConfiguration config
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
@@ -83,60 +84,34 @@
         <div class="col-md-7 col-xl-8">
             @if (conversations is not null)
             {
-                <Virtualize Items="conversations" Context="c" OverscanCount="10">    
-                    <div class="form-layout text-center">
-                        @if (archivingConversation is null || archivingConversation.Id != c.Id)
+                <Virtualize Items="conversations" Context="c" OverscanCount="10">
+                    <div class="card bg-dark text-light border-warning p-2 w-100 mb-4" style="width: 20rem;">
+                        @if (string.IsNullOrWhiteSpace(c.PictureName) is false)
                         {
-                            <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
-                                <div>@c.GroupName</div>
-                            </div>
-                            <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
-                                <div>Participants: @c.Participants.Count</div>
-                                <div>Owner: @c.Owner.DisplayName</div>
-                                <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
-                            </div>
-                            @if (c.Owner.Id == loggedInUser?.Id)
-                            {
-                                <div class="btn-archive mb-3 m-3">
-                                    <button class="btn btn-outline-danger text-uppercase w-100" 
-                                        @onclick="(() => archivingConversation = c)">
-                                        Archive
-                                    </button>
-                                </div>
-                            }
-                            <div class="form-layout-footer" @onclick="(() => OpenDetails(c))">
-                                <div>@c.Category.CategoryName</div>
+                            <div class="text-center p-3">
+                                <img src="@CreateWebPath(c.PictureName)" 
+                                    class="card-img-top h-25 w-50 rounded-circle" 
+                                    alt="@c.OriginalPictureName">
                             </div>
                         }
                         else
                         {
-                            <div class="form-layout-title" @onclick="(() => OpenDetails(c))">
-                                <div>@c.GroupName</div>
-                            </div>
-                            <div class="form-layout-body" @onclick="(() => OpenDetails(c))">
-                                <div>Participants: @c.Participants.Count</div>
-                                <div>Owner: @c.Owner.DisplayName</div>
-                                <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
-                            </div>
-
-                            @if (loggedInUser is not null)
-                            {
-                                <div class="mb-1 w-100">
-                                    <button class="btn btn-outline-success text-uppercase w-25"
-                                        @onclick="ArchiveConversation">
-                                        Confirm
-                                    </button>
-                                    <button class="btn btn-outline-danger text-uppercase w-25" 
-                                        @onclick="(() => archivingConversation = null)">
-                                        Cancel
-                                    </button>
-                                </div>
-                            }
-                            <div class="form-layout-footer d-flex" @onclick="(() => OpenDetails(c))">
-                                <div>@c.Category.CategoryName</div>
+                            <div class="text-center p-3">
+                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                    class="card-img-top h-25 w-50 rounded-circle" 
+                                    alt="Placeholder Image">
                             </div>
                         }
-                    </div>      
+                        <div class="card-body text-center">
+                            <h5 class="card-title">@c.GroupName</h5>
+                            <p class="card-text">@c.Category.CategoryName</p>
+                            <p class="card-text"><small class="text-muted">Owner: @c.Owner.DisplayName</small></p>
+                            <p class="card-text"><small class="text-danger">@c.Participants.Count Participants</small></p>
+                            <button class="btn btn-outline-warning w-100" @onclick="(() => OpenDetails(c))">
+                                Check Out <span class="text-danger">@c.GroupName</span>
+                            </button>
+                        </div>
+                    </div>
                 </Virtualize>
             }
         </div>
@@ -375,6 +350,11 @@ else
         {
             navManager.NavigateTo("/MicrosoftIdentity/Account/SignIn", true);
         }
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
     }
 
     private void LoadUserDetails(BasicUserModel user)

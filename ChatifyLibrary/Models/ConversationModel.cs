@@ -10,6 +10,9 @@ public class ConversationModel
     public CategoryModel Category { get; set; }
     public bool IsGroupChat { get; set; }
     public string GroupName { get; set; }
+    public string PictureName { get; set; }
+    public string OriginalPictureName { get; set; }
+    public string PictureExtension { get; set; }
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public bool Archived { get; set; }
 }
