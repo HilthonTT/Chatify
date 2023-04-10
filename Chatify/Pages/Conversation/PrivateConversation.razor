@@ -374,9 +374,6 @@ else
 
     private void GetFileExtensionAndFileName(InputFileChangeEventArgs e)
     {
-        fileName = string.Empty;
-        fileExtension = string.Empty;
-
         fileName = file.Name;
         fileExtension = Path.GetExtension(file.Name);
     }
@@ -401,15 +398,15 @@ else
 
             string path = Path.Combine(config.GetValue<string>(
                 "FileStorage"),
-                loggedInUser.DisplayName,
+                loggedInUser.Email,
                 newFileName);
 
-            string relativePath = Path.Combine(loggedInUser.DisplayName, newFileName);
+            string relativePath = Path.Combine(loggedInUser.Email, newFileName);
 
             Directory.CreateDirectory(
                 Path.Combine(
                     config.GetValue<string>("FileStorage"), 
-                    loggedInUser.DisplayName));
+                    loggedInUser.Email));
 
             await using FileStream fs = new(path, FileMode.Create);
             await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
