@@ -1,7 +1,8 @@
 ﻿namespace Chatify.Helpers
 {
-    public interface IFriendCodeGenerator
+    public interface ICodeGenerator
     {
         Task<string> GenerateFriendCodeAsync();
+        Task<string> GenerateServerInvationCodeAsync();
     }
 }

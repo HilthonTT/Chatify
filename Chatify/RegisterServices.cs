@@ -50,6 +50,6 @@ public static class RegisterServices
         builder.Services.AddSingleton<IServerData, MongoServerData>();
         builder.Services.AddSingleton<IChannelData, MongoChannelData>();
 
-        builder.Services.AddSingleton<IFriendCodeGenerator, FriendCodeGenerator>();
+        builder.Services.AddSingleton<ICodeGenerator, CodeGenerator>();
     }
 }
