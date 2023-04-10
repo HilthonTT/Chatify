@@ -10,9 +10,11 @@ public class ServerModel
     public List<ChannelModel> Channels { get; set; } = new();
     public CategoryModel Category { get; set; }
     public string ServerName { get; set; }
+    public string ServerDescription { get; set; }
     public string PictureName { get; set; }
     public string OriginalPictureName { get; set; }
     public string PictureExtension { get; set; }
+    public string InvitationCode { get; set; }
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public bool Archived { get; set; }
 }
