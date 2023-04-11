@@ -1,0 +1,291 @@
+﻿@page "/Server/{Id}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.SignalR.Client;
+@inject IUserData userData
+@inject IServerData serverData
+@inject IChannelData channelData
+@inject IMessageData messageData
+@inject IBanData banData
+@inject IConfiguration config
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+@inject AuthenticationStateProvider authProvider
+@implements IAsyncDisposable
+
+@if (ban is null)
+{
+    
+}
+else
+{
+    
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private HubConnection? hubConnection;
+
+    private string messageText = "";
+    private string editingMessageText = "";
+    private string searchText = "";
+    private bool isSortedByNew = true;
+    private ServerModel server;
+    private ChannelModel selectedChannel;
+    private List<MessageModel> messages;
+    private UserModel loggedInUser;
+    private MessageModel chosenMessage;
+    private BanModel ban;
+
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+    private IBrowserFile file;
+    private string errorMessage = "";
+    private string fileName = "";
+    private string fileExtension = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        server = await serverData.GetServerAsync(Id);
+        if (server is not null)
+        {
+            messages = await messageData.GetServerMessagesAsync(server);
+            selectedChannel = server.Channels.FirstOrDefault();
+        }
+
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(navManager.ToAbsoluteUri("/channelhub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
+
+        await hubConnection.StartAsync();
+        await hubConnection.InvokeAsync("JoinConversation", selectedChannel);
+    }
+
+    private void OnReceiveMessage(MessageModel message)
+    {
+        messages.Add(message);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void LoadSelectedChannel(ChannelModel channel)
+    {
+        selectedChannel = channel;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            @if (server is not null)
+            {
+                await FilterMessages();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(messageText));
+        messageText = stringResults.Success ? stringResults.Value : "";
+
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(messageText), messageText);
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+    }
+
+    private async Task FilterMessages()
+    {
+        var output = await messageData.GetServerMessagesAsync(server);;
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(m => m.Text.Contains(
+                searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(c => c.Timestamp).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(c => c.Timestamp).ToList();
+        }
+
+        messages = output;
+        await SaveFilterState();
+    }
+
+    private async Task SendMessage()
+    {
+        try
+        {
+            errorMessage = "";
+
+            if (string.IsNullOrWhiteSpace(messageText)) return;
+            
+            string relativePath = await CaptureFile();
+
+            MessageModel message = new()
+            {
+                Sender = new BasicUserModel(loggedInUser),
+                Text = messageText,
+                FileName = relativePath,
+                OriginalFileName = fileName,
+                FileExtension = fileExtension,
+                Server = server,
+                Archived = false,
+            };
+
+            await messageData.CreateMessage(message);
+
+            if (hubConnection is not null)
+            {
+                await hubConnection.InvokeAsync("SendMessage", message, selectedChannel);
+            }
+
+            messageText = "";
+            file = null;
+            fileName = string.Empty;
+            fileExtension = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task UpdateMessage()
+    {
+        if (chosenMessage.Text == editingMessageText)
+        {
+            chosenMessage = null;
+            return;
+        }
+
+        chosenMessage.Text = editingMessageText;
+        chosenMessage.LastEdited = DateTime.UtcNow;
+        await messageData.UpdateMessageAsync(chosenMessage);
+        chosenMessage = null;
+    }
+
+    private async Task ArchiveMessage()
+    {
+        messages.Remove(chosenMessage);
+        chosenMessage.Archived = true;
+        await messageData.UpdateMessageAsync(chosenMessage);
+        chosenMessage = null;
+    }
+
+    private async Task OrderByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterMessages();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterMessages();
+    }
+
+    private void OnMessageClick(MessageModel message)
+    {
+        chosenMessage = message;
+        editingMessageText = message.Text;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private void SettingsPage(ConversationModel conversation)
+    {
+        navManager.NavigateTo($"/UpdateConversation/{conversation.Id}");
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void GetFileExtensionAndFileName()
+    {
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName();
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        errorMessage = "";
+
+        if (file is null || loggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage"), 
+                loggedInUser.Email, 
+                newFileName);
+
+            string relativePath = Path.Combine(loggedInUser.Email, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"), 
+                    loggedInUser.Email));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"File: {file.Name} Error: {ex.Message}";
+            throw;
+        }
+    }
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.StopAsync();
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
