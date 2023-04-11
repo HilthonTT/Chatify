@@ -6,5 +6,6 @@ public interface IMessageData
     Task<List<MessageModel>> GetAllMessagesAsync();
     Task<List<MessageModel>> GetConversationMessagesAsync(ConversationModel conversation);
     Task<MessageModel> GetMessageAsync(string id);
+    Task<List<MessageModel>> GetServerMessagesAsync(ServerModel server);
     Task UpdateMessageAsync(MessageModel message);
 }

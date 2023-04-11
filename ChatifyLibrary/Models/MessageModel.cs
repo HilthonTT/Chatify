@@ -14,5 +14,6 @@ public class MessageModel
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public DateTime LastEdited { get; set; } = DateTime.UtcNow;
     public ConversationModel Conversation { get; set; }
+    public ServerModel Server { get; set; }
     public bool Archived { get; set; }
 }
