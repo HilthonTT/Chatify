@@ -231,7 +231,7 @@ else
         }
 
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(navManager.ToAbsoluteUri("/chathub"))
+            .WithUrl(navManager.ToAbsoluteUri("/conversationhub"))
             .WithAutomaticReconnect()
             .Build();
 
@@ -252,7 +252,10 @@ else
         if (firstRender)
         {
             await LoadFilterState();
-            await FilterMessages();
+            if (conversation is not null)
+            {
+                 await FilterMessages();
+            }
             StateHasChanged();
         }
     }
@@ -277,12 +280,7 @@ else
 
     private async Task FilterMessages()
     {
-        var output = new List<MessageModel>();
-
-        if (conversation is not null)
-        {
-            await messageData.GetConversationMessagesAsync(conversation);
-        }
+        var output = await messageData.GetConversationMessagesAsync(conversation);
 
         if (string.IsNullOrWhiteSpace(searchText) is false)
         {
