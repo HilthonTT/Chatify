@@ -3,6 +3,7 @@
 @using Chatify.Models;
 @inject IServerData serverData
 @inject ICategoryData categoryData
+@inject IChannelData channelData
 @inject IUserData userData
 @inject IBanData banData
 @inject ICodeGenerator codeGenerator
@@ -128,12 +129,33 @@ else
             string relativePath = await CaptureFile();
             string invitationCode = await codeGenerator.GenerateServerInvationCodeAsync();
 
+            var channels = new List<ChannelModel>();
+
+            ChannelModel c = new()
+            {
+                ChannelName = "Default Channel",
+                ChannelDescription = "This is the default channel.",
+            };
+            
+            await channelData.CreateChannel(c);
+            channels.Add(c);
+            
+            c = new()
+            {
+                ChannelName = "Announcements",
+                ChannelDescription = "This is where you can make announcements to your server.",
+            };
+            
+            await channelData.CreateChannel(c);
+            channels.Add(c);
+
             ServerModel s = new()
             {
                 Owner = new BasicUserModel(loggedInUser),
                 Category = categories.Where(c => c.Id == server.CategoryId).FirstOrDefault(),
                 ServerName = server.ServerName,
                 ServerDescription = server.ServerDescription,
+                Channels = channels,
                 PictureName = relativePath,
                 OriginalPictureName = fileName,
                 PictureExtension = fileExtension,
