@@ -1,5 +1,4 @@
 ﻿using ChatifyLibrary.Helper;
-using Microsoft.VisualBasic;
 
 namespace ChatifyLibrary.DataAccess;
 
@@ -71,9 +70,35 @@ public class MongoMessageData : IMessageData
         return output;
     }
 
+    public async Task<List<MessageModel>> GetChannelMessagesAsync(ChannelModel channel)
+    {
+        string cachingString = _helper.MessageCachingString(channel.Id);
+
+        var output = _cache.Get<List<MessageModel>>(cachingString);
+        if (output is null)
+        {
+            var filter = Builders<MessageModel>.Filter.And(
+                Builders<MessageModel>.Filter.Eq(m => m.Channel.Id, channel.Id),
+                Builders<MessageModel>.Filter.Eq(m => m.Archived, false));
+
+            output = await _messages.Find(filter).ToListAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(1));
+        }
+
+        return output;
+    }
+
     public async Task<MessageModel> GetMessageAsync(string id)
     {
         var results = await _messages.FindAsync(m => m.Id == id);
+        return await results.FirstOrDefaultAsync();
+    }
+
+    public async Task<MessageModel> GetMessageObjectIdentifierAsync(MessageModel message)
+    {
+        var results = await _messages.FindAsync(
+            m => m.ObjectIdentifier == message.ObjectIdentifier);
         return await results.FirstOrDefaultAsync();
     }
 
