@@ -216,7 +216,7 @@ else
 
     private void GoToConversation(ConversationModel conversation)
     {
-        navManager.NavigateTo($"/conversation{conversation.Id}");
+        navManager.NavigateTo($"/conversation/{conversation.Id}");
     }
 
     private void AddParticipant(BasicUserModel participant)
@@ -244,6 +244,7 @@ else
 
             ConversationModel c = new()
             {
+                ObjectIdentifier = objectIdentifier,
                 Owner = new BasicUserModel(loggedInUser),
                 Participants = conversation.Participants,
                 Category = categories.Where(c => c.Id == conversation.CategoryId).FirstOrDefault(),

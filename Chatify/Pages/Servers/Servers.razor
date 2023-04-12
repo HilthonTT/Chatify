@@ -103,11 +103,14 @@
                                                 <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => OpenDetails(s))">
                                                     Check out
                                                 </button>
-                                                @if (selectedServer is null || selectedServer.Id != s.Id && s.Owner.Id != loggedInUser.Id)
+                                                @if (selectedServer is null || selectedServer.Id != s.Id)
                                                 {
-                                                    <button class="btn btn-outline-danger w-100" @onclick="(() => selectedServer = s)">
-                                                        Leave Server
-                                                    </button>
+                                                    @if (s.Owner.Id != loggedInUser.Id)
+                                                    {
+                                                        <button class="btn btn-outline-danger w-100" @onclick="(() => selectedServer = s)">
+                                                            Leave Server
+                                                        </button>
+                                                    }
                                                 }
                                                 else
                                                 {
