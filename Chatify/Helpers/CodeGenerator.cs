@@ -6,12 +6,15 @@ public class CodeGenerator : ICodeGenerator
 {
     private readonly IUserData _userData;
     private readonly IServerData _serverData;
+    private readonly IMessageData _messageData;
 
     public CodeGenerator(IUserData userData,
-                         IServerData serverData)
+                         IServerData serverData,
+                         IMessageData messageData)
     {
         _userData = userData;
         _serverData = serverData;
+        _messageData = messageData;
     }
 
     public async Task<string> GenerateFriendCodeAsync()
@@ -21,7 +24,7 @@ public class CodeGenerator : ICodeGenerator
 
         while (friendCode is null)
         {
-            friendCode = GenerateRandomFriendCode();
+            friendCode = GenerateRandomString();
 
             var existingUser = users.Where(u => u.FriendCode == friendCode).FirstOrDefault();
 
@@ -42,7 +45,7 @@ public class CodeGenerator : ICodeGenerator
 
         while (invitationCode is null)
         {
-            invitationCode = GenerateRandomServerInvitationCode();
+            invitationCode = GenerateRandomString();
 
             var existingServer = servers.Where(s => s.InvitationCode == invitationCode).FirstOrDefault();
 
@@ -56,14 +59,28 @@ public class CodeGenerator : ICodeGenerator
         return invitationCode;
     }
 
-    private static string GenerateRandomFriendCode()
+    public async Task<string> GenerateRandomMessageIdentifier()
     {
-        var random = new Random();
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, 12).Select(s => s[random.Next(s.Length)]).ToArray());
+        string objectIdentifier = null;
+        var messages = await _messageData.GetAllMessagesAsync();
+
+        while (objectIdentifier is null)
+        {
+            objectIdentifier = GenerateRandomString();
+
+            var existingMessage = messages.Where(s => s.ObjectIdentifier == objectIdentifier).FirstOrDefault();
+
+            if (existingMessage is not null)
+            {
+                // Object Identifier is already in use, generate a new one.
+                objectIdentifier = null;
+            }
+        }
+
+        return objectIdentifier;
     }
 
-    private static string GenerateRandomServerInvitationCode()
+    private static string GenerateRandomString()
     {
         var random = new Random();
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
