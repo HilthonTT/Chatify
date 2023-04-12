@@ -5,6 +5,7 @@ public class ServerModel
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
+    public string ObjectIdentifier { get; set; }
     public BasicUserModel Owner { get; set; }
     public List<BasicUserModel> Members { get; set; } = new();
     public List<ChannelModel> Channels { get; set; } = new();

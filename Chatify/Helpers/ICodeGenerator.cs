@@ -1,9 +1,9 @@
-﻿namespace Chatify.Helpers
+﻿namespace Chatify.Helpers;
+
+public interface ICodeGenerator
 {
-    public interface ICodeGenerator
-    {
-        Task<string> GenerateFriendCodeAsync();
-        Task<string> GenerateRandomMessageIdentifier();
-        Task<string> GenerateServerInvationCodeAsync();
-    }
+    Task<string> GenerateFriendCodeAsync();
+    Task<string> GenerateRandomConversationIdentifier();
+    Task<string> GenerateRandomMessageIdentifier();
+    Task<string> GenerateServerInvationCodeAsync();
 }

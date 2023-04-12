@@ -7,70 +7,31 @@ public class CodeGenerator : ICodeGenerator
     private readonly IUserData _userData;
     private readonly IServerData _serverData;
     private readonly IMessageData _messageData;
+    private readonly IConversationData _conversationData;
 
     public CodeGenerator(IUserData userData,
                          IServerData serverData,
-                         IMessageData messageData)
+                         IMessageData messageData,
+                         IConversationData conversationData)
     {
         _userData = userData;
         _serverData = serverData;
         _messageData = messageData;
+        _conversationData = conversationData;
     }
 
-    public async Task<string> GenerateFriendCodeAsync()
-    {
-        string friendCode = null;
-        var users = await _userData.GetAllUsersAsync();
-
-        while (friendCode is null)
-        {
-            friendCode = GenerateRandomString();
-
-            var existingUser = users.Where(u => u.FriendCode == friendCode).FirstOrDefault();
-
-            if (existingUser is not null)
-            {
-                // Friend code is already in use, generate a new one
-                friendCode = null;
-            }
-        }
-
-        return friendCode;
-    }
-
-    public async Task<string> GenerateServerInvationCodeAsync()
-    {
-        string invitationCode = null;
-        var servers = await _serverData.GetAllServersAsync();
-
-        while (invitationCode is null)
-        {
-            invitationCode = GenerateRandomString();
-
-            var existingServer = servers.Where(s => s.InvitationCode == invitationCode).FirstOrDefault();
-
-            if (existingServer is not null)
-            {
-                // Invitation code is already in use, generate a new one.
-                invitationCode = null;
-            }
-        }
-
-        return invitationCode;
-    }
-
-    public async Task<string> GenerateRandomMessageIdentifier()
+    private static async Task<string> GenerateCodeAsync<T>(Func<T, string> identifierSelector, Func<Task<List<T>>> dataAccessor)
     {
         string objectIdentifier = null;
-        var messages = await _messageData.GetAllMessagesAsync();
+        var dataObjects = await dataAccessor();
 
         while (objectIdentifier is null)
         {
             objectIdentifier = GenerateRandomString();
 
-            var existingMessage = messages.Where(s => s.ObjectIdentifier == objectIdentifier).FirstOrDefault();
+            var existingObject = dataObjects.Where(s => identifierSelector(s) == objectIdentifier).FirstOrDefault();
 
-            if (existingMessage is not null)
+            if (existingObject is not null)
             {
                 // Object Identifier is already in use, generate a new one.
                 objectIdentifier = null;
@@ -78,6 +39,26 @@ public class CodeGenerator : ICodeGenerator
         }
 
         return objectIdentifier;
+    }
+
+    public async Task<string> GenerateFriendCodeAsync()
+    {
+        return await GenerateCodeAsync(u => u.FriendCode, _userData.GetAllUsersAsync);
+    }
+
+    public async Task<string> GenerateServerInvationCodeAsync()
+    {
+        return await GenerateCodeAsync(s => s.InvitationCode, _serverData.GetAllServersAsync);
+    }
+
+    public async Task<string> GenerateRandomMessageIdentifier()
+    {
+        return await GenerateCodeAsync(m => m.ObjectIdentifier, _messageData.GetAllMessagesAsync);
+    }
+
+    public async Task<string> GenerateRandomConversationIdentifier()
+    {
+        return await GenerateCodeAsync(c => c.ObjectIdentifier, _conversationData.GetAllConversationAsync);
     }
 
     private static string GenerateRandomString()

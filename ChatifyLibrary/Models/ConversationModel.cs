@@ -5,6 +5,7 @@ public class ConversationModel
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
+    public string ObjectIdentifier { get; set; }
     public BasicUserModel Owner { get; set; }
     public List<BasicUserModel> Participants { get; set; } = new();
     public CategoryModel Category { get; set; }

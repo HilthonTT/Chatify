@@ -57,6 +57,12 @@ public class MongoConversationData : IConversationData
         return await results.FirstOrDefaultAsync();
     }
 
+    public async Task<ConversationModel> GetConversationByObjectIdentifier(string objectId)
+    {
+        var results = await _conversations.FindAsync(c => c.ObjectIdentifier == objectId);
+        return await results.FirstOrDefaultAsync();
+    }
+
     public Task CreateConversation(ConversationModel conversation)
     {
         return _conversations.InsertOneAsync(conversation);

@@ -6,6 +6,7 @@
 @inject IUserData userData
 @inject IBanData banData
 @inject IConfiguration config
+@inject ICodeGenerator codeGenerator
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
@@ -213,6 +214,11 @@ else
         navManager.NavigateTo("/");
     }
 
+    private void GoToConversation(ConversationModel conversation)
+    {
+        navManager.NavigateTo($"/conversation{conversation.Id}");
+    }
+
     private void AddParticipant(BasicUserModel participant)
     {
         conversation.Participants.Add(participant);
@@ -234,6 +240,7 @@ else
             errorMessage = "";
 
             string relativePath = await CaptureFile();
+            string objectIdentifier = await codeGenerator.GenerateRandomConversationIdentifier();
 
             ConversationModel c = new()
             {
@@ -266,8 +273,10 @@ else
             fileExtension = string.Empty;
 
             await conversationData.CreateConversation(c);
+            var newConversation = await conversationData.GetConversationByObjectIdentifier(objectIdentifier);
+
             conversation = new();
-            ClosePage();
+            GoToConversation(newConversation);
         }
         catch (Exception ex)
         {

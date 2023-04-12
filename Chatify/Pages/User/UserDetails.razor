@@ -187,7 +187,6 @@ else
     private ConversationModel archivingConversation;
     private BanModel ban;
     private string errorMessage = "";
-    private bool isSuccess = false;
 
     private UserModel chosenUser;
 
@@ -245,21 +244,18 @@ else
         if (loggedInUser.Id == model.Id)
         {
             errorMessage = "You can't send a friend request to yourself.";
-            isSuccess = false;
             return;
         }
 
         if (model is null)
         {
             errorMessage = "Oops... no user have been founded having this friend code.";
-            isSuccess = false;
             return;
         }
 
         if (isAlreadyFriendOrRequested)
         {
             errorMessage = "You have already sent a friend request or have this person in your friend list.";
-            isSuccess = false;
             return;
         }
 
