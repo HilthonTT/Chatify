@@ -7,6 +7,7 @@
 @inject IMessageData messageData
 @inject IBanData banData
 @inject IConfiguration config
+@inject ICodeGenerator codeGenerator
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
@@ -14,11 +15,196 @@
 
 @if (ban is null)
 {
-    
+    <h1 class="text-uppercase fw-bold text-center">@selectedChannel?.ChannelName</h1>
+
+    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-8">
+                <div class="row alert bg-warning text-black" role="alert">
+                    <div class="col-11">
+                        <h4 class="alert-heading">Error!</h4>
+                        <p>@errorMessage</p>
+                        <hr>
+                        <p class="mb-0">You can wait to send another message later if you think this is a mistake.</p>
+                    </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close" @onclick="(() => errorMessage = string.Empty)" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (loggedInUser is not null && selectedChannel is not null)
+    {
+        @if (server.Members.Any(m => m.Id == loggedInUser.Id) is false && server.Owner.Id != loggedInUser.Id)
+        {
+            <NotAuthorized />
+        }
+        else
+        {
+            <div class="container-fluid vh-100 d-flex flex-column">
+              <div class="row flex-grow-1">
+                  <div class="col-md-4 col-xl-2">
+                    <div class="participants-list p-2">
+                        <h3 class="fw-bold text-uppercase">Channels</h3>
+                        <ul class="list-group">
+                            <Virtualize Items="server?.Channels" Context="c" OverscanCount="10">
+                                <div class="mb-2" @onclick="(async() => await LoadSelectedChannel(c))">
+                                    <span class="oi oi-chat mx-1"></span><span class="clickable @GetChannelClass(c)">@c.ChannelName</span>
+                                </div>
+                            </Virtualize>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-8 col-xl-8 messages-container">
+                  @if (messages is not null)
+                  {
+                    <Virtualize Items="messages" Context="m" OverscanCount="10">
+                      @if (chosenMessage is null || chosenMessage.Id != m.Id)
+                      {
+                            <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                                <div class="message-sender">@m.Sender.DisplayName</div>
+                                <div class="message-text text-break">@m.Text</div>
+                                @if (string.IsNullOrWhiteSpace(m.FileName) is false)
+                                {
+                                    @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
+                                    {
+                                        <div class="text-center">
+                                            <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="message-text">
+                                            <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
+                                                @m.OriginalFileName
+                                            </a>
+                                        </div>
+                                    }
+                                }
+                                <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                                {
+                                  <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                }
+                                @if (m.Sender.Id == loggedInUser?.Id)
+                                {
+                                  <div class="btn-group">
+                                    <button class="btn btn-outline-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
+                                  </div>
+                                }
+                          </div>
+                      }
+                      else
+                      {
+                           <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                                <div class="message-sender">@m.Sender.DisplayName</div>
+                                <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
+                                @if (string.IsNullOrWhiteSpace(m.FileName) is false)
+                                {
+                                    @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
+                                    {
+                                        <div class="text-center">
+                                            <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName"/>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="message-text">
+                                            <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
+                                                @m.OriginalFileName
+                                            </a>
+                                        </div>
+                                    }
+                                }
+                                <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+                                {
+                                  <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                }
+                                @if (m.Sender.Id == loggedInUser?.Id)
+                                {
+                                  <div class="btn-group">
+                                    <button class="btn btn-success me-1" @onclick="(() => UpdateMessage())">Save</button>
+                                    <button class="btn btn-danger" @onclick="(() => ArchiveMessage())">Archive</button>
+                                  </div>
+                                }
+                          </div>
+                      }
+                    </Virtualize>
+                    <div class="messages-mb" />
+                  }
+                </div>
+                <div class="col-md-4 col-xl-2">
+                    @if (loggedInUser?.Id == server?.Owner.Id)
+                    {
+                        <div class="bg-dark p-2 mb-2">
+                            <h3>Settings</h3>
+                            <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => SettingsPage(server))">
+                                Edit
+                            </button>
+                        </div>
+                    }
+                    <div class="participants-list p-2">
+                        <h3 class="fw-bold text-uppercase">Participants</h3>
+                        <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(server))">Invite</button>
+                        <ul class="list-group">
+                            <Virtualize Items="server?.Members" Context="p" OverscanCount="10">
+                                @if (chosenUser is null || chosenUser.Id != p.Id)
+                                {
+                                    <li class="list-group-item mb-2">
+                                        <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
+                                        @if (loggedInUser?.Id != p.Id && p.Id != server?.Owner.Id)
+                                        {
+                                            <button class="btn btn-primary btn-sm float-end" @onclick="(() => chosenUser = p)">Kick/Ban</button>
+                                        }
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="list-group-item mb-2">
+                                        <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
+                                        <div class="btn-group w-100">
+                                            <button class="btn btn-success me-1" @onclick="(async() => await KickMember())">Kick</button>
+                                            <button class="btn btn-warning me-1" @onclick="(async() => await BanMember())">Ban</button>
+                                            <button class="btn btn-danger" @onclick="(() => chosenUser = null)">Cancel</button>
+                                        </div>
+                                    </li>
+                                }
+                            </Virtualize>
+                        </ul>
+                    </div>
+                </div>
+              </div>
+              <div class="row fixed-bottom mb-4 mx-2">
+                <div class="col-xl-12 col-lg-12">
+                  <div class="row">
+                    <div class="col-8">
+                      <input type="text" placeholder="Message @selectedChannel?.ChannelName" aria-label="Message Box"
+                        class="form-control bg-dark text-light input-section border-warning" @bind-value="messageText" />  
+                    </div>
+                    <div class="col-2">
+                      <InputFile OnChange="LoadFiles" 
+                        class="form-control bg-dark text-light input-section border-warning"
+                        accept=".png,.jpg,.jpeg,.txt,.pdf"/>
+                    </div>
+                    <div class="col-2">
+                      <button class="btn btn-outline-warning form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        }
+    }
 }
 else
 {
-    
+    <Banned />
 }
 
 @code {
@@ -35,6 +221,7 @@ else
     private ChannelModel selectedChannel;
     private List<MessageModel> messages;
     private UserModel loggedInUser;
+    private BasicUserModel chosenUser;
     private MessageModel chosenMessage;
     private BanModel ban;
 
@@ -49,8 +236,8 @@ else
         server = await serverData.GetServerAsync(Id);
         if (server is not null)
         {
-            messages = await messageData.GetServerMessagesAsync(server);
             selectedChannel = server.Channels.FirstOrDefault();
+            messages = await messageData.GetChannelMessagesAsync(selectedChannel);
         }
 
         loggedInUser = await authProvider.GetUserFromAuth(userData);
@@ -76,9 +263,22 @@ else
         InvokeAsync(StateHasChanged);
     }
 
-    private void LoadSelectedChannel(ChannelModel channel)
+    private async Task LoadSelectedChannel(ChannelModel channel)
     {
+        await DisposeHubConnection();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(navManager.ToAbsoluteUri("/channelhub"))
+            .WithAutomaticReconnect()
+            .Build();
+
         selectedChannel = channel;
+        messages = await messageData.GetChannelMessagesAsync(selectedChannel);
+        hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
+        
+        await hubConnection.StartAsync();
+        await hubConnection.InvokeAsync("JoinConversation", selectedChannel);
+        
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -143,21 +343,29 @@ else
             errorMessage = "";
 
             if (string.IsNullOrWhiteSpace(messageText)) return;
-            
+
             string relativePath = await CaptureFile();
+            string objectIdentifier = await codeGenerator.GenerateRandomMessageIdentifier();
 
             MessageModel message = new()
             {
+                ObjectIdentifier = objectIdentifier,
                 Sender = new BasicUserModel(loggedInUser),
                 Text = messageText,
                 FileName = relativePath,
                 OriginalFileName = fileName,
                 FileExtension = fileExtension,
+                Channel = selectedChannel,
                 Server = server,
                 Archived = false,
             };
 
             await messageData.CreateMessage(message);
+
+            var newMessage = await messageData.GetMessageObjectIdentifierAsync(message);
+            selectedChannel.Messages.Add(newMessage);
+
+            await channelData.UpdateChannel(selectedChannel);
 
             if (hubConnection is not null)
             {
@@ -197,6 +405,21 @@ else
         chosenMessage = null;
     }
 
+    private async Task KickMember()
+    {
+        server.Members.Remove(chosenUser);
+        await serverData.UpdateServer(server);
+        chosenUser = null;
+    }
+
+    private async Task BanMember()
+    {
+        server.Members.Remove(chosenUser);
+        server.BannedUsers.Add(chosenUser);
+        await serverData.UpdateServer(server);
+        chosenUser = null;
+    }
+
     private async Task OrderByNew(bool isNew)
     {
         isSortedByNew = isNew;
@@ -220,9 +443,19 @@ else
         navManager.NavigateTo("/");
     }
 
-    private void SettingsPage(ConversationModel conversation)
+    private void SettingsPage(ServerModel conversation)
     {
-        navManager.NavigateTo($"/UpdateConversation/{conversation.Id}");
+        navManager.NavigateTo($"/UpdateServer/{conversation.Id}");
+    }
+
+    private void UserDetailsPage(BasicUserModel user)
+    {
+        navManager.NavigateTo($"/userDetails/{user.Id}");
+    }
+
+    private void InviteFriendPage(ServerModel server)
+    {
+        navManager.NavigateTo($"/InviteFriend/Server/{server.Id}");
     }
 
     private string CreateWebPath(string relativePath)
@@ -278,14 +511,29 @@ else
         }
     }
 
-    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
+    private string GetChannelClass(ChannelModel channel)
+    {
+        if (channel.Id == selectedChannel.Id)
+        {
+            return "fw-bold";
+        }
 
-    public async ValueTask DisposeAsync()
+        return "";
+    }
+
+    private async Task DisposeHubConnection()
     {
         if (hubConnection is not null)
         {
             await hubConnection.StopAsync();
             await hubConnection.DisposeAsync();
         }
+    }
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeHubConnection();
     }
 }

@@ -17,7 +17,11 @@ public static class RegisterServices
         builder.Services.AddMemoryCache();
         builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
 
-        builder.Services.AddSignalR();
+        builder.Services.AddSignalR(o =>
+        {
+            o.EnableDetailedErrors = true;
+            o.MaximumReceiveMessageSize = null;
+        });
 
         builder.Services.AddResponseCompression(opts =>
         {
