@@ -7,5 +7,5 @@ public interface IServerData
     Task<ServerModel> GetServerAsync(string id);
     Task<ServerModel> GetServerByInvitationCodeAsync(string invitationCode);
     Task<List<ServerModel>> GetUserServersAsync(string userId);
-    Task UpdateServerModel(ServerModel server);
+    Task UpdateServer(ServerModel server);
 }
