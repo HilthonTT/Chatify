@@ -88,13 +88,12 @@
                                 <ValidationMessage For="(() => conversation.CategoryId)" />
                                 <div class="mt-1">Choose a category that suits your conversation.</div>
                                 <InputRadioGroup id="category" @bind-Value="conversation.CategoryId">
-                                    @foreach (var c in categories)
-                                    {
+                                    <Virtualize Items="categories" Context="c" OverscanCount="10">
                                         <div class="radio-item-group">
                                             <InputRadio Value="@c.Id" id="@c.Id"/>
                                             <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
                                         </div>
-                                    }
+                                    </Virtualize>
                                 </InputRadioGroup>
                             </div>
                             <div class="center-children">

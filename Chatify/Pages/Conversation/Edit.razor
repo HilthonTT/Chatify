@@ -55,8 +55,7 @@
                                                 OnSubmit="(async() => await SaveCategory(conversation))">
                             
                                                 <InputRadioGroup id="category" @bind-Value="editedCategoryId">
-                                                    @foreach (var c in categories)
-                                                    {
+                                                    <Virtualize Items="categories" Context="c" OverscanCount="10">
                                                         <div class="radio-item-group">
                                                             <InputRadio Value="c.Id" id="@c.Id"/>
                                                             <label for="@c.Id" class="h-100 w-100">
@@ -64,7 +63,7 @@
                                                                 <p>@c.CategoryDescription</p>
                                                             </label>
                                                         </div>
-                                                    }  
+                                                    </Virtualize>
                                                 </InputRadioGroup>
                                                 <div class="btn-group">
                                                     <button class="btn btn-outline-success me-1" type="submit">

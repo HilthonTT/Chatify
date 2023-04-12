@@ -24,7 +24,7 @@
                         <h4 class="alert-heading">Error!</h4>
                         <p>@errorMessage</p>
                         <hr>
-                        <p class="mb-0">You can wait to send another friend request later if you think this is a mistake.</p>
+                        <p class="mb-0">If you think this is a bug, please contact the administrator.</p>
                     </div>
                     <div class="col-1">
                         <div class="close-button-section">
@@ -54,7 +54,7 @@
                       {
                             <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
                                 <div class="message-sender">@m.Sender.DisplayName</div>
-                                <div class="message-text">@m.Text</div>
+                                <div class="message-text text-break">@m.Text</div>
                                 @if (string.IsNullOrWhiteSpace(m.FileName) is false)
                                 {
                                     @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
@@ -319,7 +319,6 @@ else
                 FileName = relativePath,
                 OriginalFileName = fileName,
                 FileExtension = fileExtension,
-                Receivers = conversation.Participants,
                 Conversation = conversation,
                 Archived = false,
             };

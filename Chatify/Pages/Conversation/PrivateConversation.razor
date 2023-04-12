@@ -52,7 +52,7 @@
                       {
                             <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
                                 <div class="message-sender">@m.Sender.DisplayName</div>
-                                <div class="message-text">@m.Text</div>
+                                <div class="message-text text-break">@m.Text</div>
                                 @if (string.IsNullOrWhiteSpace(m.FileName) is false)
                                 {
                                     @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")

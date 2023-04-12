@@ -38,7 +38,7 @@
             <EditForm Model="server" OnValidSubmit="(async() => await Create())">
                 <DataAnnotationsValidator />
                 <div class="row">
-                    <div class="col-12">
+                    <div class="col-11">
                         <div class="mb-3">
                             <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
                             <div class="mt-1">Name your server name. Its name will represent the server name.</div>
@@ -83,6 +83,11 @@
                             </button>
                         </div>
                     </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                        </div>
+                    </div>
                 </div>
             </EditForm>
         </div>
@@ -120,6 +125,11 @@ else
         navManager.NavigateTo($"/Server/{server.Id}");
     }
 
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/Servers");
+    }
+
     private async Task Create()
     {
         try
@@ -136,16 +146,16 @@ else
                 ChannelName = "Default Channel",
                 ChannelDescription = "This is the default channel.",
             };
-            
+
             await channelData.CreateChannel(c);
             channels.Add(c);
-            
+
             c = new()
             {
                 ChannelName = "Announcements",
                 ChannelDescription = "This is where you can make announcements to your server.",
             };
-            
+
             await channelData.CreateChannel(c);
             channels.Add(c);
 
@@ -162,6 +172,8 @@ else
                 InvitationCode = invitationCode,
                 Archived = false,
             };
+
+            s.Members.Add(new BasicUserModel(loggedInUser));
 
             if (s.Category is null)
             {

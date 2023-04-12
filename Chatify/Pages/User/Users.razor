@@ -16,21 +16,20 @@
                 <div class="col-11">
                     @if (users?.Count > 0)
                     {
-                        @foreach (var u in users)
-                        {
+                        <Virtualize Items="users" Context="u" OverscanCount="10">
                             <div @onclick="(() => OpenDetails(u))" class="user-card bg-dark">
                                 <div class="user-card__name">@u.DisplayName</div>
                                 <div class="user-card__friend-code">Friend Code: @u.FriendCode</div>
                                 <div class="user-card__date">Joined on the @u.DateCreated.ToString("dd/MM/yyyy")</div>
                             </div>
-                        }
+                        </Virtualize>
                     }
                     else
                     {
-                        <div class="alert alert-danger text-center">
-                            Something went wrong... 
-                            <br />
-                            There seems to be no users.
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                              <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
                     }
                 </div>

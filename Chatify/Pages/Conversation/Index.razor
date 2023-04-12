@@ -82,6 +82,14 @@
             }
         </div>
         <div class="col-md-7 col-xl-8">
+            @if (conversations is null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
             @if (conversations is not null)
             {
                 <Virtualize Items="conversations" Context="c" OverscanCount="10">
@@ -90,7 +98,7 @@
                         {
                             <div class="text-center p-3">
                                 <img src="@CreateWebPath(c.PictureName)" 
-                                    class="card-img-top h-25 w-50 rounded-circle" 
+                                    class="card-img-top h-25 w-25 rounded-circle" 
                                     alt="@c.OriginalPictureName">
                             </div>
                         }
@@ -98,17 +106,17 @@
                         {
                             <div class="text-center p-3">
                                 <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                    class="card-img-top h-25 w-50 rounded-circle" 
+                                    class="card-img-top h-25 w-25 rounded-circle" 
                                     alt="Placeholder Image">
                             </div>
                         }
-                        <div class="card-body text-center">
+                        <div class="card-body text-center text-break">
                             <h5 class="card-title">@c.GroupName</h5>
                             <p class="card-text">@c.Category.CategoryName</p>
                             <p class="card-text"><small class="text-muted">Owner: @c.Owner.DisplayName</small></p>
                             <p class="card-text"><small class="text-danger">@c.Participants.Count Participants</small></p>
                             <button class="btn btn-outline-warning w-100" @onclick="(() => OpenDetails(c))">
-                                Check Out <span class="text-danger">@c.GroupName</span>
+                                Check Out
                             </button>
                         </div>
                     </div>
@@ -121,13 +129,12 @@
                 <div class="friend-category">
                     <span class="text-uppercase fw-bold">Category</span>
                     <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
-                    @foreach (var c in categories)
-                    {
+                    <Virtualize Items="categories" Context="c" OverscanCount="10">
                         <div class="@SelectedCategoryClass(c.CategoryName)" 
                             @onclick="(async() => await OnCategoryClick(c.CategoryName))">
                             @c.CategoryName
                         </div>    
-                    }
+                    </Virtualize>
                 </div>
             }
         </div>
