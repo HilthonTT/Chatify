@@ -1,5 +1,4 @@
 ﻿using ChatifyLibrary.Helper;
-using MongoDB.Driver;
 
 namespace ChatifyLibrary.DataAccess;
 
