@@ -28,165 +28,188 @@
                             <div class="row">
                                 <div class="col-11">
                                     <div class="btn-group center-children mb-4">
-                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
-                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
-                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
-                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
+                                        <button class="btn @GetOpenDetailsPageClass(true)" 
+                                            @onclick="(async() => await ShowDetailsClick(true))">
+                                            Show Server Details
+                                        </button>
+                                        <button class="btn @GetMembersPageClass(true)" 
+                                            @onclick="(async() => await ShowMembersPage(true))">
+                                            Show Members
+                                        </button>
+                                        <button class="btn @GetCreatePageClass(true)"
+                                            @onclick="(async() => await ShowCreatePage(true))">
+                                            Create Channel
+                                        </button>
                                     </div>
-                                    <div>
-                                        @if (currentEditingFileName == server.Id)
-                                        {
-                                            <label class="form-label text-danger">@serverNameErrorMessage</label>
-                                            <EditForm class="conversation-edit-form" Model="editedFileName"
-                                                OnSubmit="(async() => await SavePicture())">
+                                    @if (showServerDetailsPage)
+                                    {
+                                        <div>
+                                            @if (currentEditingFileName == server.Id)
+                                            {
+                                                <label class="form-label text-danger">@serverNameErrorMessage</label>
+                                                <EditForm class="conversation-edit-form" Model="editedFileName"
+                                                    OnSubmit="(async() => await SavePicture())">
 
-                                                <div class="col-12">
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="center-children mb-2">
-                                                                @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
-                                                                {
-                                                                    <img src="@CreateWebPath(server.PictureName)" 
-                                                                        class="img-fluid rounded-circle w-25 h-25"/>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                                        class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
-                                                                }
+                                                    <div class="col-12">
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="center-children mb-2">
+                                                                    @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
+                                                                    {
+                                                                        <img src="@CreateWebPath(server.PictureName)" 
+                                                                            class="img-fluid rounded-circle w-25 h-25"/>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                                            class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
+                                                                    }
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-11">
-                                                            <InputFile OnChange="LoadFiles" 
-                                                                class="form-control bg-dark text-light conversation-edit-field border-warning w-100"/>     
-                                                        </div>
-                                                        <div class="col-1">
-                                                            <div class="btn-group">
-                                                                <button class="btn btn-outline-success me-1" type="submit">
-                                                                    Save
-                                                                </button>
-                                                                <button class="btn btn-outline-danger" type="button" @onclick="CancelClick">
-                                                                    Cancel
-                                                                </button>
+                                                        <div class="row">
+                                                            <div class="col-11">
+                                                                <InputFile OnChange="LoadFiles" 
+                                                                    class="form-control bg-dark text-light conversation-edit-field border-warning w-100"/>     
+                                                            </div>
+                                                            <div class="col-1">
+                                                                <div class="btn-group">
+                                                                    <button class="btn btn-outline-success me-1" type="submit">
+                                                                        Save
+                                                                    </button>
+                                                                    <button class="btn btn-outline-danger" type="button" @onclick="CancelClick">
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </div>                                     
-                                            </EditForm>
-                                        }
-                                        else
-                                        {
-                                            <div class="center-children mb-2">
-                                                @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
-                                                {
-                                                    <img src="@CreateWebPath(server.PictureName)" 
-                                                        class="img-fluid rounded-circle w-25 h-25"/>
-                                                }
-                                                else
-                                                {
-                                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                        class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
-                                                }
-                                            </div>
-                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditPicture())">
-                                                Edit Picture
-                                            </button>
-                                        }
-                                        <hr />
-                                        @if (currentEditingServerName == server.Id)
-                                        {
-                                            <label class="form-label text-danger">@serverNameErrorMessage</label>
-                                            <EditForm class="conversation-edit-form" Model="editedServerName"
-                                                OnSubmit="(async() => await SaveServerName())">
-
-                                                <InputText class="form-control bg-dark text-light conversation-edit-field border-warning"
-                                                    @bind-Value="editedServerName"/>
-                                                <div class="btn-group">
-                                                    <button class="btn btn-outline-success mx-1" type="submit">
-                                                        Save
-                                                    </button>
-                                                    <button class="btn btn-outline-danger" type="button"
-                                                        @onclick="(CancelClick)">
-                                                        Cancel
-                                                    </button>
+                                                    </div>                                     
+                                                </EditForm>
+                                            }
+                                            else
+                                            {
+                                                <div class="center-children mb-2">
+                                                    @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
+                                                    {
+                                                        <img src="@CreateWebPath(server.PictureName)" 
+                                                            class="img-fluid rounded-circle w-25 h-25"/>
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                            class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
+                                                    }
                                                 </div>
-                                            </EditForm>
-                                        }
-                                        else
-                                        {
-                                            <h2>@server?.ServerName</h2>
-                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerName())">
-                                                Edit Server Name
-                                            </button>
-                                        }
-                                        <hr />
-                                        @if (currentEditingCategoryId == server.Id)
-                                        {
-                                            <EditForm class="conversation-edit-form" Model="editedCategoryId" 
-                                                OnSubmit="(async() => await SaveCategory())">
+                                                <button class="btn btn-outline-warning w-100" @onclick="(() => EditPicture())">
+                                                    Edit Picture
+                                                </button>
+                                            }
+                                            <hr />
+                                            @if (currentEditingServerName == server.Id)
+                                            {
+                                                <label class="form-label text-danger">@serverNameErrorMessage</label>
+                                                <EditForm class="conversation-edit-form" Model="editedServerName"
+                                                    OnSubmit="(async() => await SaveServerName())">
+
+                                                    <InputText class="form-control bg-dark text-light conversation-edit-field border-warning"
+                                                        @bind-Value="editedServerName"/>
+                                                    <div class="btn-group">
+                                                        <button class="btn btn-outline-success mx-1" type="submit">
+                                                            Save
+                                                        </button>
+                                                        <button class="btn btn-outline-danger" type="button"
+                                                            @onclick="(CancelClick)">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </EditForm>
+                                            }
+                                            else
+                                            {
+                                                <h2>@server?.ServerName</h2>
+                                                <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerName())">
+                                                    Edit Server Name
+                                                </button>
+                                            }
+                                            <hr />
+                                            @if (currentEditingCategoryId == server.Id)
+                                            {
+                                                <EditForm class="conversation-edit-form" Model="editedCategoryId" 
+                                                    OnSubmit="(async() => await SaveCategory())">
                             
-                                                <InputRadioGroup id="category" @bind-Value="editedCategoryId">
-                                                    <Virtualize Items="categories" Context="c" OverscanCount="10">
-                                                        <div class="radio-item-group">
-                                                            <InputRadio Value="c.Id" id="@c.Id"/>
-                                                            <label for="@c.Id" class="h-100 w-100">
-                                                                <span class="fw-bold text-uppercase text-center h5">@c.CategoryName</span>
-                                                                <p>@c.CategoryDescription</p>
-                                                            </label>
-                                                        </div>
-                                                    </Virtualize>
-                                                </InputRadioGroup>
-                                                <div class="btn-group">
-                                                    <button class="btn btn-outline-success me-1" type="submit">
-                                                        Save
-                                                    </button>
-                                                    <button class="btn btn-outline-danger" type="button" 
-                                                        @onclick="(CancelClick)">
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </EditForm>
-                                        }
-                                        else
-                                        {
+                                                    <InputRadioGroup id="category" @bind-Value="editedCategoryId">
+                                                        <Virtualize Items="categories" Context="c" OverscanCount="10">
+                                                            <div class="radio-item-group">
+                                                                <InputRadio Value="c.Id" id="@c.Id"/>
+                                                                <label for="@c.Id" class="h-100 w-100">
+                                                                    <span class="fw-bold text-uppercase text-center h5">@c.CategoryName</span>
+                                                                    <p>@c.CategoryDescription</p>
+                                                                </label>
+                                                            </div>
+                                                        </Virtualize>
+                                                    </InputRadioGroup>
+                                                    <div class="btn-group">
+                                                        <button class="btn btn-outline-success me-1" type="submit">
+                                                            Save
+                                                        </button>
+                                                        <button class="btn btn-outline-danger" type="button" 
+                                                            @onclick="(CancelClick)">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </EditForm>
+                                            }
+                                            else
+                                            {
 
-                                            <h2>@server.Category.CategoryName</h2>
-                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditCategory())">
-                                                Edit Category
-                                            </button>
-                                        }
-                                        <hr />
-                                        @if (currentEditingServerDescription == server.Id)
-                                        {
-                                            <label class="form-label text-danger">@serverDescriptionErrorMessage</label>
-                                            <EditForm class="conversation-edit-form" Model="editedServerDescription"
-                                                OnSubmit="(async() => await SaveServerDescription())">
-                                                <InputTextArea class="form-control bg-dark text-light conversation-edit-field border-warning"
-                                                    @bind-Value="editedServerDescription"/>
-                                                <div class="btn-group">
-                                                    <button class="btn btn-outline-success mx-1" type="submit">
-                                                        Save
-                                                    </button>
-                                                    <button class="btn btn-outline-danger" type="button"
-                                                        @onclick="CancelClick">
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </EditForm>
-                                        }
-                                        else
-                                        {
-                                            <h2>@server?.ServerDescription</h2>
-                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerDescription())">
-                                                Edit Server Description
-                                            </button>
-                                        }
-                                        <hr />
-                                        <p class="conversation-info">The Owner: @server.Owner.DisplayName</p>
-                                        <p class="conversation-info">This was created on: @server.DateCreated.ToString("dd/MM/yyyy")</p>
-                                    </div>
+                                                <h2>@server.Category.CategoryName</h2>
+                                                <button class="btn btn-outline-warning w-100" @onclick="(() => EditCategory())">
+                                                    Edit Category
+                                                </button>
+                                            }
+                                            <hr />
+                                            @if (currentEditingServerDescription == server.Id)
+                                            {
+                                                <label class="form-label text-danger">@serverDescriptionErrorMessage</label>
+                                                <EditForm class="conversation-edit-form" Model="editedServerDescription"
+                                                    OnSubmit="(async() => await SaveServerDescription())">
+                                                    <InputTextArea class="form-control bg-dark text-light conversation-edit-field border-warning"
+                                                        @bind-Value="editedServerDescription"/>
+                                                    <div class="btn-group">
+                                                        <button class="btn btn-outline-success mx-1" type="submit">
+                                                            Save
+                                                        </button>
+                                                        <button class="btn btn-outline-danger" type="button"
+                                                            @onclick="CancelClick">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </EditForm>
+                                            }
+                                            else
+                                            {
+                                                <h2>@server?.ServerDescription</h2>
+                                                <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerDescription())">
+                                                    Edit Server Description
+                                                </button>
+                                            }
+                                            <hr />
+                                            <p class="conversation-info">The Owner: @server.Owner.DisplayName</p>
+                                            <p class="conversation-info">This was created on: @server.DateCreated.ToString("dd/MM/yyyy")</p>
+                                        </div>
+                                    }
+                                    else if (showServerMembersPage)
+                                    {
+                                        <div>
+
+                                        </div>
+                                    }
+                                    else if (showCreateChannelPage)
+                                    {
+                                        <div>
+
+                                        </div>
+                                    }
                                 </div>
                                 <div class="col-1">
                                     <div class="close-button-section">
@@ -521,5 +544,35 @@ else
             errorMessage = $"File: {file.Name} Error: {ex.Message}";
             throw;
         }
+    }
+
+    private string GetOpenDetailsPageClass(bool isShowing)
+    {
+        if (showServerDetailsPage == isShowing)
+        {
+            return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
+    }
+
+    private string GetMembersPageClass(bool isShowing)
+    {
+        if (showServerMembersPage == isShowing)
+        {
+            return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
+    }
+
+    private string GetCreatePageClass(bool isShowing)
+    {
+        if (showCreateChannelPage == isShowing)
+        {
+            return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
     }
 }
