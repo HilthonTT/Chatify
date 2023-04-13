@@ -1,0 +1,525 @@
+﻿@page "/ServerSettings/{Id}"
+@attribute [Authorize]
+@inject IServerData serverData
+@inject IUserData userData
+@inject ICategoryData categoryData
+@inject IBanData banData
+@inject IConfiguration config
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+@inject ProtectedSessionStorage sessionStorage
+
+@if (ban is null)
+{
+    <h1 class="text-uppercase text-center fw-bold mb-4">@server?.ServerName Settings</h1>
+
+    @if (loggedInUser?.Id != server?.Owner.Id)
+    {
+        <NotAuthorized />
+    }
+    else
+    {
+        @if (server is not null)
+        {
+            <div class="rounded rounded-3 shadow">
+                <div class="card-body">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-10 col-md-8 bg-dark p-4">
+                            <div class="row">
+                                <div class="col-11">
+                                    <div class="btn-group center-children mb-4">
+                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
+                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
+                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
+                                        <button class="btn btn-outline-primary">Show bla bla bla</button>
+                                    </div>
+                                    <div>
+                                        @if (currentEditingFileName == server.Id)
+                                        {
+                                            <label class="form-label text-danger">@serverNameErrorMessage</label>
+                                            <EditForm class="conversation-edit-form" Model="editedFileName"
+                                                OnSubmit="(async() => await SavePicture())">
+
+                                                <div class="col-12">
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="center-children mb-2">
+                                                                @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
+                                                                {
+                                                                    <img src="@CreateWebPath(server.PictureName)" 
+                                                                        class="img-fluid rounded-circle w-25 h-25"/>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                                        class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-11">
+                                                            <InputFile OnChange="LoadFiles" 
+                                                                class="form-control bg-dark text-light conversation-edit-field border-warning w-100"/>     
+                                                        </div>
+                                                        <div class="col-1">
+                                                            <div class="btn-group">
+                                                                <button class="btn btn-outline-success me-1" type="submit">
+                                                                    Save
+                                                                </button>
+                                                                <button class="btn btn-outline-danger" type="button" @onclick="CancelClick">
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>                                     
+                                            </EditForm>
+                                        }
+                                        else
+                                        {
+                                            <div class="center-children mb-2">
+                                                @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
+                                                {
+                                                    <img src="@CreateWebPath(server.PictureName)" 
+                                                        class="img-fluid rounded-circle w-25 h-25"/>
+                                                }
+                                                else
+                                                {
+                                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                        class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
+                                                }
+                                            </div>
+                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditPicture())">
+                                                Edit Picture
+                                            </button>
+                                        }
+                                        <hr />
+                                        @if (currentEditingServerName == server.Id)
+                                        {
+                                            <label class="form-label text-danger">@serverNameErrorMessage</label>
+                                            <EditForm class="conversation-edit-form" Model="editedServerName"
+                                                OnSubmit="(async() => await SaveServerName())">
+
+                                                <InputText class="form-control bg-dark text-light conversation-edit-field border-warning"
+                                                    @bind-Value="editedServerName"/>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-outline-success mx-1" type="submit">
+                                                        Save
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" type="button"
+                                                        @onclick="(CancelClick)">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </EditForm>
+                                        }
+                                        else
+                                        {
+                                            <h2>@server?.ServerName</h2>
+                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerName())">
+                                                Edit Server Name
+                                            </button>
+                                        }
+                                        <hr />
+                                        @if (currentEditingCategoryId == server.Id)
+                                        {
+                                            <EditForm class="conversation-edit-form" Model="editedCategoryId" 
+                                                OnSubmit="(async() => await SaveCategory())">
+                            
+                                                <InputRadioGroup id="category" @bind-Value="editedCategoryId">
+                                                    <Virtualize Items="categories" Context="c" OverscanCount="10">
+                                                        <div class="radio-item-group">
+                                                            <InputRadio Value="c.Id" id="@c.Id"/>
+                                                            <label for="@c.Id" class="h-100 w-100">
+                                                                <span class="fw-bold text-uppercase text-center h5">@c.CategoryName</span>
+                                                                <p>@c.CategoryDescription</p>
+                                                            </label>
+                                                        </div>
+                                                    </Virtualize>
+                                                </InputRadioGroup>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-outline-success me-1" type="submit">
+                                                        Save
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" type="button" 
+                                                        @onclick="(CancelClick)">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </EditForm>
+                                        }
+                                        else
+                                        {
+
+                                            <h2>@server.Category.CategoryName</h2>
+                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditCategory())">
+                                                Edit Category
+                                            </button>
+                                        }
+                                        <hr />
+                                        @if (currentEditingServerDescription == server.Id)
+                                        {
+                                            <label class="form-label text-danger">@serverDescriptionErrorMessage</label>
+                                            <EditForm class="conversation-edit-form" Model="editedServerDescription"
+                                                OnSubmit="(async() => await SaveServerDescription())">
+                                                <InputTextArea class="form-control bg-dark text-light conversation-edit-field border-warning"
+                                                    @bind-Value="editedServerDescription"/>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-outline-success mx-1" type="submit">
+                                                        Save
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" type="button"
+                                                        @onclick="CancelClick">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </EditForm>
+                                        }
+                                        else
+                                        {
+                                            <h2>@server?.ServerDescription</h2>
+                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerDescription())">
+                                                Edit Server Description
+                                            </button>
+                                        }
+                                        <hr />
+                                        <p class="conversation-info">The Owner: @server.Owner.DisplayName</p>
+                                        <p class="conversation-info">This was created on: @server.DateCreated.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                </div>
+                                <div class="col-1">
+                                    <div class="close-button-section">
+                                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}
+else
+{
+    <Banned />
+}
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private CreateServerModel model = new();
+    private ServerModel server;
+    private ServerModel editingModel;
+    private List<CategoryModel> categories;
+    private List<UserModel> users;
+    private UserModel loggedInUser;
+    private BanModel ban;
+
+    private string currentEditingServerName = "";
+    private string editedServerName = "";
+    private string currentEditingServerDescription = "";
+    private string editedServerDescription = "";
+    private string currentEditingCategoryId = "";
+    private string editedCategoryId = "";
+    private string currentEditingFileName = "";
+    private string editedFileName = "";
+
+    private string searchText = "";
+    private bool showServerDetailsPage = true;
+    private bool showServerMembersPage = false;
+    private bool showCreateChannelPage = false;
+    private bool priorityBannedUsers = false;
+
+
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+    private IBrowserFile file;
+    private string errorMessage = "";
+    private string fileName = "";
+    private string fileExtension = "";
+
+    private string serverNameErrorMessage = "";
+    private string serverDescriptionErrorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryData.GetAllCategoriesAsync();
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        server = await serverData.GetServerAsync(Id);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+        if (server is not null)
+        {
+            model.ServerName = server.ServerName;
+            model.ServerDescription = server.ServerDescription;
+            model.PictureName = server.PictureName;
+            model.CategoryId = categories?.Where(c => c.Id == server.Category.Id).FirstOrDefault().Id;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            if (server is not null)
+            {
+                await FilterUsers();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(showServerDetailsPage));
+        showServerDetailsPage = boolResults.Success ? boolResults.Value : true;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(showServerMembersPage));
+        showServerMembersPage = boolResults.Success ? boolResults.Value : false;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(showCreateChannelPage));
+        showCreateChannelPage = boolResults.Success ? boolResults.Value : false;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(priorityBannedUsers));
+        priorityBannedUsers = boolResults.Success ? boolResults.Value : false;
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(showServerDetailsPage), showServerDetailsPage);
+        await sessionStorage.SetAsync(nameof(showServerMembersPage), showServerMembersPage);
+        await sessionStorage.SetAsync(nameof(showCreateChannelPage), showCreateChannelPage);
+        await sessionStorage.SetAsync(nameof(priorityBannedUsers), priorityBannedUsers);
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+    }
+
+    private async Task FilterUsers()
+    {
+        var output = await userData.GetAllUsersServerAsync(server);
+        var bannedUsersId = server.BannedUsers.Select(b => b.Id).ToList();
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(u => u.DisplayName.Contains(
+                searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (priorityBannedUsers)
+        {
+            output = output.OrderByDescending(u => bannedUsersId.Contains(u.Id)).ToList();
+        }
+        else
+        {
+            output = output.OrderByDescending(
+                u => u.DateCreated).ThenByDescending(
+                u => bannedUsersId.Contains(u.Id)).ToList();
+        }
+
+        users = output;
+        await SaveFilterState();
+    }
+
+    private async Task PriorityBannedUsers(bool isPriority)
+    {
+        priorityBannedUsers = isPriority;
+        await FilterUsers();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterUsers();
+    }
+
+    private async Task ShowDetailsClick(bool isShowing)
+    {
+        showServerDetailsPage = isShowing;
+        showServerMembersPage = false;
+        showCreateChannelPage = false;
+        await SaveFilterState();
+    }
+
+    private async Task ShowMembersPage(bool isShowing)
+    {
+        showServerMembersPage = isShowing;
+        showServerDetailsPage = false;
+        showCreateChannelPage = false;
+        await SaveFilterState();
+    }
+
+    private async Task ShowCreatePage(bool isShowing)
+    {
+        showCreateChannelPage = isShowing;
+        showServerMembersPage = false;
+        showServerDetailsPage = false;
+        await SaveFilterState();
+    }
+
+    private void EditServerName()
+    {
+        CancelClick();
+        editingModel = server;
+        editedServerName = server.ServerName;
+        currentEditingServerName = server.Id;
+        currentEditingServerDescription = "";
+        currentEditingCategoryId = "";
+        currentEditingFileName = "";
+    }
+
+    private async Task SaveServerName()
+    {
+        serverNameErrorMessage = "";
+
+        if (editedServerName.Length > 50)
+        {
+            serverNameErrorMessage = "Server name is too long.";
+            return;
+        }
+
+        currentEditingServerName = string.Empty;
+        server.ServerName = editedServerName;
+        await serverData.UpdateServer(server);
+    }
+
+    private void EditServerDescription()
+    {
+        CancelClick();
+        editingModel = server;
+        editedServerDescription = server.ServerDescription;
+        currentEditingServerName = "";
+        currentEditingServerDescription = server.Id;
+        currentEditingCategoryId = "";
+        currentEditingFileName = "";
+    }
+
+    private async Task SaveServerDescription()
+    {
+        serverDescriptionErrorMessage = "";
+
+        if (editedServerDescription.Length > 100)
+        {
+            serverDescriptionErrorMessage = "Description is too long.";
+            return;
+        }
+
+        currentEditingServerDescription = string.Empty;
+        server.ServerDescription = editedServerDescription;
+        await serverData.UpdateServer(server);
+    }
+
+    private void EditCategory()
+    {
+        CancelClick();
+        editingModel = server;
+        editedCategoryId = server.Category.Id;
+        currentEditingServerName = "";
+        currentEditingServerDescription = "";
+        currentEditingCategoryId = server.Id;
+        currentEditingFileName = "";
+    }
+
+    private async Task SaveCategory()
+    {
+        currentEditingCategoryId = string.Empty;
+        server.Category = categories.Where(c => c.Id == editedCategoryId).FirstOrDefault();
+        await serverData.UpdateServer(server);
+    }
+
+    private void EditPicture()
+    {
+        CancelClick();
+        editingModel = server;
+        currentEditingServerName = "";
+        currentEditingServerDescription = "";
+        currentEditingCategoryId = "";
+        currentEditingFileName = server.Id;
+    }
+
+    private async Task SavePicture()
+    {
+        string relativePath = await CaptureFile();
+
+        server.PictureName = relativePath;
+        server.OriginalPictureName = fileName;
+        server.PictureExtension = fileExtension;
+
+        await serverData.UpdateServer(server);
+        currentEditingFileName = string.Empty;
+        file = null;
+    }
+
+    private void CancelClick()
+    {
+        errorMessage = string.Empty;
+        serverNameErrorMessage = string.Empty;
+        serverDescriptionErrorMessage = string.Empty;
+        currentEditingServerName = string.Empty;
+        currentEditingServerDescription = string.Empty;
+        currentEditingCategoryId = string.Empty;
+        currentEditingFileName = string.Empty;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void GetFileExtensionAndFileName()
+    {
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName();
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        errorMessage = "";
+
+        if (file is null || loggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage"), 
+                loggedInUser.Email, 
+                newFileName);
+
+            string relativePath = Path.Combine(loggedInUser.Email, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"), 
+                    loggedInUser.Email));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"File: {file.Name} Error: {ex.Message}";
+            throw;
+        }
+    }
+}

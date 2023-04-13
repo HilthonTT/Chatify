@@ -8,4 +8,5 @@ public interface IUserData
     Task<List<UserModel>> GetAllUsersAsync();
     Task UpdateUser(UserModel user);
     Task<UserModel> GetUserFriendCodeAsync(string code);
+    Task<List<UserModel>> GetAllUsersServerAsync(ServerModel server);
 }

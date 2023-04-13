@@ -2,6 +2,11 @@
 
 public class CachingHelper : ICachingHelper
 {
+    public string UserCachingString(string id)
+    {
+        return $"UserData-{id}";
+    }
+
     public string BanAppealCachingString(string id)
     {
         return $"BanAppealData-{id}";

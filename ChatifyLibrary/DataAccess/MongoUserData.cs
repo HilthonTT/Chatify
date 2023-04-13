@@ -1,17 +1,41 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.Helper;
+
+namespace ChatifyLibrary.DataAccess;
 
 public class MongoUserData : IUserData
 {
     private readonly IMongoCollection<UserModel> _users;
-    public MongoUserData(IDbConnection db)
+    private readonly IMemoryCache _cache;
+    private readonly ICachingHelper _helper;
+
+    public MongoUserData(IDbConnection db,
+                         IMemoryCache cache,
+                         ICachingHelper helper)
     {
         _users = db.UserCollection;
+        _cache = cache;
+        _helper = helper;
     }
 
     public async Task<List<UserModel>> GetAllUsersAsync()
     {
         var results = await _users.FindAsync(_ => true);
         return await results.ToListAsync();
+    }
+
+    public async Task<List<UserModel>> GetAllUsersServerAsync(ServerModel server)
+    {
+        var cachingString = _helper.UserCachingString(server.Id);
+
+        var output = _cache.Get<List<UserModel>>(cachingString);
+        if (output is null)
+        {
+            var memberIds = server.Members.Select(m => m.Id).ToList();
+            var filter = Builders<UserModel>.Filter.In(u => u.Id, memberIds);
+            output = await _users.Find(filter).ToListAsync();
+        }
+
+        return output;
     }
 
     public async Task<UserModel> GetUserAsync(string id)

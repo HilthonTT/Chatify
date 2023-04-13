@@ -13,4 +13,5 @@ public interface ICachingHelper
     string ChannelCachingString(string id);
     string ServerCachingString(string id);
     string ServerInvitationCachingString(string id);
+    string UserCachingString(string id);
 }
