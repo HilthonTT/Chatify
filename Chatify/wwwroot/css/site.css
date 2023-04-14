@@ -342,7 +342,11 @@ a, .btn-link {
 }
 
 .clickable {
-    cursor: pointer;
+    cursor: pointer !important;
+}
+
+.unclickable {
+    cursor: auto !important;
 }
 
 .user-card {

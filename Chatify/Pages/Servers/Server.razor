@@ -40,7 +40,7 @@
 
     @if (loggedInUser is not null && selectedChannel is not null)
     {
-        @if (server.Members.Any(m => m.Id == loggedInUser.Id) is false && server.Owner.Id != loggedInUser.Id)
+        @if (IsUserAuthorized() == false)
         {
             <NotAuthorized />
         }
@@ -154,27 +154,12 @@
                         <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(server))">Invite</button>
                         <ul class="list-group">
                             <Virtualize Items="server?.Members" Context="p" OverscanCount="10">
-                                @if (chosenUser is null || chosenUser.Id != p.Id)
-                                {
-                                    <li class="list-group-item mb-2">
-                                        <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
-                                        @if (loggedInUser?.Id != p.Id && p.Id != server?.Owner.Id)
-                                        {
-                                            <button class="btn btn-primary btn-sm float-end" @onclick="(() => chosenUser = p)">Kick/Ban</button>
-                                        }
-                                    </li>
-                                }
-                                else
-                                {
-                                    <li class="list-group-item mb-2">
-                                        <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
-                                        <div class="btn-group w-100">
-                                            <button class="btn btn-success me-1" @onclick="(async() => await KickMember())">Kick</button>
-                                            <button class="btn btn-warning me-1" @onclick="(async() => await BanMember())">Ban</button>
-                                            <button class="btn btn-danger" @onclick="(() => chosenUser = null)">Cancel</button>
-                                        </div>
-                                    </li>
-                                }
+                                <li class="list-group-item mb-2">
+                                    <span class="oi oi-person me-1"></span>
+                                    <span class="clickable" @onclick="(() => UserDetailsPage(p))">
+                                        @p.DisplayName - @((IsUserBanned(p)) ? "Banned" : "Not Banned")
+                                    </span>
+                                </li>
                             </Virtualize>
                         </ul>
                     </div>
@@ -221,7 +206,6 @@ else
     private ChannelModel selectedChannel;
     private List<MessageModel> messages;
     private UserModel loggedInUser;
-    private BasicUserModel chosenUser;
     private MessageModel chosenMessage;
     private BanModel ban;
 
@@ -246,15 +230,18 @@ else
             ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
 
-        hubConnection = new HubConnectionBuilder()
+        if (selectedChannel is not null)
+        {
+            hubConnection = new HubConnectionBuilder()
             .WithUrl(navManager.ToAbsoluteUri("/channelhub"))
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
+            hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
 
-        await hubConnection.StartAsync();
-        await hubConnection.InvokeAsync("JoinConversation", selectedChannel);
+            await hubConnection.StartAsync();
+            await hubConnection.InvokeAsync("JoinConversation", selectedChannel);
+        }
     }
 
     private void OnReceiveMessage(MessageModel message)
@@ -405,21 +392,6 @@ else
         chosenMessage = null;
     }
 
-    private async Task KickMember()
-    {
-        server.Members.Remove(chosenUser);
-        await serverData.UpdateServer(server);
-        chosenUser = null;
-    }
-
-    private async Task BanMember()
-    {
-        server.Members.Remove(chosenUser);
-        server.BannedUsers.Add(chosenUser);
-        await serverData.UpdateServer(server);
-        chosenUser = null;
-    }
-
     private async Task OrderByNew(bool isNew)
     {
         isSortedByNew = isNew;
@@ -519,6 +491,44 @@ else
         }
 
         return "";
+    }
+
+    private bool IsUserAuthorized()
+    {
+        if (server is not null && loggedInUser is not null)
+        {
+            bool IsUserInServer = server.Members.Any(m => m.Id == loggedInUser.Id);
+            bool IsUserInBannedList = server.BannedUsers.Any(b => b.Id == loggedInUser.Id);
+
+            if (IsUserInBannedList)
+            {
+                return false;
+            }
+
+            if (IsUserInServer || server.Owner.Id == loggedInUser.Id)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsUserBanned(BasicUserModel user)
+    {
+        if (server is not null)
+        {
+            bool IsUserInBannedList = server.BannedUsers.Any(b => b.Id == user.Id);
+
+            if (IsUserInBannedList)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        return false;
     }
 
     private async Task DisposeHubConnection()
