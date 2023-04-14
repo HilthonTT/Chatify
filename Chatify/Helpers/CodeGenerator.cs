@@ -51,6 +51,11 @@ public class CodeGenerator : ICodeGenerator
         return await GenerateCodeAsync(s => s.InvitationCode, _serverData.GetAllServersAsync);
     }
 
+    public async Task<string> GenerateServerIdentifierAsync()
+    {
+        return await GenerateCodeAsync(s => s.ObjectIdentifier, _serverData.GetAllServersAsync);
+    }
+
     public async Task<string> GenerateRandomMessageIdentifier()
     {
         return await GenerateCodeAsync(m => m.ObjectIdentifier, _messageData.GetAllMessagesAsync);

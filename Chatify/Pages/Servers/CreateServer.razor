@@ -138,6 +138,7 @@ else
 
             string relativePath = await CaptureFile();
             string invitationCode = await codeGenerator.GenerateServerInvationCodeAsync();
+            string objectId = await codeGenerator.GenerateServerIdentifierAsync();
 
             var channels = new List<ChannelModel>();
 
@@ -161,6 +162,7 @@ else
 
             ServerModel s = new()
             {
+                ObjectIdentifier = objectId,
                 Owner = new BasicUserModel(loggedInUser),
                 Category = categories.Where(c => c.Id == server.CategoryId).FirstOrDefault(),
                 ServerName = server.ServerName,
