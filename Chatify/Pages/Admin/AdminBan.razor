@@ -79,7 +79,7 @@
 
     private void ClosePage()
     {
-        navManager.NavigateTo("/");
+        navManager.NavigateTo($"/UserDetails/{user.Id}");
     }
 
     private async Task CreateBan()

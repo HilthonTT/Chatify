@@ -74,10 +74,12 @@
                         }
                         else
                         {
-                            <button class="btn btn-outline-warning w-100" @onclick="(async() => await SendFriendRequest())">
-                                Send Friend Request
-                            </button>
-                        
+                            @if (user?.Id != loggedInUser?.Id)
+                            {
+                                <button class="btn btn-outline-warning w-100" @onclick="(async() => await SendFriendRequest())">
+                                    Send Friend Request
+                                </button>
+                            }
                         }
                     </div>     
                 </div>
