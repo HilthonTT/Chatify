@@ -8,19 +8,41 @@ public class CodeGenerator : ICodeGenerator
     private readonly IServerData _serverData;
     private readonly IMessageData _messageData;
     private readonly IConversationData _conversationData;
+    private readonly IChannelData _channelData;
+    private readonly IPrivateConversationData _privateConversationData;
+    private readonly IPrivateMessageData _privateMessageData;
+    private readonly IFriendRequestData _requestData;
+    private readonly IServerInvitationData _invitationData;
 
     public CodeGenerator(IUserData userData,
                          IServerData serverData,
                          IMessageData messageData,
-                         IConversationData conversationData)
+                         IConversationData conversationData,
+                         IChannelData channelData,
+                         IPrivateConversationData privateConversationData,
+                         IPrivateMessageData privateMessageData,
+                         IFriendRequestData requestData,
+                         IServerInvitationData invitationData)
     {
         _userData = userData;
         _serverData = serverData;
         _messageData = messageData;
         _conversationData = conversationData;
+        _channelData = channelData;
+        _privateConversationData = privateConversationData;
+        _privateMessageData = privateMessageData;
+        _requestData = requestData;
+        _invitationData = invitationData;
+    }
+    private static string GenerateRandomString()
+    {
+        var random = new Random();
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        return new string(Enumerable.Repeat(chars, 20).Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
-    private static async Task<string> GenerateCodeAsync<T>(Func<T, string> identifierSelector, Func<Task<List<T>>> dataAccessor)
+    private static async Task<string> GenerateCodeAsync<T>(Func<T, string> identifierSelector,
+                                                           Func<Task<List<T>>> dataAccessor)
     {
         string objectIdentifier = null;
         var dataObjects = await dataAccessor();
@@ -29,7 +51,9 @@ public class CodeGenerator : ICodeGenerator
         {
             objectIdentifier = GenerateRandomString();
 
-            var existingObject = dataObjects.Where(s => identifierSelector(s) == objectIdentifier).FirstOrDefault();
+            var existingObject = dataObjects.Where(
+                s => identifierSelector(s) == objectIdentifier)
+                .FirstOrDefault();
 
             if (existingObject is not null)
             {
@@ -56,20 +80,38 @@ public class CodeGenerator : ICodeGenerator
         return await GenerateCodeAsync(s => s.ObjectIdentifier, _serverData.GetAllServersAsync);
     }
 
-    public async Task<string> GenerateRandomMessageIdentifier()
+    public async Task<string> GenerateMessageIdentifier()
     {
         return await GenerateCodeAsync(m => m.ObjectIdentifier, _messageData.GetAllMessagesAsync);
     }
 
-    public async Task<string> GenerateRandomConversationIdentifier()
+    public async Task<string> GenerateConversationIdentifier()
     {
         return await GenerateCodeAsync(c => c.ObjectIdentifier, _conversationData.GetAllConversationAsync);
     }
 
-    private static string GenerateRandomString()
+    public async Task<string> GenerateChannelIdentifier()
     {
-        var random = new Random();
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, 20).Select(s => s[random.Next(s.Length)]).ToArray());
+        return await GenerateCodeAsync(c=> c.ObjectIdentifier, _channelData.GetAllChannelsAsync);
+    }
+
+    public async Task<string> GeneratePrivateMessageIdentifier()
+    {
+        return await GenerateCodeAsync(m => m.ObjectIdentifier, _privateMessageData.GetAllMessagesAsync);
+    }
+
+    public async Task<string> GeneratePrivateConversationIdentifier()
+    {
+        return await GenerateCodeAsync(c => c.ObjectIdentifier, _privateConversationData.GetAllConversationAsync);
+    }
+
+    public async Task<string> GenerateFriendRequestIdentifier()
+    {
+        return await GenerateCodeAsync(r => r.ObjectIdentifier, _requestData.GetAllFriendRequestAsync);
+    }
+
+    public async Task<string> GenerateServerInvitationIdentifier()
+    {
+        return await GenerateCodeAsync(i => i.ObjectIdentifier, _invitationData.GetAllInvitationsAsync);
     }
 }
