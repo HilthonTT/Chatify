@@ -168,22 +168,29 @@
                 </div>
               </div>
               <div class="row fixed-bottom mb-4 mx-2">
-                <div class="col-xl-12 col-lg-12">
-                  <div class="row">
-                    <div class="col-8">
-                      <input type="text" placeholder="Message @conversation?.GroupName" aria-label="Message Box"
-                        class="form-control bg-dark text-light input-section border-warning" @bind-value="messageText" />  
-                    </div>
-                    <div class="col-2">
-                      <InputFile OnChange="LoadFiles" 
-                        class="form-control bg-dark text-light input-section border-warning"
-                        accept=".png,.jpg,.jpeg,.txt,.pdf"/>
-                    </div>
-                    <div class="col-2">
-                      <button class="btn btn-outline-warning form-control" @onclick="SendMessage" disabled="@(IsConnected is false)">Send</button>
-                    </div>
-                  </div>
-                </div>
+                  <EditForm Model="message" OnValidSubmit="SendMessage">
+                      <DataAnnotationsValidator />
+                        <div class="col-xl-12 col-lg-12">
+                          <div class="row">
+                            <ValidationMessage For="(() => message.Text)"/>
+                            <div class="col-8">
+                                <InputText placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
+                                class="form-control bg-dark text-light input-section border-warning" @bind-Value="message.Text" />  
+                            </div>
+                            <div class="col-2">
+                                <InputFile OnChange="LoadFiles" 
+                                class="form-control bg-dark text-light input-section border-warning"
+                                accept=".png,.jpg,.jpeg,.txt,.pdf"/>
+                            </div>
+                            <div class="col-2">
+                                <button type="submit" class="btn btn-outline-warning form-control" 
+                                    disabled="@(IsConnected is false)">
+                                    Send
+                                </button>
+                            </div>
+                          </div>
+                        </div>
+                  </EditForm>
               </div>
             </div>
         }
@@ -198,9 +205,9 @@ else
     [Parameter]
     public string Id { get; set; }
 
+    private CreateMessageModel message = new();
     private HubConnection? hubConnection;
 
-    private string messageText = "";
     private string editingMessageText = "";
     private string searchText = "";
     private bool isSortedByNew = true;
@@ -265,9 +272,6 @@ else
     {
         var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
         searchText = stringResults.Success ? stringResults.Value : "";
-        stringResults = await sessionStorage.GetAsync<string>(nameof(messageText));
-        messageText = stringResults.Success ? stringResults.Value : "";
-
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
         isSortedByNew = boolResults.Success ? boolResults.Value : true;
     }
@@ -275,7 +279,6 @@ else
     private async Task SaveFilterState()
     {
         await sessionStorage.SetAsync(nameof(searchText), searchText);
-        await sessionStorage.SetAsync(nameof(messageText), messageText);
         await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
     }
 
@@ -309,16 +312,14 @@ else
         {
             errorMessage = "";
 
-            if (string.IsNullOrWhiteSpace(messageText)) return;
-
             string relativePath = await CaptureFile();
             string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
 
-            MessageModel message = new()
+            MessageModel m = new()
             {
                 ObjectIdentifier = objectId,
                 Sender = new BasicUserModel(loggedInUser),
-                Text = messageText,
+                Text = message.Text,
                 FileName = relativePath,
                 OriginalFileName = fileName,
                 FileExtension = fileExtension,
@@ -326,14 +327,13 @@ else
                 Archived = false,
             };
 
-            await messageData.CreateMessage(message);
+            await messageData.CreateMessage(m);
 
             if (hubConnection is not null)
             {
-                await hubConnection.InvokeAsync("SendMessage", message, conversation);
+                await hubConnection.InvokeAsync("SendMessage", m, conversation);
             }
 
-            messageText = "";
             file = null;
             fileName = string.Empty;
             fileExtension = string.Empty;
