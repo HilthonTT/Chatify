@@ -359,7 +359,7 @@ else
             if (string.IsNullOrWhiteSpace(messageText)) return;
 
             string relativePath = await CaptureFile();
-            string objectIdentifier = await codeGenerator.GenerateMessageIdentifier();
+            string objectIdentifier = await codeGenerator.GenerateMessageIdentifierAsync();
 
             MessageModel message = new()
             {

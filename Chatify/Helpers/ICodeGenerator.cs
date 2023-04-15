@@ -3,13 +3,13 @@
 public interface ICodeGenerator
 {
     Task<string> GenerateFriendCodeAsync();
-    Task<string> GenerateConversationIdentifier();
-    Task<string> GenerateMessageIdentifier();
+    Task<string> GenerateConversationIdentifierAsync();
+    Task<string> GenerateMessageIdentifierAsync();
     Task<string> GenerateServerIdentifierAsync();
     Task<string> GenerateServerInvationCodeAsync();
-    Task<string> GenerateChannelIdentifier();
-    Task<string> GeneratePrivateMessageIdentifier();
-    Task<string> GeneratePrivateConversationIdentifier();
-    Task<string> GenerateFriendRequestIdentifier();
-    Task<string> GenerateServerInvitationIdentifier();
+    Task<string> GenerateChannelIdentifierAsync();
+    Task<string> GeneratePrivateMessageIdentifierAsync();
+    Task<string> GeneratePrivateConversationIdentifierAsync();
+    Task<string> GenerateFriendRequestIdentifierAsync();
+    Task<string> GenerateServerInvitationIdentifierAsync();
 }

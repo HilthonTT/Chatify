@@ -240,7 +240,7 @@ else
             errorMessage = "";
 
             string relativePath = await CaptureFile();
-            string objectIdentifier = await codeGenerator.GenerateConversationIdentifier();
+            string objectIdentifier = await codeGenerator.GenerateConversationIdentifierAsync();
 
             ConversationModel c = new()
             {

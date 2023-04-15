@@ -9,6 +9,7 @@
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
 @inject IConfiguration config
+@inject ICodeGenerator codeGenerator
 @implements IAsyncDisposable
 
 @if (ban is null)
@@ -284,9 +285,11 @@ else
             if (string.IsNullOrWhiteSpace(messageText)) return;
 
             string relativePath = await CaptureFile();
+            string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
 
             PrivateMessageModel message = new()
             {
+                ObjectIdentifier = objectId,
                 Sender = new BasicUserModel(loggedInUser),
                 Text = messageText,
                 FileName = relativePath,

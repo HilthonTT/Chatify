@@ -90,38 +90,48 @@
                     </div>
                 </div>
             }
-            @if (conversations is not null)
-            {
-                <Virtualize Items="conversations" Context="c" OverscanCount="10">
-                    <div class="card bg-dark text-light border-warning p-2 w-100 mb-4" style="width: 20rem;">
-                        @if (string.IsNullOrWhiteSpace(c.PictureName) is false)
-                        {
-                            <div class="text-center p-3">
-                                <img src="@CreateWebPath(c.PictureName)" 
-                                    class="card-img-top h-25 w-25 rounded-circle" 
-                                    alt="@c.OriginalPictureName">
+            <div class="row">
+                @if (conversations is not null)
+                {
+                    <Virtualize Items="conversations" Context="c" OverscanCount="10">
+                        <div class="col-xl-4 col-lg-6 mb-3 center-children">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card bg-dark text-light border-warning p-2 h-100 d-flex flex-column" style="width: 25rem;">
+                                        @if (string.IsNullOrWhiteSpace(c.PictureName) is false)
+                                        {
+                                            <div class="text-center p-3">
+                                                <img src="@CreateWebPath(c.PictureName)" 
+                                                    class="card-img-top h-100 w-100 rounded-circle" 
+                                                    alt="@c.OriginalPictureName">
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-center p-3">
+                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                    class="card-img-top h-100 w-100 rounded-circle" 
+                                                    alt="Placeholder Image">
+                                            </div>
+                                        }
+                                        <div class="mt-auto">
+                                            <div class="card-body text-break">
+                                                <h5 class="card-title">@c.GroupName</h5>
+                                                <p class="card-text">@c.Category.CategoryName</p>
+                                                <p class="card-text"><small class="text-muted">Owner: @c.Owner.DisplayName</small></p>
+                                                <p class="card-text"><small class="text-danger">@c.Participants.Count Participants</small></p>
+                                                <button class="btn btn-outline-warning w-100" @onclick="(() => OpenDetails(c))">
+                                                    Check Out
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        }
-                        else
-                        {
-                            <div class="text-center p-3">
-                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                    class="card-img-top h-25 w-25 rounded-circle" 
-                                    alt="Placeholder Image">
-                            </div>
-                        }
-                        <div class="card-body text-center text-break">
-                            <h5 class="card-title">@c.GroupName</h5>
-                            <p class="card-text">@c.Category.CategoryName</p>
-                            <p class="card-text"><small class="text-muted">Owner: @c.Owner.DisplayName</small></p>
-                            <p class="card-text"><small class="text-danger">@c.Participants.Count Participants</small></p>
-                            <button class="btn btn-outline-warning w-100" @onclick="(() => OpenDetails(c))">
-                                Check Out
-                            </button>
                         </div>
-                    </div>
-                </Virtualize>
-            }
+                    </Virtualize>
+                }
+            </div>
         </div>
         <div class="col-md-3 col-xl-2 d-none d-md-block">
             @if (categories is not null)
@@ -331,7 +341,7 @@ else
 
         if (conversation is null)
         {
-            string objectId = await codeGenerator.GeneratePrivateConversationIdentifier();
+            string objectId = await codeGenerator.GeneratePrivateConversationIdentifierAsync();
 
             PrivateConversationModel c = new()
             {

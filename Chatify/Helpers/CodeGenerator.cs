@@ -37,7 +37,7 @@ public class CodeGenerator : ICodeGenerator
     private static string GenerateRandomString()
     {
         var random = new Random();
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-!@#$%^&*(){}|";
         return new string(Enumerable.Repeat(chars, 20).Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
@@ -80,37 +80,37 @@ public class CodeGenerator : ICodeGenerator
         return await GenerateCodeAsync(s => s.ObjectIdentifier, _serverData.GetAllServersAsync);
     }
 
-    public async Task<string> GenerateMessageIdentifier()
+    public async Task<string> GenerateMessageIdentifierAsync()
     {
         return await GenerateCodeAsync(m => m.ObjectIdentifier, _messageData.GetAllMessagesAsync);
     }
 
-    public async Task<string> GenerateConversationIdentifier()
+    public async Task<string> GenerateConversationIdentifierAsync()
     {
         return await GenerateCodeAsync(c => c.ObjectIdentifier, _conversationData.GetAllConversationAsync);
     }
 
-    public async Task<string> GenerateChannelIdentifier()
+    public async Task<string> GenerateChannelIdentifierAsync()
     {
         return await GenerateCodeAsync(c=> c.ObjectIdentifier, _channelData.GetAllChannelsAsync);
     }
 
-    public async Task<string> GeneratePrivateMessageIdentifier()
+    public async Task<string> GeneratePrivateMessageIdentifierAsync()
     {
         return await GenerateCodeAsync(m => m.ObjectIdentifier, _privateMessageData.GetAllMessagesAsync);
     }
 
-    public async Task<string> GeneratePrivateConversationIdentifier()
+    public async Task<string> GeneratePrivateConversationIdentifierAsync()
     {
         return await GenerateCodeAsync(c => c.ObjectIdentifier, _privateConversationData.GetAllConversationAsync);
     }
 
-    public async Task<string> GenerateFriendRequestIdentifier()
+    public async Task<string> GenerateFriendRequestIdentifierAsync()
     {
         return await GenerateCodeAsync(r => r.ObjectIdentifier, _requestData.GetAllFriendRequestAsync);
     }
 
-    public async Task<string> GenerateServerInvitationIdentifier()
+    public async Task<string> GenerateServerInvitationIdentifierAsync()
     {
         return await GenerateCodeAsync(i => i.ObjectIdentifier, _invitationData.GetAllInvitationsAsync);
     }

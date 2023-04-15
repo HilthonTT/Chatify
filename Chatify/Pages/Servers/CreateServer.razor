@@ -165,7 +165,7 @@ else
             await serverData.CreateServer(s);
             var newServer = await serverData.GetServerObjectIdAsync(objectId);
             
-            string channelObjectId = await codeGenerator.GenerateChannelIdentifier();
+            string channelObjectId = await codeGenerator.GenerateChannelIdentifierAsync();
             ChannelModel c = new()
             {
                 ObjectIdentifier = channelObjectId,

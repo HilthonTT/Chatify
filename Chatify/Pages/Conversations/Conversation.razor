@@ -9,6 +9,7 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
+@inject ICodeGenerator codeGenerator
 @implements IAsyncDisposable
 
 @if (ban is null)
@@ -254,7 +255,7 @@ else
             await LoadFilterState();
             if (conversation is not null)
             {
-                 await FilterMessages();
+                await FilterMessages();
             }
             StateHasChanged();
         }
@@ -309,11 +310,13 @@ else
             errorMessage = "";
 
             if (string.IsNullOrWhiteSpace(messageText)) return;
-            
+
             string relativePath = await CaptureFile();
+            string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
 
             MessageModel message = new()
             {
+                ObjectIdentifier = objectId,
                 Sender = new BasicUserModel(loggedInUser),
                 Text = messageText,
                 FileName = relativePath,
