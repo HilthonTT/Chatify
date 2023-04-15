@@ -4,6 +4,7 @@
 @inject ICategoryData categoryData
 @inject IUserData userData
 @inject IBanData banData
+@inject IConfiguration config
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 
@@ -17,6 +18,54 @@
     }
     else
     {
+        <div class="modal fade" id="conversationModal" tabindex="-1" role="dialog" aria-labelledby="conversationModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+            <div class="modal-content bg-dark text-white"> 
+                <div class="modal-header">
+                    <h5 class="modal-title" id="conversationModalLongTitle">
+                        Edit @selectedConversation?.GroupName
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="editingConversation" OnValidSubmit="(async() => await UpdateConversation())">
+                            <DataAnnotationsValidator />
+                            <div class="row">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
+                                    <div class="mt-1">Edit your server's name</div>
+                                    <ValidationMessage For="(() => editingConversation.GroupName)"/>
+                                    <InputText class="form-control bg-dark text-white input-section border-warning" id="server-name" 
+                                        @bind-Value="editingConversation.GroupName"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-uppercase" for="server-icon">Conversation Icon</label>
+                                    <div class="mt-1">Select an image for your conversation. This is not required.</div>
+                                    <ValidationMessage For="(() => editingConversation.PictureName)"/>
+                                    <InputFile OnChange="LoadFiles"
+                                        class="form-control bg-dark text-light input-section border-warning"
+                                        accept=".png,.jpg,.jpeg"/>
+                                </div>
+                                <div class="center-children">
+                                    <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit" data-dismiss="modal" @onclick="UpdateConversation">
+                                        Update
+                                    </button>
+                                </div>
+                            </div>
+                        </EditForm>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" 
+                        class="btn btn-secondary" 
+                        data-dismiss="modal" 
+                        @onclick="(() => selectedConversation = null)">
+                        Close
+                    </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         @if (conversation is not null)
         {
             <div class="rounded rounded-3 shadow">
@@ -26,65 +75,27 @@
                             <div class="row">
                                 <div class="col-11">
                                     <div>
-                                        @if (currentEditingGroupName == conversation.Id)
-                                        {
-                                            <EditForm class="conversation-edit-form" Model="editedGroupName" 
-                                                OnSubmit="(async() => await SaveGroupName(conversation))">
-
-                                                <InputText class="form-control bg-dark text-light conversation-edit-field border-warning" @bind-Value="editedGroupName"/>
-                                                <div class="btn-group">
-                                                    <button class="btn btn-outline-success mx-1" type="submit">
-                                                        Save
-                                                    </button>
-                                                    <button class="btn btn-outline-danger" type="button" 
-                                                        @onclick="(() => currentEditingGroupName = string.Empty)">
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </EditForm>
-                                        }
-                                        else
-                                        {
-                                            <h2>@conversation.GroupName</h2>
-                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditGroupName(conversation))">Edit Group Name</button>
-                                        }
-                                        <hr />
-                                        @if (currentEditingCategoryId == conversation.Id)
-                                        {
-                                            <EditForm class="conversation-edit-form" Model="editedCategoryId" 
-                                                OnSubmit="(async() => await SaveCategory(conversation))">
-                            
-                                                <InputRadioGroup id="category" @bind-Value="editedCategoryId">
-                                                    <Virtualize Items="categories" Context="c" OverscanCount="10">
-                                                        <div class="radio-item-group">
-                                                            <InputRadio Value="c.Id" id="@c.Id"/>
-                                                            <label for="@c.Id" class="h-100 w-100">
-                                                                <span class="fw-bold text-uppercase text-center h5">@c.CategoryName</span>
-                                                                <p>@c.CategoryDescription</p>
-                                                            </label>
-                                                        </div>
-                                                    </Virtualize>
-                                                </InputRadioGroup>
-                                                <div class="btn-group">
-                                                    <button class="btn btn-outline-success me-1" type="submit">
-                                                        Save
-                                                    </button>
-                                                    <button class="btn btn-outline-danger" type="button" 
-                                                        @onclick="(() => currentEditingCategoryId = string.Empty)">
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </EditForm>
-                                        }
-                                        else
-                                        {
-
-                                            <h2>@conversation.Category.CategoryName</h2>
-                                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditCategory(conversation))">Edit Category</button>
-                                        }
-                                        <hr />
+                                        <h2 class="conversation-title">@conversation.GroupName</h2>
                                         <p class="conversation-info">The Owner: @conversation.Owner.DisplayName</p>
                                         <p class="conversation-info">This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")</p>
+                                        <button class="btn btn-outline-warning w-100" @onclick="LoadSelectedConversation"
+                                            data-toggle="modal" data-target="#conversationModal">
+                                              Edit Conversation
+                                          </button>
+                                        <div class="center-children mt-2">
+                                            @if (string.IsNullOrWhiteSpace(conversation.PictureName) is false)
+                                            {
+                                                <img src="@CreateWebPath(conversation.PictureName)"
+                                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
+                                                alt="@conversation.OriginalPictureName">
+                                            }
+                                            else
+                                            {
+                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
+                                                alt="Placeholder Image">
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-1">
@@ -109,8 +120,10 @@ else
     [Parameter]
     public string Id { get; set; }
 
+    private CreateConversationModel editingConversation = new();
+
     private ConversationModel conversation;
-    private ConversationModel editingModel;
+    private ConversationModel selectedConversation;
     private List<CategoryModel> categories;
     private UserModel loggedInUser;
     private BanModel ban;
@@ -118,6 +131,11 @@ else
     private string editedGroupName = "";
     private string currentEditingCategoryId = "";
     private string editedCategoryId = "";
+
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+    private IBrowserFile? file;
+    private string fileName = "";
+    private string fileExtension = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,38 +148,93 @@ else
         }
     }
 
-    private void EditGroupName(ConversationModel model)
+    private void LoadSelectedConversation()
     {
-        editingModel = model;
-        editedGroupName = model.GroupName;
-        currentEditingGroupName = model.Id;
-        currentEditingCategoryId = "";
+        selectedConversation = conversation;
+        editingConversation.GroupName = selectedConversation.GroupName;
+        editingConversation.CategoryId = selectedConversation.Category.Id;
+        editingConversation.PictureName = selectedConversation.PictureName;
     }
 
-    private async Task SaveGroupName(ConversationModel model)
+    private async Task UpdateConversation()
     {
-        currentEditingGroupName = string.Empty;
-        model.GroupName = editedGroupName;
-        await conversationData.UpdateConversation(model);
-    }
+        string relativePath = await CaptureFile();
+        string pictureName = conversation.PictureName;
+        string originalPictureName = conversation.OriginalPictureName;
+        string pictureExtension = conversation.PictureExtension;
 
-    private void EditCategory(ConversationModel model)
-    {
-        editingModel = model;
-        editedCategoryId = model.Category.Id;
-        currentEditingGroupName = "";
-        currentEditingCategoryId = model.Id;
-    }
-
-    private async Task SaveCategory(ConversationModel model)
-    {
-        currentEditingCategoryId = string.Empty;
-        model.Category = categories.Where(c => c.Id == editedCategoryId).FirstOrDefault();
-        await conversationData.UpdateConversation(model);
+        conversation.GroupName = editingConversation.GroupName;
+        conversation.Category = categories.Where(c => c.Id == editingConversation.CategoryId).FirstOrDefault();
+        if (file is not null)
+        {
+            conversation.PictureName = relativePath;
+            conversation.OriginalPictureName = fileName;
+            conversation.PictureExtension = fileExtension;
+        }
+        else
+        {
+            conversation.PictureName = pictureName;
+            conversation.OriginalPictureName = originalPictureName;
+            conversation.PictureExtension = pictureExtension;
+        }
+        
+        await conversationData.UpdateConversation(conversation);
+        editingConversation = new();
+        file = null;
     }
 
     private void ClosePage(ConversationModel conversation)
     {
         navManager.NavigateTo($"/Conversation/{conversation.Id}");
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void GetFileExtensionAndFileName()
+    {
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName();
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        if (file is null || loggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage"), 
+                loggedInUser.Email, 
+                newFileName);
+
+            string relativePath = Path.Combine(loggedInUser.Email, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"), 
+                    loggedInUser.Email));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch
+        {
+            throw;
+        }
     }
 }

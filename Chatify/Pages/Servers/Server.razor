@@ -449,6 +449,12 @@ else
 
     private void UserDetailsPage(BasicUserModel user)
     {
+        if (user.Id == loggedInUser.Id)
+        {
+            navManager.NavigateTo($"/profile");
+            return;
+        }
+
         navManager.NavigateTo($"/userDetails/{user.Id}");
     }
 

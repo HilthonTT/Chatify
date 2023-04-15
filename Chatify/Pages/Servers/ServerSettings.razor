@@ -409,18 +409,21 @@ else
 
     private CreateChannelModel channel = new();
     private CreateServerModel editingServer = new();
-    private ServerModel server;
-    private UserModel loggedInUser;
-    private ChannelModel selectedChannel;
-    private ServerModel selectedServer;
-    private BanModel ban;
-    private List<CategoryModel> categories;
-    private List<UserModel> users;
-    private List<ChannelModel> channels;
 
+    private ServerModel server;
+    private ServerModel selectedServer;
+
+    private UserModel loggedInUser;
     private UserModel selectedUserToKick;
     private UserModel selectedUserToBan;
     private UserModel selectedUserToUnban;
+
+    private ChannelModel selectedChannel;
+    private BanModel ban;
+
+    private List<CategoryModel> categories;
+    private List<UserModel> users;
+    private List<ChannelModel> channels;
 
     private string searchText = "";
     private string searchChannelText = "";
@@ -433,12 +436,8 @@ else
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
     private IBrowserFile? file;
-    private string errorMessage = "";
     private string fileName = "";
     private string fileExtension = "";
-
-    private string serverNameErrorMessage = "";
-    private string serverDescriptionErrorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -472,8 +471,6 @@ else
 
     private async Task CreateChannel()
     {
-        errorMessage = "";
-
         string objectId = await codeGenerator.GenerateChannelIdentifier();
 
         ChannelModel c = new()
@@ -493,8 +490,6 @@ else
 
     private async Task UpdateChannel()
     {
-        errorMessage = "";
-
         var c = await channelData.GetChannelAsync(selectedChannel.Id);
         c.ChannelName = channel.ChannelName;
         c.ChannelDescription = channel.ChannelDescription;
@@ -511,14 +506,25 @@ else
 
     private async Task UpdateServer()
     {
-        errorMessage = "";
         string relativePath = await CaptureFile();
+        string pictureName = server.PictureName;
+        string originalPictureName = server.OriginalPictureName;
+        string pictureExtension = server.PictureExtension;
 
         server.ServerName = editingServer.ServerName;
         server.ServerDescription = editingServer.ServerDescription;
-        server.PictureName = relativePath;
-        server.OriginalPictureName = fileName;
-        server.PictureExtension = fileExtension;
+        if (file is not null)
+        {
+            server.PictureName = relativePath;
+            server.OriginalPictureName = fileName;
+            server.PictureExtension = fileExtension;
+        }
+        else
+        {
+            server.PictureName = pictureName;
+            server.OriginalPictureName = originalPictureName;
+            server.PictureExtension = pictureExtension;
+        }
 
         await serverData.UpdateServer(server);
         editingServer = new();
@@ -576,7 +582,6 @@ else
                 u => u.DateCreated).ThenByDescending(
                 u => !IsUserBanned(u)).ToList();
         }
-
 
         users = output;
         await SaveFilterState();
@@ -646,13 +651,6 @@ else
         editingServer.ServerName = model.ServerName;
         editingServer.ServerDescription = model.ServerDescription;
         editingServer.PictureName = model.PictureName;
-    }
-
-    private void CancelClick()
-    {
-        errorMessage = string.Empty;
-        serverNameErrorMessage = string.Empty;
-        serverDescriptionErrorMessage = string.Empty;
     }
 
     private void ClearAllPages()
@@ -732,6 +730,12 @@ else
 
     private void OpenUserDetails(UserModel user)
     {
+        if (user.Id == loggedInUser.Id)
+        {
+            navManager.NavigateTo("/Profile");
+            return;
+        }
+
         navManager.NavigateTo($"/userDetails/{user.Id}");
     }
 
@@ -754,8 +758,6 @@ else
 
     private async Task<string> CaptureFile()
     {
-        errorMessage = "";
-
         if (file is null || loggedInUser is null) return "";
 
         try
@@ -781,9 +783,8 @@ else
 
             return relativePath;
         }
-        catch (Exception ex)
+        catch
         {
-            errorMessage = $"File: {file.Name} Error: {ex.Message}";
             throw;
         }
     }
