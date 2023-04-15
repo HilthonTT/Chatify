@@ -52,9 +52,33 @@
                     <div class="participants-list p-2">
                         <h3 class="fw-bold text-uppercase">Channels</h3>
                         <ul class="list-group">
-                            <Virtualize Items="server?.Channels" Context="c" OverscanCount="10">
+                            <Virtualize Items="channels" Context="c" OverscanCount="10">
                                 <div class="mb-2" @onclick="(async() => await LoadSelectedChannel(c))">
-                                    <span class="oi oi-chat mx-1"></span><span class="clickable @GetChannelClass(c)">@c.ChannelName</span>
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <span class="oi oi-chat mx-1"></span>
+                                            <span class="clickable @GetChannelClass(c)">@c.ChannelName</span>
+                                        </div>
+                                        <div>
+                                            @if (selectedChannelToModify is null || selectedChannelToModify.Id != c.Id)
+                                            {
+                                                <button class="btn btn-outline-secondary btn-sm" @onclick="(() => selectedChannelToModify = c)">
+                                                    Edit
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-outline-success">
+                                                        Delete
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                             </Virtualize>
                         </ul>
@@ -204,7 +228,9 @@ else
     private bool isSortedByNew = true;
     private ServerModel server;
     private ChannelModel selectedChannel;
+    private ChannelModel selectedChannelToModify;
     private List<MessageModel> messages;
+    private List<ChannelModel> channels;
     private UserModel loggedInUser;
     private MessageModel chosenMessage;
     private BanModel ban;
@@ -220,7 +246,8 @@ else
         server = await serverData.GetServerAsync(Id);
         if (server is not null)
         {
-            selectedChannel = server.Channels.FirstOrDefault();
+            channels = await channelData.GetAllChannelsServerAsync(server);
+            selectedChannel = channels.FirstOrDefault();
             messages = await messageData.GetChannelMessagesAsync(selectedChannel);
         }
 
@@ -332,7 +359,7 @@ else
             if (string.IsNullOrWhiteSpace(messageText)) return;
 
             string relativePath = await CaptureFile();
-            string objectIdentifier = await codeGenerator.GenerateRandomMessageIdentifier();
+            string objectIdentifier = await codeGenerator.GenerateMessageIdentifier();
 
             MessageModel message = new()
             {

@@ -1,15 +1,21 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.Helper;
+using Microsoft.VisualBasic;
+
+namespace ChatifyLibrary.DataAccess;
 
 public class MongoChannelData : IChannelData
 {
     private readonly IMongoCollection<ChannelModel> _channels;
     private readonly IMemoryCache _cache;
+    private readonly ICachingHelper _helper;
     private const string CacheName = "ChannelData";
 
     public MongoChannelData(IDbConnection db,
-                            IMemoryCache cache)
+                            IMemoryCache cache,
+                            ICachingHelper helper)
     {
         _cache = cache;
+        _helper = helper;
         _channels = db.ChannelCollection;
     }
 
@@ -27,9 +33,34 @@ public class MongoChannelData : IChannelData
         return output;
     }
 
+    public async Task<List<ChannelModel>> GetAllChannelsServerAsync(ServerModel server)
+    {
+        string cachingString = _helper.ChannelCachingString(server.Id);
+
+        var output = _cache.Get<List<ChannelModel>>(cachingString);
+        if (output is null)
+        {
+            var filter = Builders<ChannelModel>.Filter.And(
+                Builders<ChannelModel>.Filter.Eq(c => c.Server.Id, server.Id),
+                Builders<ChannelModel>.Filter.Eq(c => c.Archived, false));
+
+            output = await _channels.Find(filter).ToListAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(10));
+        }
+
+        return output;
+    }
+
     public async Task<ChannelModel> GetChannelAsync(string id)
     {
         var results = await _channels.FindAsync(c => c.Id == id);
+        return await results.FirstOrDefaultAsync();
+    }
+
+    public async Task<ChannelModel> GetChannelObjectIdAsync(string objectId)
+    {
+        var results = await _channels.FindAsync(c => c.ObjectIdentifier == objectId);
         return await results.FirstOrDefaultAsync();
     }
 

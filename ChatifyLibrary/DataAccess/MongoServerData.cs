@@ -57,6 +57,12 @@ public class MongoServerData : IServerData
         return await results.FirstOrDefaultAsync();
     }
 
+    public async Task<ServerModel> GetServerObjectIdAsync(string objectId)
+    {
+        var results = await _servers.FindAsync(s => s.ObjectIdentifier == objectId);
+        return await results.FirstOrDefaultAsync();
+    }
+
     public async Task<ServerModel> GetServerByInvitationCodeAsync(string invitationCode)
     {
         var results = await _servers.FindAsync(s => s.InvitationCode == invitationCode);

@@ -62,6 +62,12 @@ public class MongoPrivateConversationData : IPrivateConversationData
         return await results.FirstOrDefaultAsync();
     }
 
+    public async Task<PrivateConversationModel> GetConversationObjectIdAsync(string objectId)
+    {
+        var results = await _conversations.FindAsync(c => c.ObjectIdentifier == objectId);
+        return await results.FirstOrDefaultAsync();
+    }
+
     public Task CreateConversation(PrivateConversationModel conversation)
     {
         return _conversations.InsertOneAsync(conversation);

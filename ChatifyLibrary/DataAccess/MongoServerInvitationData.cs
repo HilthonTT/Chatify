@@ -48,6 +48,22 @@ public class MongoServerInvitationData : IServerInvitationData
         return output;
     }
 
+    public async Task<ServerInvitationModel> GetServerInvitationObjectIdAsync(string objectId)
+    {
+        string cachingString = _helper.ServerInvitationCachingString(objectId);
+
+        var output = _cache.Get<ServerInvitationModel>(cachingString);
+        if (output is null)
+        {
+            var results = await _invitations.FindAsync(i => i.ObjectIdentifier == objectId);
+            output = await results.FirstOrDefaultAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromDays(1));
+        }
+
+        return output;
+    }
+
     public async Task<ServerInvitationModel> GetServerInvitationByServer(ServerModel server)
     {
         string cachingString = _helper.ServerInvitationCachingString(server.Id);

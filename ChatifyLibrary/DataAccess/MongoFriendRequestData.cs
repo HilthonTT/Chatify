@@ -75,6 +75,12 @@ public class MongoFriendRequestData : IFriendRequestData
         return await results.FirstOrDefaultAsync();
     }
 
+    public async Task<FriendRequestModel> GetFriendRequestObjectIdAsync(string objectId)
+    {
+        var results = await _friendsRequest.FindAsync(f => f.ObjectIdentifier == objectId);
+        return await results.FirstOrDefaultAsync();
+    }
+
     public async Task<FriendRequestModel> GetFriendRequestReceiverSenderAsync(
         UserModel sender,
         UserModel receiver)

@@ -57,6 +57,12 @@ public class MongoPrivateMessageData : IPrivateMessageData
         return await results.FirstOrDefaultAsync();
     }
 
+    public async Task<PrivateMessageModel> GetMessageObjectIdAsync(string objectId)
+    {
+        var results = await _messages.FindAsync(m => m.ObjectIdentifier == objectId);
+        return await results.FirstOrDefaultAsync();
+    }
+
     public Task CreateMessage(PrivateMessageModel message)
     {
         return _messages.InsertOneAsync(message);

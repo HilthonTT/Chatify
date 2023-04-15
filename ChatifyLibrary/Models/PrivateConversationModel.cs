@@ -5,6 +5,7 @@ public class PrivateConversationModel
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
+    public string ObjectIdentifier { get; set; }
     public BasicUserModel FirstParticipant { get; set; }
     public BasicUserModel LastParticipant { get; set;  }
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;

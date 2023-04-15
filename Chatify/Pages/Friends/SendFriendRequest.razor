@@ -4,6 +4,7 @@
 @inject IUserData userData
 @inject IFriendRequestData requestData
 @inject IBanData banData
+@inject ICodeGenerator codeGenerator
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 
@@ -63,6 +64,7 @@ else
         displayMessage = "";
         var user = await userData.GetUserFriendCodeAsync(request.FriendCode);
         var friendRequest = friendRequests.Where(f => f.Receiver.Id == user.Id).FirstOrDefault();
+        string objectId = await codeGenerator.GenerateFriendCodeAsync();
 
         if (loggedInUser.Id == user.Id)
         {
@@ -94,6 +96,7 @@ else
 
         FriendRequestModel r = new()
         {
+            ObjectIdentifier = objectId,
             Sender = new BasicUserModel(loggedInUser),
             Receiver = new BasicUserModel(user),
         };

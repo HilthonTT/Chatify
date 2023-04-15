@@ -327,18 +327,21 @@ else
 
     private async Task OpenPrivateConversation(BasicUserModel user)
     {
-        var conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id);
+        var conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id); 
 
         if (conversation is null)
         {
+            string objectId = await codeGenerator.GeneratePrivateConversationIdentifier();
+
             PrivateConversationModel c = new()
             {
+                ObjectIdentifier = objectId,
                 FirstParticipant = new BasicUserModel(loggedInUser),
                 LastParticipant = user,
             };
 
             await privateConversationData.CreateConversation(c);
-            conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id);
+            conversation = await privateConversationData.GetConversationObjectIdAsync(objectId);
             navManager.NavigateTo($"/PrivateConversation/{conversation.Id}");
         }
         else

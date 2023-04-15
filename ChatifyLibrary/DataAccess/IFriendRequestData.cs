@@ -6,6 +6,7 @@ public interface IFriendRequestData
     Task DeleteFriendRequestAsync(FriendRequestModel request);
     Task<List<FriendRequestModel>> GetAllFriendRequestAsync();
     Task<FriendRequestModel> GetFriendRequestAsync(string id);
+    Task<FriendRequestModel> GetFriendRequestObjectIdAsync(string objectId);
     Task<FriendRequestModel> GetFriendRequestReceiverSenderAsync(UserModel sender, UserModel receiver);
     Task<List<FriendRequestModel>> GetUserPendingFriendRequestsAsync(string userId);
     Task<List<FriendRequestModel>> GetUserSendedFriendRequestsAsync(string userId);

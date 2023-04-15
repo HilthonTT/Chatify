@@ -140,26 +140,6 @@ else
             string invitationCode = await codeGenerator.GenerateServerInvationCodeAsync();
             string objectId = await codeGenerator.GenerateServerIdentifierAsync();
 
-            var channels = new List<ChannelModel>();
-
-            ChannelModel c = new()
-            {
-                ChannelName = "Default Channel",
-                ChannelDescription = "This is the default channel.",
-            };
-
-            await channelData.CreateChannel(c);
-            channels.Add(c);
-
-            c = new()
-            {
-                ChannelName = "Announcements",
-                ChannelDescription = "This is where you can make announcements to your server.",
-            };
-
-            await channelData.CreateChannel(c);
-            channels.Add(c);
-
             ServerModel s = new()
             {
                 ObjectIdentifier = objectId,
@@ -167,7 +147,6 @@ else
                 Category = categories.Where(c => c.Id == server.CategoryId).FirstOrDefault(),
                 ServerName = server.ServerName,
                 ServerDescription = server.ServerDescription,
-                Channels = channels,
                 PictureName = relativePath,
                 OriginalPictureName = fileName,
                 PictureExtension = fileExtension,
@@ -183,14 +162,28 @@ else
                 return;
             }
 
+            await serverData.CreateServer(s);
+            var newServer = await serverData.GetServerObjectIdAsync(objectId);
+            
+            string channelObjectId = await codeGenerator.GenerateChannelIdentifier();
+            ChannelModel c = new()
+            {
+                ObjectIdentifier = channelObjectId,
+                Server = newServer,
+                ChannelName = "Default Channel",
+                ChannelDescription = "This is the default channel.",
+            };
+
+            await channelData.CreateChannel(c);
+            var newChannel = await channelData.GetChannelObjectIdAsync(channelObjectId);
+            newServer.Channels.Add(newChannel);
+
             file = null;
             fileName = string.Empty;
             fileExtension = string.Empty;
 
-            await serverData.CreateServer(s);
-            var newServer = await serverData.GetServerByInvitationCodeAsync(invitationCode);
+            await serverData.UpdateServer(newServer);
             server = new();
-
             OpenServerDetails(newServer);
         }
         catch (Exception ex)
