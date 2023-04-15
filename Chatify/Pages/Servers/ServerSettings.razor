@@ -22,11 +22,11 @@
   }
   else
   {
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal fade" id="userModalCenter" tabindex="-1" role="dialog" aria-labelledby="userModalCenterCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
         <div class="modal-content bg-dark text-white"> 
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">
+                <h5 class="modal-title" id="userModallLongTitle">
                     @GetModalTitleString()
                 </h5>
                 <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
@@ -72,6 +72,108 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="channelModal" tabindex="-1" role="dialog" aria-labelledby="channelModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="channelModalLongTitle">
+                    Edit @selectedChannel?.ChannelName
+                </h5>
+                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="channel" OnValidSubmit="(async() => await UpdateChannel())">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
+                                <div class="mt-1">Edit your channel's name</div>
+                                <ValidationMessage For="(() => channel.ChannelName)"/>
+                                <InputText class="form-control bg-dark text-white input-section border-warning" id="channel-name" 
+                                    @bind-Value="channel.ChannelName"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
+                                <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
+                                <ValidationMessage For="(() => channel.ChannelDescription)"/>
+                                <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="channel-description"
+                                    @bind-Value="channel.ChannelDescription"/>
+                            </div>
+                            <div class="center-children">
+                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit" data-dismiss="modal" @onclick="UpdateChannel">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal" 
+                    @onclick="(() => selectedChannel = null)">
+                    Close
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="serverModal" tabindex="-1" role="dialog" aria-labelledby="serverModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="serverModalLongTitle">
+                    Edit @selectedChannel?.ChannelName
+                </h5>
+                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="editingServer" OnValidSubmit="(async() => await UpdateServer())">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
+                                <div class="mt-1">Edit your server's name</div>
+                                <ValidationMessage For="(() => editingServer.ServerName)"/>
+                                <InputText class="form-control bg-dark text-white input-section border-warning" id="server-name" 
+                                    @bind-Value="editingServer.ServerName"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="server-description">Server Description</label>
+                                <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
+                                <ValidationMessage For="(() => editingServer.ServerDescription)"/>
+                                <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="server-description"
+                                    @bind-Value="editingServer.ServerDescription"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="server-icon">Server Icon</label>
+                                <div class="mt-1">Select an image for your server. This is not required.</div>
+                                <ValidationMessage For="(() => editingServer.PictureName)"/>
+                                <InputFile OnChange="LoadFiles"
+                                    class="form-control bg-dark text-light input-section border-warning"
+                                    accept=".png,.jpg,.jpeg"/>
+                            </div>
+                            <div class="center-children">
+                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit" data-dismiss="modal" @onclick="UpdateServer">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal" 
+                    @onclick="(() => selectedChannel = null)">
+                    Close
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
       @if (server is not null)
       {
         <div class="rounded rounded-3">
@@ -89,6 +191,10 @@
                           @onclick="(async() => await ShowMembersPage(true))">
                           Show Members
                       </button>
+                      <button class="btn me-1 @GetChannelsPageClass(true)" 
+                          @onclick="(async() => await ShowChannelsPage(true))">
+                          Show Channels
+                      </button>
                       <button class="btn @GetCreatePageClass(true)"
                           @onclick="(async() => await ShowCreatePage(true))">
                           Create Channel
@@ -97,154 +203,28 @@
                     @if (showServerDetailsPage)
                     {
                       <div>
-                          @if (currentEditingFileName == server.Id)
+                          <h2 class="fw-bold text-uppercase">@server.ServerName</h2>
+                          <p class="h3 text-break">@server.ServerDescription</p>
+                          <p class="h3">@server.DateCreated.ToString("dd/MM/yyyy")</p>
+                          <button class="btn btn-outline-warning w-100" @onclick="(() => LoadSelectedServer(server))"
+                            data-toggle="modal" data-target="#serverModal">
+                              Edit Server
+                          </button>
+                      </div>
+                      <hr />
+                      <div class="center-children mt-2">
+                          @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
                           {
-                            <label class="form-label text-danger">@serverNameErrorMessage</label>
-                            <EditForm class="conversation-edit-form" Model="editedFileName"
-                                OnSubmit="(async() => await SavePicture())">
-                                <div class="col-12">
-                                  <div class="row">
-                                    <div class="col-12">
-                                      <div class="center-children mb-2">
-                                        @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
-                                        {
-                                          <img src="@CreateWebPath(server.PictureName)" 
-                                              class="img-fluid rounded-circle w-25 h-25"/>
-                                        }
-                                        else
-                                        {
-                                          <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                              class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
-                                        }
-                                      </div>
-                                    </div>
-                                  </div>
-                                    <div class="row">
-                                      <div class="col-11">
-                                        <InputFile OnChange="LoadFiles" 
-                                            class="form-control bg-dark text-light conversation-edit-field border-warning w-100"/>     
-                                      </div>
-                                      <div class="col-1">
-                                        <div class="btn-group">
-                                          <button class="btn btn-outline-success me-1" type="submit">
-                                              Save
-                                          </button>
-                                          <button class="btn btn-outline-danger" type="button" @onclick="CancelClick">
-                                              Cancel
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                </div>                                     
-                            </EditForm>
+                              <img src="@CreateWebPath(server.PictureName)"
+                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
+                                alt="@server.OriginalPictureName">
                           }
                           else
                           {
-                            <div class="center-children mb-2">
-                              @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
-                              {
-                                <img src="@CreateWebPath(server.PictureName)" 
-                                    class="img-fluid rounded-circle w-25 h-25"/>
-                              }
-                              else
-                              {
-                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                    class="img-fluid rounded-circle w-25 h-25" alt="Placeholder Image"/>
-                              }
-                            </div>
-                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditPicture())">
-                              Edit Picture
-                            </button>
+                              <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
+                                alt="Placeholder Image">
                           }
-                          <hr />
-                          @if (currentEditingServerName == server.Id)
-                          {
-                            <label class="form-label text-danger">@serverNameErrorMessage</label>
-                            <EditForm class="conversation-edit-form" Model="editedServerName"
-                              OnSubmit="(async() => await SaveServerName())">
-                              <InputText class="form-control bg-dark text-light conversation-edit-field border-warning"
-                                  @bind-Value="editedServerName"/>
-                              <div class="btn-group">
-                                <button class="btn btn-outline-success mx-1" type="submit">
-                                    Save
-                                </button>
-                                <button class="btn btn-outline-danger" type="button"
-                                    @onclick="(CancelClick)">
-                                    Cancel
-                                </button>
-                              </div>
-                            </EditForm>
-                          }
-                          else
-                          {
-                            <h2>@server?.ServerName</h2>
-                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerName())">
-                                Edit Server Name
-                            </button>
-                          }
-                          <hr />
-                          @if (currentEditingCategoryId == server.Id)
-                          {
-                            <EditForm class="conversation-edit-form" Model="editedCategoryId" 
-                                OnSubmit="(async() => await SaveCategory())">                      
-                                <InputRadioGroup id="category" @bind-Value="editedCategoryId">
-                                    <Virtualize Items="categories" Context="c" OverscanCount="10">
-                                        <div class="radio-item-group">
-                                            <InputRadio Value="c.Id" id="@c.Id"/>
-                                            <label for="@c.Id" class="h-100 w-100">
-                                                <span class="fw-bold text-uppercase text-center h5">@c.CategoryName</span>
-                                                <p>@c.CategoryDescription</p>
-                                            </label>
-                                        </div>
-                                    </Virtualize>
-                                </InputRadioGroup>
-                                <div class="btn-group">
-                                    <button class="btn btn-outline-success me-1" type="submit">
-                                        Save
-                                    </button>
-                                    <button class="btn btn-outline-danger" type="button" 
-                                        @onclick="(CancelClick)">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </EditForm>
-                          }
-                          else
-                          {
-                            <h2>@server.Category.CategoryName</h2>
-                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditCategory())">
-                                Edit Category
-                            </button>
-                          }
-                          <hr />
-                          @if (currentEditingServerDescription == server.Id)
-                          {
-                              <label class="form-label text-danger">@serverDescriptionErrorMessage</label>
-                              <EditForm class="conversation-edit-form" Model="editedServerDescription"
-                                OnSubmit="(async() => await SaveServerDescription())">
-                                <InputTextArea class="form-control bg-dark text-light conversation-edit-field border-warning"
-                                    @bind-Value="editedServerDescription"/>
-                                <div class="btn-group">
-                                    <button class="btn btn-outline-success mx-1" type="submit">
-                                        Save
-                                    </button>
-                                    <button class="btn btn-outline-danger" type="button"
-                                        @onclick="CancelClick">
-                                        Cancel
-                                    </button>
-                                </div>
-                              </EditForm>
-                          }
-                          else
-                          {
-                            <h2>@server?.ServerDescription</h2>
-                            <button class="btn btn-outline-warning w-100" @onclick="(() => EditServerDescription())">
-                                Edit Server Description
-                            </button>
-                          }
-                        <hr />
-                        <p class="conversation-info">The Owner: @server.Owner.DisplayName</p>
-                        <p class="conversation-info">This was created on: @server.DateCreated.ToString("dd/MM/yyyy")</p>
                       </div>
                       }
                       else if (showServerMembersPage && users is not null)
@@ -269,7 +249,7 @@
                               <div class="col-12">
                                 <input type="text" placeholder="Search" 
                                     aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
-                                    @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                                    @oninput="(async(txt) => await OnSearchInputUser((string)txt.Value))"/>
                               </div>
                             </div>
                             <div class="row">
@@ -292,18 +272,18 @@
                                                 <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
                                                     @if (IsUserBanned(u) is false)
                                                     {
-                                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#exampleModalCenter" 
+                                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
                                                             @onclick="(() => selectedUserToKick = u)">
                                                             Kick Member
                                                         </button>
-                                                        <button class="dropdown-item text-danger" data-toggle="modal" data-target="#exampleModalCenter" 
+                                                        <button class="dropdown-item text-danger" data-toggle="modal" data-target="#userModalCenter" 
                                                             @onclick="(() => selectedUserToBan = u)">
                                                             Ban Member
                                                         </button>
                                                     }
                                                     else
                                                     {
-                                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#exampleModalCenter" 
+                                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
                                                             @onclick="(() => selectedUserToUnban = u)">
                                                             Unban Member
                                                         </button>
@@ -311,6 +291,60 @@
                                                 </div>
                                             </div>       
                                         }
+                                    </div>                          
+                                  </div>
+                                </Virtualize>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                      else if (showChannelsPage && channels is not null)
+                      {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="row mb-4 mt-2">
+                              <div class="col-12">
+                                  <div class="col-md-8 col-xl-12 btn-group">
+                                    <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+                                        @onclick="(async() => await SortedByNew(true))">
+                                        New
+                                    </button>
+                                    <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                                        @onclick="(async() => await SortedByNew(false))">
+                                        Old
+                                    </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="row mb-2">
+                              <div class="col-12">
+                                <input type="text" placeholder="Search" 
+                                    aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+                                    @oninput="(async(txt) => await OnSearchInputChannel((string)txt.Value))"/>
+                              </div>
+                            </div>
+                            <div class="row">
+                              <div class="col-12">
+                                <Virtualize Items="channels" Context="c" OverscanCount="10">
+                                  <div class="user-card unclickable bg-black">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="">
+                                          <div class="user-card__name clickable">@c.ChannelName</div>
+                                          <div class="user-card__friend-code mt-2">@c.ChannelDescription</div>
+                                          <div class="user-card__date">Created on the @c.DateCreated.ToString("dd/MM/yyyy")</div>
+                                        </div>
+                                        <div class="btn-group" role="group">
+                                            <button id="btn-group-settings" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <p><i class="fas fa-cog clickable"></i></p>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
+                                                <button class="dropdown-item text-success" data-toggle="modal" data-target="#channelModal" 
+                                                    @onclick="(() => LoadSelectedChannel(c))">
+                                                    Edit
+                                                </button>
+                                            </div>
+                                        </div>       
                                     </div>                          
                                   </div>
                                 </Virtualize>
@@ -374,32 +408,28 @@ else
     public string Id { get; set; }
 
     private CreateChannelModel channel = new();
-    private CreateServerModel model = new();
+    private CreateServerModel editingServer = new();
     private ServerModel server;
-    private ServerModel editingModel;
+    private UserModel loggedInUser;
+    private ChannelModel selectedChannel;
+    private ServerModel selectedServer;
+    private BanModel ban;
     private List<CategoryModel> categories;
     private List<UserModel> users;
-    private UserModel loggedInUser;
-    private BanModel ban;
+    private List<ChannelModel> channels;
 
     private UserModel selectedUserToKick;
     private UserModel selectedUserToBan;
     private UserModel selectedUserToUnban;
 
-    private string currentEditingServerName = "";
-    private string editedServerName = "";
-    private string currentEditingServerDescription = "";
-    private string editedServerDescription = "";
-    private string currentEditingCategoryId = "";
-    private string editedCategoryId = "";
-    private string currentEditingFileName = "";
-    private string editedFileName = "";
-
     private string searchText = "";
+    private string searchChannelText = "";
     private bool showServerDetailsPage = true;
     private bool showServerMembersPage = false;
     private bool showCreateChannelPage = false;
+    private bool showChannelsPage = false;
     private bool priorityBannedUsers = false;
+    private bool isSortedByNew = true;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
     private IBrowserFile? file;
@@ -422,10 +452,7 @@ else
         if (server is not null)
         {
             users = await userData.GetAllUsersServerAsync(server);
-            model.ServerName = server.ServerName;
-            model.ServerDescription = server.ServerDescription;
-            model.PictureName = server.PictureName;
-            model.CategoryId = categories?.Where(c => c.Id == server.Category.Id).FirstOrDefault().Id;
+            channels = await channelData.GetAllChannelsServerAsync(server);
         }
     }
 
@@ -437,6 +464,7 @@ else
             if (server is not null)
             {
                 await FilterUsers();
+                await FilterChannels();
             }
             StateHasChanged();
         }
@@ -463,6 +491,40 @@ else
         channel = new();
     }
 
+    private async Task UpdateChannel()
+    {
+        errorMessage = "";
+
+        var c = await channelData.GetChannelAsync(selectedChannel.Id);
+        c.ChannelName = channel.ChannelName;
+        c.ChannelDescription = channel.ChannelDescription;
+
+        var serverChannel = server.Channels.Where(c => c.Id == selectedChannel.Id).FirstOrDefault();
+        serverChannel.ChannelName = c.ChannelName;
+        serverChannel.ChannelDescription = c.ChannelDescription;
+        await serverData.UpdateServer(server);
+
+        await channelData.UpdateChannel(c);
+        selectedChannel = null;
+        channel = new();
+    }
+
+    private async Task UpdateServer()
+    {
+        errorMessage = "";
+        string relativePath = await CaptureFile();
+
+        server.ServerName = editingServer.ServerName;
+        server.ServerDescription = editingServer.ServerDescription;
+        server.PictureName = relativePath;
+        server.OriginalPictureName = fileName;
+        server.PictureExtension = fileExtension;
+
+        await serverData.UpdateServer(server);
+        editingServer = new();
+        file = null;
+    }
+
     private async Task LoadFilterState()
     {
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(showServerDetailsPage));
@@ -473,8 +535,12 @@ else
         showCreateChannelPage = boolResults.Success ? boolResults.Value : false;
         boolResults = await sessionStorage.GetAsync<bool>(nameof(priorityBannedUsers));
         priorityBannedUsers = boolResults.Success ? boolResults.Value : false;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(showChannelsPage));
+        showChannelsPage = boolResults.Success ? boolResults.Value : false;
         var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
         searchText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(searchChannelText));
+        searchChannelText = stringResults.Success ? stringResults.Value : "";
     }
 
     private async Task SaveFilterState()
@@ -482,8 +548,10 @@ else
         await sessionStorage.SetAsync(nameof(showServerDetailsPage), showServerDetailsPage);
         await sessionStorage.SetAsync(nameof(showServerMembersPage), showServerMembersPage);
         await sessionStorage.SetAsync(nameof(showCreateChannelPage), showCreateChannelPage);
+        await sessionStorage.SetAsync(nameof(showChannelsPage), showChannelsPage);
         await sessionStorage.SetAsync(nameof(priorityBannedUsers), priorityBannedUsers);
         await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(searchChannelText), searchChannelText);
     }
 
     private async Task FilterUsers()
@@ -514,16 +582,70 @@ else
         await SaveFilterState();
     }
 
+    private async Task FilterChannels()
+    {
+        var output = await channelData.GetAllChannelsServerAsync(server);
+
+        if (string.IsNullOrWhiteSpace(searchChannelText) is false)
+        {
+            output = output.Where(
+                c => c.ChannelName.Contains(
+                    searchChannelText, StringComparison.InvariantCultureIgnoreCase) ||
+                c.ChannelDescription.Contains(
+                    searchChannelText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(c => c.DateCreated).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(c => c.DateCreated).ToList();
+        }
+
+        channels = output;
+        await SaveFilterState();
+    }
+
+    private async Task SortedByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterChannels();
+    }
+
+    private async Task OnSearchInputChannel(string searchInput)
+    {
+        searchChannelText = searchInput;
+        await FilterChannels();
+    }
+
     private async Task PriorityBannedUsers(bool isPriority)
     {
         priorityBannedUsers = isPriority;
         await FilterUsers();
     }
 
-    private async Task OnSearchInput(string searchInput)
+    private async Task OnSearchInputUser(string searchInput)
     {
         searchText = searchInput;
         await FilterUsers();
+    }
+
+    private void LoadSelectedChannel(ChannelModel model)
+    {
+        selectedChannel = model;
+        channel.ChannelName = model.ChannelName;
+        channel.ChannelDescription = model.ChannelDescription;
+    }
+
+    private void LoadSelectedServer(ServerModel model)
+    {
+        selectedServer = model;
+        editingServer.ServerName = model.ServerName;
+        editingServer.ServerDescription = model.ServerDescription;
+        editingServer.PictureName = model.PictureName;
     }
 
     private void CancelClick()
@@ -531,127 +653,42 @@ else
         errorMessage = string.Empty;
         serverNameErrorMessage = string.Empty;
         serverDescriptionErrorMessage = string.Empty;
-        currentEditingServerName = string.Empty;
-        currentEditingServerDescription = string.Empty;
-        currentEditingCategoryId = string.Empty;
-        currentEditingFileName = string.Empty;
+    }
+
+    private void ClearAllPages()
+    {
+        showServerDetailsPage = false;
+        showServerMembersPage = false;
+        showCreateChannelPage = false;
+        showChannelsPage = false;
     }
 
     private async Task ShowDetailsClick(bool isShowing)
     {
+        ClearAllPages();
         showServerDetailsPage = isShowing;
-        showServerMembersPage = false;
-        showCreateChannelPage = false;
         await SaveFilterState();
     }
 
     private async Task ShowMembersPage(bool isShowing)
     {
+        ClearAllPages();
         showServerMembersPage = isShowing;
-        showServerDetailsPage = false;
-        showCreateChannelPage = false;
         await SaveFilterState();
     }
 
     private async Task ShowCreatePage(bool isShowing)
     {
+        ClearAllPages();
         showCreateChannelPage = isShowing;
-        showServerMembersPage = false;
-        showServerDetailsPage = false;
         await SaveFilterState();
     }
 
-    private void EditServerName()
+    private async Task ShowChannelsPage(bool isShowing)
     {
-        CancelClick();
-        editingModel = server;
-        editedServerName = server.ServerName;
-        currentEditingServerName = server.Id;
-        currentEditingServerDescription = "";
-        currentEditingCategoryId = "";
-        currentEditingFileName = "";
-    }
-
-    private async Task SaveServerName()
-    {
-        serverNameErrorMessage = "";
-
-        if (editedServerName.Length > 50)
-        {
-            serverNameErrorMessage = "Server name is too long.";
-            return;
-        }
-
-        currentEditingServerName = string.Empty;
-        server.ServerName = editedServerName;
-        await serverData.UpdateServer(server);
-    }
-
-    private void EditServerDescription()
-    {
-        CancelClick();
-        editingModel = server;
-        editedServerDescription = server.ServerDescription;
-        currentEditingServerName = "";
-        currentEditingServerDescription = server.Id;
-        currentEditingCategoryId = "";
-        currentEditingFileName = "";
-    }
-
-    private async Task SaveServerDescription()
-    {
-        serverDescriptionErrorMessage = "";
-
-        if (editedServerDescription.Length > 100)
-        {
-            serverDescriptionErrorMessage = "Description is too long.";
-            return;
-        }
-
-        currentEditingServerDescription = string.Empty;
-        server.ServerDescription = editedServerDescription;
-        await serverData.UpdateServer(server);
-    }
-
-    private void EditCategory()
-    {
-        CancelClick();
-        editingModel = server;
-        editedCategoryId = server.Category.Id;
-        currentEditingServerName = "";
-        currentEditingServerDescription = "";
-        currentEditingCategoryId = server.Id;
-        currentEditingFileName = "";
-    }
-
-    private async Task SaveCategory()
-    {
-        currentEditingCategoryId = string.Empty;
-        server.Category = categories.Where(c => c.Id == editedCategoryId).FirstOrDefault();
-        await serverData.UpdateServer(server);
-    }
-
-    private void EditPicture()
-    {
-        CancelClick();
-        editingModel = server;
-        currentEditingServerName = "";
-        currentEditingServerDescription = "";
-        currentEditingCategoryId = "";
-        currentEditingFileName = server.Id;
-    }
-
-    private async Task SavePicture()
-    {
-        string relativePath = await CaptureFile();
-
-        server.PictureName = relativePath;
-        server.OriginalPictureName = fileName;
-        server.PictureExtension = fileExtension;
-
-        await serverData.UpdateServer(server);
-        currentEditingFileName = string.Empty;
-        file = null;
+        ClearAllPages();
+        showChannelsPage = isShowing;
+        await SaveFilterState();
     }
 
     private void ClearSelectedUsers()
@@ -786,6 +823,26 @@ else
         if (showCreateChannelPage == isShowing)
         {
             return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
+    }
+
+    private string GetChannelsPageClass(bool isShowing)
+    {
+        if (showChannelsPage == isShowing)
+        {
+            return "btn-outline-primary";
+        }
+
+        return "btn-outline-danger";
+    }
+
+    private string SortedByNewClass(bool isNew)
+    {
+        if (isSortedByNew == isNew)
+        {
+             return "btn-outline-primary";
         }
 
         return "btn-outline-danger";
