@@ -127,12 +127,12 @@
                     <div class="participants-list p-2">
                         <h3 class="fw-bold text-uppercase">Participants</h3>
                         <ul class="list-group">
-                            <li class="list-group-item mb-2 clickable" 
+                            <li class="list-group-item bg-secondary mb-2 clickable text-white" 
                                 @onclick="(() => UserDetailsPage(conversation?.FirstParticipant))">
                                 <span class="oi oi-person me-1"></span>
                                 @conversation?.FirstParticipant.DisplayName
                             </li>
-                            <li class="list-group-item clickable" 
+                            <li class="list-group-item bg-secondary clickable text-white" 
                                 @onclick="(() => UserDetailsPage(conversation?.LastParticipant))">
                                 <span class="oi oi-person me-1"></span>
                                 @conversation?.LastParticipant.DisplayName
@@ -421,6 +421,5 @@ else
             errorMessage = $"File: {file.Name} Error: {ex.Message}";
             throw;
         }
-
     }
 }

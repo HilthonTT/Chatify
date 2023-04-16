@@ -1,5 +1,4 @@
 ﻿using ChatifyLibrary.Helper;
-using Microsoft.VisualBasic;
 
 namespace ChatifyLibrary.DataAccess;
 
@@ -66,6 +65,9 @@ public class MongoChannelData : IChannelData
 
     public Task CreateChannel(ChannelModel channel)
     {
+        string cachingString = _helper.ChannelCachingString(channel.Server.Id);
+
+        _cache.Remove(cachingString);
         return _channels.InsertOneAsync(channel);
     }
 

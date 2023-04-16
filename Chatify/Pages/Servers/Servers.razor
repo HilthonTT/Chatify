@@ -41,7 +41,7 @@
         <div class="col-12 d-block d-md-none">
             @if (categories is not null && showCategories)
             {
-                <div class="friend-category">
+                <div class="friend-category bg-dark">
                     <span class="text-uppercase fw-bold">Category</span>
                     <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
                     <Virtualize Items="categories" Context="c" OverscanCount="10">
@@ -149,7 +149,7 @@
         <div class="col-md-3 col-xl-2 d-none d-md-block">
             @if (categories is not null)
             {
-                <div class="friend-category">
+                <div class="friend-category bg-dark">
                     <span class="text-uppercase fw-bold">Category</span>
                     <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
                     <Virtualize Items="categories" Context="c" OverscanCount="10">

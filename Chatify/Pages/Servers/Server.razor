@@ -15,7 +15,8 @@
 
 @if (ban is null)
 {
-    <h1 class="text-uppercase fw-bold text-center">@selectedChannel?.ChannelName</h1>
+    <h1 class="text-center text-uppercase fw-bold">@selectedChannel?.ChannelName</h1>
+    <p class="text-uppercase text-center">@selectedChannel?.ChannelDescription</p>
 
     @if (string.IsNullOrWhiteSpace(errorMessage) is false)
     {
@@ -53,33 +54,13 @@
                         <h3 class="fw-bold text-uppercase">Channels</h3>
                         <ul class="list-group">
                             <Virtualize Items="channels" Context="c" OverscanCount="10">
-                                <div class="mb-2" @onclick="(async() => await LoadSelectedChannel(c))">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <span class="oi oi-chat mx-1"></span>
-                                            <span class="clickable @GetChannelClass(c)">@c.ChannelName</span>
-                                        </div>
-                                        <div>
-                                            @if (selectedChannelToModify is null || selectedChannelToModify.Id != c.Id)
-                                            {
-                                                <button class="btn btn-outline-secondary btn-sm" @onclick="(() => selectedChannelToModify = c)">
-                                                    Edit
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <div class="btn-group">
-                                                    <button class="btn btn-sm btn-outline-success">
-                                                        Delete
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-danger">
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
+                                <li class="list-group-item @GetChannelClass(c) bg-secondary text-white mb-2 clickable" 
+                                    @onclick="(async() => await LoadSelectedChannel(c))">
+                                    <span class="clickable">
+                                        <span class="oi oi-chat mx-1"></span>
+                                        <span>@c.ChannelName</span>
+                                    </span>
+                                </li>
                             </Virtualize>
                         </ul>
                     </div>
@@ -178,7 +159,7 @@
                         <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(server))">Invite</button>
                         <ul class="list-group">
                             <Virtualize Items="server?.Members" Context="p" OverscanCount="10">
-                                <li class="list-group-item mb-2">
+                                <li class="list-group-item bg-secondary text-white mb-2">
                                     <span class="oi oi-person me-1"></span>
                                     <span class="clickable" @onclick="(() => UserDetailsPage(p))">
                                         @p.DisplayName - @((IsUserBanned(p)) ? "Banned" : "Not Banned")
@@ -519,10 +500,10 @@ else
     {
         if (channel.Id == selectedChannel.Id)
         {
-            return "fw-bold";
+            return "bg-secondary";
         }
 
-        return "";
+        return "bg-dark";
     }
 
     private bool IsUserAuthorized()
