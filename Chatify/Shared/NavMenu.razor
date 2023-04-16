@@ -72,9 +72,12 @@
                     </ul>
                 </Authorized>
             </AuthorizeView>
-            <input class="form-control me-2 text-light bg-dark border-warning input-section" type="search" placeholder="Search User" aria-label="Search User" 
+            <input class="form-control me-2 text-light bg-dark input-section" 
+                type="search" 
+                placeholder="Search User"
+                aria-label="Search User" 
             @oninput="((txt) => searchText = (string)txt.Value)"/>
-            <button class="btn btn-outline-warning" type="submit" @onclick="GoToUsers">Search</button>
+            <button class="btn btn-outline-secondary" type="submit" @onclick="GoToUsers">Search</button>
         </div>
     </div>
 </nav>

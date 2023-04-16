@@ -44,7 +44,7 @@
                 @if (loggedInUser?.Id != user?.Id)
                 {
                     <div class="d-flex justify-content-between">
-                        <button class="btn btn-outline-warning" @onclick="(async() => await OpenPrivateConversation(user))">
+                        <button class="btn btn-secondary" @onclick="(async() => await OpenPrivateConversation(user))">
                             Launch Conversation
                         </button>
                         <AuthorizeView Policy="Admin">
@@ -60,7 +60,7 @@
                         { 
                             @if (chosenUser?.Id != user?.Id)
                             {
-                                <button class="btn btn-outline-warning w-100" @onclick="(() => chosenUser = user)">
+                                <button class="btn btn-outline-secondary w-100" @onclick="(() => chosenUser = user)">
                                     Unfriend
                                 </button>     
                             }
@@ -105,59 +105,7 @@
                     <hr />
                     <h2 class="card-title mt-4">@user?.DisplayName's Conversations</h2>
                     <Virtualize Items="conversations" Context="c" OverscanCount="10">
-                        <div class="form-layout text-center">
-                            @if (archivingConversation is null || archivingConversation.Id != c.Id)
-                            {
-                                <div class="form-layout-title bg-black">
-                                    <div>@c.GroupName</div>
-                                </div>
-                                <div class="form-layout-body">
-                                    <div>Participants: @c.Participants.Count</div>
-                                    <div>Owner: @c.Owner.FullName</div>
-                                    <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
-                                </div>
-                                @if (c.Owner.Id == loggedInUser?.Id)
-                                {
-                                    <div class="btn-archive mb-3 m-3">
-                                        <button class="btn btn-outline-danger text-uppercase w-100" 
-                                            @onclick="(() => archivingConversation = c)">
-                                            Archive
-                                        </button>
-                                    </div>
-                                }
-                                <div class="form-layout-footer bg-black">
-                                    <div>@c.Category.CategoryName</div>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="form-layout-title bg-black">
-                                    <div>@c.GroupName</div>
-                                </div>
-                                <div class="form-layout-body">
-                                    <div>Participants: @c.Participants.Count</div>
-                                    <div>Owner: @c.Owner.FullName</div>
-                                    <div>Created on: @c.DateCreated.ToString("dd/MM/yyyy")</div>
-                                </div>
-
-                                @if (loggedInUser is not null)
-                                {
-                                    <div class="mb-1 w-100">
-                                        <button class="btn btn-outline-success text-uppercase w-25"
-                                            @onclick="ArchiveConversation">
-                                            Confirm
-                                        </button>
-                                        <button class="btn btn-outline-danger text-uppercase w-25" 
-                                            @onclick="(() => archivingConversation = null)">
-                                            Cancel
-                                        </button>
-                                    </div>
-                                }
-                                <div class="form-layout-footer d-flex bg-black">
-                                    <div>@c.Category.CategoryName</div>
-                                </div>
-                            }
-                        </div>
+                        <ConversationComponent Conversation="c"/>
                     </Virtualize> 
                 }
               </div>

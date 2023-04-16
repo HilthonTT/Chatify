@@ -11,7 +11,60 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
+@inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
+
+<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLongTitle">
+                    Edit @selectedMessage?.Text
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <EditForm Model="model" OnValidSubmit="(async() => await UpdateMessage(selectedMessage))">
+                    <DataAnnotationsValidator />
+                    <div class="row">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="message-text">Message Text</label>
+                            <div class="mt-1">Edit your message</div>
+                            <ValidationMessage For="(() => model.Text)"/>
+                            <InputText class="form-control bg-dark text-white input-section" id="message-text" 
+                                @bind-Value="model.Text"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="message-file">Insert your message file</label>
+                            <div class="mt-1 mb-2">
+                                <div>Select a file you want to associate with the message.</div>
+                                <div class="text-danger">Leave blank to leave previous file.</div>
+                            </div>
+                            <ValidationMessage For="(() => model)"/>
+                            <InputFile OnChange="LoadFiles"
+                                class="form-control bg-dark text-white input-section " 
+                                id="message-file"
+                                accept=".png,.jpg,.jpeg,.txt,.pdf"/>
+                        </div>
+                        <div class="center-children">
+                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal" 
+                    @onclick="(() => selectedMessage = null)">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @if (ban is null)
 {
@@ -69,77 +122,54 @@
                   @if (messages is not null)
                   {
                     <Virtualize Items="messages" Context="m" OverscanCount="10">
-                      @if (chosenMessage is null || chosenMessage.Id != m.Id)
-                      {
-                            <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                      <div class="message bg-dark @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
+                        <div class="d-flex justify-content-between">
+                            <div>
                                 <div class="message-sender">@m.Sender.DisplayName</div>
                                 <div class="message-text text-break">@m.Text</div>
-                                @if (string.IsNullOrWhiteSpace(m.FileName) is false)
-                                {
-                                    @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
-                                    {
-                                        <div class="text-center">
-                                            <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="message-text">
-                                            <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
-                                                @m.OriginalFileName
-                                            </a>
-                                        </div>
-                                    }
-                                }
                                 <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
                                 @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
                                 {
-                                  <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+                                    <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
                                 }
-                                @if (m.Sender.Id == loggedInUser?.Id)
-                                {
-                                  <div class="btn-group">
-                                    <button class="btn btn-outline-danger" @onclick="(() => OnMessageClick(m))">Edit</button>
-                                  </div>
-                                }
-                          </div>
-                      }
-                      else
-                      {
-                           <div class="message @((chosenMessage is not null && chosenMessage.Id == m.Id) ? "editing text-dark" : "bg-dark") @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                                <div class="message-sender">@m.Sender.DisplayName</div>
-                                <InputText @bind-Value="@editingMessageText" class="message-text">@m.Text</InputText>
-                                @if (string.IsNullOrWhiteSpace(m.FileName) is false)
-                                {
-                                    @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
-                                    {
-                                        <div class="text-center">
-                                            <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName"/>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="message-text">
-                                            <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
-                                                @m.OriginalFileName
-                                            </a>
-                                        </div>
-                                    }
-                                }
-                                <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                                @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
-                                {
-                                  <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                                }
-                                @if (m.Sender.Id == loggedInUser?.Id)
-                                {
-                                  <div class="btn-group">
-                                    <button class="btn btn-success me-1" @onclick="(() => UpdateMessage())">Save</button>
-                                    <button class="btn btn-danger" @onclick="(() => ArchiveMessage())">Archive</button>
-                                  </div>
-                                }
-                          </div>
-                      }
+                            </div>
+                            @if (m.Sender.Id == loggedInUser?.Id)
+                            {
+                                <div class="btn-group" role="group">
+                                    <button id="btn-group-settings" 
+                                        type="button" class="btn btn-secondary dropdown-toggle" 
+                                        data-toggle="dropdown" 
+                                        aria-haspopup="true" 
+                                        aria-expanded="false">
+                                        <p><i class="fas fa-cog clickable"></i></p>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
+                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#messageModal"
+                                            @onclick="(() => LoadSelectedMessage(m))">
+                                            Edit
+                                        </button>
+                                    </div>
+                                </div>       
+                            }
+                        </div>
+                        @if (string.IsNullOrWhiteSpace(m.FileName) is false)
+                        {
+                            @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
+                            {
+                                <div class="d-flex justify-content-start">
+                                    <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="message-text">
+                                    <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
+                                        @m.OriginalFileName
+                                    </a>
+                                </div>
+                            }
+                        }
+                      </div>
                     </Virtualize>
                     <div class="messages-mb" />
                   }
@@ -149,14 +179,14 @@
                     {
                         <div class="bg-dark p-2 mb-2">
                             <h3>Settings</h3>
-                            <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => SettingsPage(server))">
+                            <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => SettingsPage(server))">
                                 Edit
                             </button>
                         </div>
                     }
                     <div class="participants-list p-2">
                         <h3 class="fw-bold text-uppercase">Participants</h3>
-                        <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(server))">Invite</button>
+                        <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => InviteFriendPage(server))">Invite</button>
                         <ul class="list-group">
                             <Virtualize Items="server?.Members" Context="p" OverscanCount="10">
                                 <li class="list-group-item bg-secondary text-white mb-2">
@@ -171,22 +201,22 @@
                 </div>
               </div>
               <div class="row fixed-bottom mb-4 mx-2">
-                <EditForm Model="message" OnValidSubmit="SendMessage">
+                <EditForm Model="model" OnValidSubmit="SendMessage">
                     <ValidationSummary />
                     <div class="col-xl-12 col-lg-12">
                       <div class="row">
-                        <ValidationMessage For="(() => message.Text)"/>
+                        <ValidationMessage For="(() => model.Text)"/>
                         <div class="col-8">
                           <InputText placeholder="@($"Message {selectedChannel?.ChannelName}")" aria-label="Message Box"
-                            class="form-control bg-dark text-light input-section border-warning" @bind-Value="message.Text" />  
+                            class="form-control bg-dark text-light input-section" @bind-Value="model.Text" />  
                         </div>
                         <div class="col-2">
                           <InputFile OnChange="LoadFiles" 
-                            class="form-control bg-dark text-light input-section border-warning"
+                            class="form-control bg-dark text-light input-section"
                             accept=".png,.jpg,.jpeg,.txt,.pdf"/>
                         </div>
                         <div class="col-2">
-                          <button type="submit" class="btn btn-outline-warning form-control" 
+                          <button type="submit" class="btn btn-outline-secondary form-control" 
                             disabled="@(IsConnected is false)">
                             Send
                         </button>
@@ -208,7 +238,7 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    private CreateMessageModel message = new();
+    private CreateMessageModel model = new();
     private HubConnection? hubConnection;
 
     private string editingMessageText = "";
@@ -216,11 +246,10 @@ else
     private bool isSortedByNew = true;
     private ServerModel server;
     private ChannelModel selectedChannel;
-    private ChannelModel selectedChannelToModify;
     private List<MessageModel> messages;
     private List<ChannelModel> channels;
     private UserModel loggedInUser;
-    private MessageModel chosenMessage;
+    private MessageModel selectedMessage;
     private BanModel ban;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
@@ -263,6 +292,11 @@ else
     {
         messages.Add(message);
         InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", "messageModal");
     }
 
     private async Task LoadSelectedChannel(ChannelModel channel)
@@ -346,7 +380,7 @@ else
             {
                 ObjectIdentifier = objectIdentifier,
                 Sender = new BasicUserModel(loggedInUser),
-                Text = message.Text,
+                Text = model.Text,
                 FileName = relativePath,
                 OriginalFileName = fileName,
                 FileExtension = fileExtension,
@@ -377,26 +411,48 @@ else
         }
     }
 
-    private async Task UpdateMessage()
+    private void LoadSelectedMessage(MessageModel message)
     {
-        if (chosenMessage.Text == editingMessageText)
+        selectedMessage = message;
+        model.Text = selectedMessage.Text;
+    }
+
+    private async Task UpdateMessage(MessageModel message)
+    {
+        string relativePath = await CaptureFile();
+        string oldFileName = message.FileName;
+        string oldOriginalFile = message.OriginalFileName;
+        string oldExtension = message.FileExtension;
+
+        message.Text = model.Text;
+        message.LastEdited = DateTime.UtcNow;
+        if (file is not null)
         {
-            chosenMessage = null;
-            return;
+            message.FileName = relativePath;
+            message.OriginalFileName = fileName;
+            message.FileExtension = fileExtension;
+        }
+        else
+        {
+            message.FileName = oldFileName;
+            message.OriginalFileName = oldOriginalFile;
+            message.FileExtension = oldExtension;
         }
 
-        chosenMessage.Text = editingMessageText;
-        chosenMessage.LastEdited = DateTime.UtcNow;
-        await messageData.UpdateMessageAsync(chosenMessage);
-        chosenMessage = null;
+        await messageData.UpdateMessageAsync(message);
+        model = new();
+        selectedMessage = null;
+        file = null;
+
+        await CloseModal();
     }
 
     private async Task ArchiveMessage()
     {
-        messages.Remove(chosenMessage);
-        chosenMessage.Archived = true;
-        await messageData.UpdateMessageAsync(chosenMessage);
-        chosenMessage = null;
+        messages.Remove(selectedMessage);
+        selectedMessage.Archived = true;
+        await messageData.UpdateMessageAsync(selectedMessage);
+        selectedMessage = null;
     }
 
     private async Task OrderByNew(bool isNew)
@@ -413,7 +469,7 @@ else
 
     private void OnMessageClick(MessageModel message)
     {
-        chosenMessage = message;
+        selectedMessage = message;
         editingMessageText = message.Text;
     }
 

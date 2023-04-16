@@ -90,18 +90,18 @@
                                 <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
                                 <div class="mt-1">Edit your channel's name</div>
                                 <ValidationMessage For="(() => channel.ChannelName)"/>
-                                <InputText class="form-control bg-dark text-white input-section border-warning" id="channel-name" 
+                                <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
                                     @bind-Value="channel.ChannelName"/>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
                                 <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
                                 <ValidationMessage For="(() => channel.ChannelDescription)"/>
-                                <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="channel-description"
+                                <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
                                     @bind-Value="channel.ChannelDescription"/>
                             </div>
                             <div class="center-children">
-                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
+                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
                                     Update
                                 </button>
                             </div>
@@ -136,7 +136,7 @@
                                 <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
                                 <div class="mt-1">Edit your server's name</div>
                                 <ValidationMessage For="(() => editingServer.ServerName)"/>
-                                <InputText class="form-control bg-dark text-white input-section border-warning" id="server-name" 
+                                <InputText class="form-control bg-dark text-white input-section" id="server-name" 
                                     @bind-Value="editingServer.ServerName"/>
                             </div>
                             <div class="mb-3">
@@ -144,7 +144,7 @@
                                 <div class="mt-1">Select an image for your server. This is not required.</div>
                                 <ValidationMessage For="(() => editingServer.PictureName)"/>
                                 <InputFile OnChange="LoadFiles"
-                                    class="form-control bg-dark text-light input-section border-warning"
+                                    class="form-control bg-dark text-light input-section"
                                     accept=".png,.jpg,.jpeg"/>
                             </div>
                             <div class="mb-3">
@@ -167,11 +167,11 @@
                                 <label class="form-label fw-bold text-uppercase" for="server-description">Server Description</label>
                                 <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
                                 <ValidationMessage For="(() => editingServer.ServerDescription)"/>
-                                <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="server-description"
+                                <InputTextArea class="form-control bg-dark text-white input-section" id="server-description"
                                     @bind-Value="editingServer.ServerDescription"/>
                             </div>
                             <div class="center-children">
-                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
+                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
                                     Update
                                 </button>
                             </div>
@@ -219,30 +219,32 @@
                     @if (showServerDetailsPage)
                     {
                       <div>
-                          <h2 class="fw-bold text-uppercase">@server.ServerName</h2>
-                          <p class="h3 text-break">@server.ServerDescription</p>
-                          <p class="h3 text-break">@server.Category.CategoryName</p>
-                          <p class="h3">@server.DateCreated.ToString("dd/MM/yyyy")</p>
-                          <button class="btn btn-outline-warning w-100" @onclick="(() => LoadSelectedServer(server))"
+                          <div class="center-children mt-2">
+                              @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
+                              {
+                                  <img src="@CreateWebPath(server.PictureName)"
+                                    class="img-fluidborder rounded-circle" 
+                                    alt="@server.OriginalPictureName"
+                                    style="width: 300px; height: 300px;">
+                              }
+                              else
+                              {
+                                  <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                    class="img-fluid rounded-circle" 
+                                    alt="Placeholder Image"
+                                    style="width: 300px; height: 300px;">
+                              }
+                          </div>
+                          <h2 class="fw-bold text-uppercase text-center">@server.ServerName</h2>
+                          <p class="text-break  text-center">@server.ServerDescription</p>
+                          <p class="text-break  text-center">@server.Category.CategoryName</p>
+                          <p class="text-center">@server.DateCreated.ToString("dd/MM/yyyy")</p>
+                          <button class="btn btn-secondary w-100" @onclick="(() => LoadSelectedServer(server))"
                             data-toggle="modal" data-target="#serverModal">
                               Edit Server
                           </button>
                       </div>
                       <hr />
-                      <div class="center-children mt-2">
-                          @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
-                          {
-                              <img src="@CreateWebPath(server.PictureName)"
-                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
-                                alt="@server.OriginalPictureName">
-                          }
-                          else
-                          {
-                              <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
-                                alt="Placeholder Image">
-                          }
-                      </div>
                       }
                       else if (showServerMembersPage && users is not null)
                       {
@@ -265,7 +267,7 @@
                             <div class="row mb-2">
                               <div class="col-12">
                                 <input type="text" placeholder="Search" 
-                                    aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+                                    aria-label="Search Box" class="form-control bg-dark text-light input-section"
                                     @oninput="(async(txt) => await OnSearchInputUser((string)txt.Value))"/>
                               </div>
                             </div>
@@ -337,7 +339,7 @@
                             <div class="row mb-2">
                               <div class="col-12">
                                 <input type="text" placeholder="Search" 
-                                    aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+                                    aria-label="Search Box" class="form-control bg-dark text-light input-section"
                                     @oninput="(async(txt) => await OnSearchInputChannel((string)txt.Value))"/>
                               </div>
                             </div>
@@ -381,18 +383,18 @@
                                             <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
                                             <div class="mt-1">Name your channel's name</div>
                                             <ValidationMessage For="(() => channel.ChannelName)"/>
-                                            <InputText class="form-control bg-dark text-white input-section border-warning" id="channel-name" 
+                                            <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
                                                 @bind-Value="channel.ChannelName"/>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
                                             <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
                                             <ValidationMessage For="(() => channel.ChannelDescription)"/>
-                                            <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="channel-description"
+                                            <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
                                                 @bind-Value="channel.ChannelDescription"/>
                                         </div>
                                         <div class="center-children">
-                                            <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
+                                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
                                                 Create Channel
                                             </button>
                                         </div>
@@ -820,60 +822,60 @@ else
     {
         if (isPriority == priorityBannedUsers)
         {
-            return "btn-outline-success";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string GetOpenDetailsPageClass(bool isShowing)
     {
         if (showServerDetailsPage == isShowing)
         {
-            return "btn-outline-primary";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string GetMembersPageClass(bool isShowing)
     {
         if (showServerMembersPage == isShowing)
         {
-            return "btn-outline-primary";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string GetCreatePageClass(bool isShowing)
     {
         if (showCreateChannelPage == isShowing)
         {
-            return "btn-outline-primary";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string GetChannelsPageClass(bool isShowing)
     {
         if (showChannelsPage == isShowing)
         {
-            return "btn-outline-primary";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string SortedByNewClass(bool isNew)
     {
         if (isSortedByNew == isNew)
         {
-             return "btn-outline-primary";
+             return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string GetModalTitleString()

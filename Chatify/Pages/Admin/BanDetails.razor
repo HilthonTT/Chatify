@@ -22,7 +22,7 @@
                                     <EditForm class="conversation-edit-form" Model="editedReason"
                                         OnSubmit="(async() => await SaveReason(ban))">
 
-                                        <InputTextArea class="form-control bg-dark text-light conversation-edit-field border-warning"
+                                        <InputTextArea class="form-control bg-dark text-light conversation-edit-field"
                                             @bind-Value="editedReason" />
                                         <div class="btn-group">
                                             <button class="btn btn-outline-success mx-1" type="submit">
@@ -39,7 +39,7 @@
                                 {
                                     <h2>Reason:</h2>
                                     <label class="h5 text-warning">@ban.Reason</label>
-                                    <button class="btn btn-outline-warning w-100" 
+                                    <button class="btn btn-secondary w-100" 
                                         @onclick="(() => EditReason(ban))">
                                         Edit Reason
                                     </button>
@@ -50,7 +50,7 @@
                                     <EditForm class="conversation-edit-form" Model="editedBannedUntil"
                                         OnSubmit="(async() => await SaveBannedUntil(ban))">
 
-                                        <InputDate class="form-control bg-dark text-light conversation-edit-field border-warning" 
+                                        <InputDate class="form-control bg-dark text-light conversation-edit-field" 
                                             @bind-Value="editedBannedUntil" />
                                         <div class="btn-group">
                                             <button class="btn btn-outline-success mx-1" type="submit">

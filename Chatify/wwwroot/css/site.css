@@ -282,7 +282,7 @@ a, .btn-link {
 }
 
 .radio-item-group input[type="radio"]:checked + label {
-    border-color: #ffc107 !important;
+    border-color: #198754 !important;
     color: #FFFFFF;
     width: 100%;
     border: 1px white solid;

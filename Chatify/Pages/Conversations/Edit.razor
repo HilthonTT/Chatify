@@ -35,7 +35,7 @@
                                     <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
                                     <div class="mt-1">Edit your server's name</div>
                                     <ValidationMessage For="(() => editingConversation.GroupName)"/>
-                                    <InputText class="form-control bg-dark text-white input-section border-warning" id="server-name" 
+                                    <InputText class="form-control bg-dark text-white input-section" id="server-name" 
                                         @bind-Value="editingConversation.GroupName"/>
                                 </div>
                                 <div class="mb-3">
@@ -43,11 +43,14 @@
                                     <div class="mt-1">Select an image for your conversation. This is not required.</div>
                                     <ValidationMessage For="(() => editingConversation.PictureName)"/>
                                     <InputFile OnChange="LoadFiles"
-                                        class="form-control bg-dark text-light input-section border-warning"
+                                        class="form-control bg-dark text-light input-section"
                                         accept=".png,.jpg,.jpeg"/>
                                 </div>
                                 <div class="center-children">
-                                    <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit" data-dismiss="modal" @onclick="UpdateConversation">
+                                    <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
+                                        type="submit" 
+                                        data-dismiss="modal" 
+                                        @onclick="UpdateConversation">
                                         Update
                                     </button>
                                 </div>
@@ -75,13 +78,6 @@
                             <div class="row">
                                 <div class="col-11">
                                     <div>
-                                        <h2 class="conversation-title">@conversation.GroupName</h2>
-                                        <p class="conversation-info">The Owner: @conversation.Owner.DisplayName</p>
-                                        <p class="conversation-info">This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")</p>
-                                        <button class="btn btn-outline-warning w-100" @onclick="LoadSelectedConversation"
-                                            data-toggle="modal" data-target="#conversationModal">
-                                              Edit Conversation
-                                          </button>
                                         <div class="center-children mt-2">
                                             @if (string.IsNullOrWhiteSpace(conversation.PictureName) is false)
                                             {
@@ -96,6 +92,13 @@
                                                 alt="Placeholder Image">
                                             }
                                         </div>
+                                        <h2 class="conversation-title text-center">@conversation.GroupName</h2>
+                                        <p class="conversation-info text-center">The Owner: @conversation.Owner.DisplayName</p>
+                                        <p class="conversation-info text-center">This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")</p>
+                                        <button class="btn btn-secondary w-100" @onclick="LoadSelectedConversation"
+                                            data-toggle="modal" data-target="#conversationModal">
+                                                Edit Conversation
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="col-1">

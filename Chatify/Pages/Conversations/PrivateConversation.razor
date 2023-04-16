@@ -138,7 +138,7 @@
                 <div class="col-md-4 col-xl-2">
                     <div class="participants-list p-2">
                         <h3 class="fw-bold text-uppercase">Participants</h3>
-                        <ul class="list-group">
+                        <ul class="list-group text-white">
                             <li class="list-group-item bg-secondary mb-2 clickable text-white" 
                                 @onclick="(() => UserDetailsPage(conversation?.FirstParticipant))">
                                 <span class="oi oi-person me-1"></span>
@@ -161,15 +161,15 @@
                         <ValidationMessage For="(() => model.Text)"/>
                         <div class="col-8">
                           <InputText placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
-                            class="form-control bg-dark text-light border-warning input-section" @bind-Value="model.Text" />
+                            class="form-control bg-dark text-light input-section" @bind-Value="model.Text" />
                         </div>
                         <div class="col-2">
                             <InputFile OnChange="LoadFiles" 
-                                class="form-control bg-dark text-light input-section border-warning"
+                                class="form-control bg-dark text-light input-section"
                                 accept=".png,.jpg,.jpeg,.txt,.pdf" />
                         </div>
                         <div class="col-2">
-                          <button type="submit" class="btn btn-outline-warning form-control" 
+                          <button type="submit" class="btn btn-outline-secondary form-control" 
                               disabled="@(IsConnected is false)">
                               Send
                           </button>

@@ -29,7 +29,7 @@
             <div class="center-children">
                 @if (userId != user?.Id)
                 {
-                    <button class="btn btn-outline-success btn-lg text-uppercase mt-4" type="button" @onclick="(() => userId = user.Id)">
+                    <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="button" @onclick="(() => userId = user.Id)">
                         Ban @user?.DisplayName
                     </button>
                 }

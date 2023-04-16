@@ -25,7 +25,7 @@
 <div class="row mt-2">
     <div class="col-md-12 col-xl-12">
         <input type="text" placeholder="Search"
-            aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+            aria-label="Search Box" class="form-control bg-dark text-light input-section"
             @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
     </div>
 </div>
@@ -133,9 +133,9 @@
     {
         if (isNew == isSortedByNew)
         {
-            return "btn-outline-primary";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 }

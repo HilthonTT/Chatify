@@ -28,7 +28,7 @@
                     <ValidationMessage For="(() => appeal.AppealReason)"/>
                 </div>
                 <div class="center-children">
-                    <button class="btn btn-outline-success btn-lg text-uppercase">
+                    <button class="btn btn-secondary btn-lg text-uppercase">
                         Appeal
                     </button>
                 </div>
@@ -55,7 +55,7 @@ else
                         else
                         {
                             <div class="btn-group">
-                                <button class="btn btn-outline-success me-1" @onclick="(async() => await ReCreateBanAppeal())">
+                                <button class="btn btn-secondary me-1" @onclick="(async() => await ReCreateBanAppeal())">
                                     Permit
                                 </button>
                                 <button class="btn btn-outline-danger" @onclick="(() => banAppealId = string.Empty)">
@@ -87,9 +87,12 @@ else
     {
         loggedInUser = await authProvider.GetUserFromAuth(userData);
         ban = await banData.GetBanAsync(Id);
-        banAppeal = await appealData.GetBanAppealFromBan(ban);
+        if (ban is not null)
+        {
+            banAppeal = await appealData.GetBanAppealFromBan(ban);
+        }
 
-        if (ban?.UserBanned.Id != loggedInUser?.Id) navManager.NavigateTo("/");
+        //if (ban?.UserBanned.Id != loggedInUser?.Id) navManager.NavigateTo("/");
     }
 
     private async Task CreateBanAppeal()

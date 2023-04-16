@@ -15,7 +15,7 @@
     <h1 class="text-uppercase fw-bold text-center mb-4 text-light">Conversations</h1>
 
     <div class="text-center">
-        <button class="btn btn-outline-warning btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
+        <button class="btn btn-outline-secondary btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
     </div>
     <div class="row">
         <div class="text-uppercase fw-bold">You are in @conversations?.Count conversations</div>
@@ -34,7 +34,7 @@
     <div class="row mt-2">
         <div class="col-md-12 col-xl-12">
             <input type="text" placeholder="Search"
-                aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+                aria-label="Search Box" class="form-control bg-dark text-light input-section"
                 @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
         </div>
         <div class="col-12 d-block d-md-none">

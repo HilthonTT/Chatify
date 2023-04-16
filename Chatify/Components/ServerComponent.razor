@@ -5,36 +5,50 @@
 <div class="col-xl-4 col-lg-6 mb-3 center-children">
     <div class="row">
         <div class="col-12">
-            <div class="card bg-dark text-light border-warning p-2 w-100 h-100" style="width: 20rem;">
+            <div class="card bg-dark text-light border-white p-2 h-100 d-flex flex-column" style="width: 30rem;">
                 @if (string.IsNullOrWhiteSpace(Server.PictureName) is false)
                 {
-                    <img src="@CreateWebPath(Server.PictureName)" 
-                        class="card-img-top w-100 h-100 rounded-circle" 
-                        alt="@Server.OriginalPictureName">
+                    <div class="text-center p-3">
+                        <img src="@CreateWebPath(Server.PictureName)" 
+                            class="card-img-top rounded-circle" 
+                            alt="@Server.OriginalPictureName"
+                            style="width: 300px; height: 300px;">
+                    </div>
                 }
                 else
                 {
-                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                        class="card-img-top w-100 h-100 rounded-circle" 
-                        alt="Placeholder Image">
+                    <div class="text-center p-3">
+                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                            class="card-img-top rounded-circle" 
+                            alt="Placeholder Image"
+                            style="width: 300px; height: 300px;">
+                    </div>
                 }
                 <div class="mt-auto">
                     <div class="card-body text-break">
                         <h5 class="card-title">@Server.ServerName</h5>
-                        <p class="card-text">@Server.ServerDescription</p>
-                        <p class="card-text"><small class="text-muted">Owner: @Server.Owner.DisplayName</small></p>
-                        <p class="card-text"><small class="text-danger">@Server.Members.Count Members</small></p>
+                        <p class="card-text">@Server.Category.CategoryName</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Owner: @Server.Owner.DisplayName
+                            </small>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-danger">
+                                @Server.Members.Count Participants
+                            </small>
+                        </p>
                         @if (IsUserBanned(Server) is false)
                         {
                             @if (IsUserInServer(Server) is false)
                             {
-                                <button class="btn btn-outline-warning w-100" @onclick="(async() => await JoinServer(Server))">
+                                <button class="btn btn-outline-secondary w-100" @onclick="(async() => await JoinServer(Server))">
                                     Join Server
                                 </button>
                             }
                             else
                             {
-                                <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => OpenDetails(Server))">
+                                <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => OpenDetails(Server))">
                                     Check out
                                 </button>
                                 @if (selectedServer is null || selectedServer.Id != Server.Id)

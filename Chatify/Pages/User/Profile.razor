@@ -22,7 +22,7 @@
                   <p>You are logged as: @loggedInUser?.DisplayName</p>
                   <p>Your actual name is: @loggedInUser?.FullName</p>
                   <p>You joined Chatify on @loggedInUser?.DateCreated.ToString("dd/MM/yyyy")</p>
-                  <button class="btn btn-outline-warning w-100" @onclick="EditProfilePage">Edit My Profile</button>
+                  <button class="btn btn-secondary w-100" @onclick="EditProfilePage">Edit My Profile</button>
                 </div>
                 <hr />
                 @if (loggedInUser?.Friends.Count > 0)
@@ -46,8 +46,7 @@
                 @if (conversations?.Count > 0)
                 {
                     <h2 class="card-title mt-4">Your Conversations</h2>
-                    @foreach (var c in conversations)
-                    {
+                    <Virtualize Items="conversations" Context="c" OverscanCount="10">
                         <div class="card card-body create-form-layout bg-black clickable" @onclick="(() => OpenDetailsConversation(c))">
                             <div class="card-body">
                                 <div class="card-text mb-3">
@@ -57,7 +56,7 @@
                                 </div>
                             </div>
                         </div>
-                    }
+                    </Virtualize>
                 }
               </div>
               <div class="col-1">

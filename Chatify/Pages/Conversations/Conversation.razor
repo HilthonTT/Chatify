@@ -4,6 +4,7 @@
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject IMessageData messageData
+@inject IServerData serverData
 @inject IConfiguration config
 @inject IBanData banData
 @inject NavigationManager navManager
@@ -30,7 +31,7 @@
                             <label class="form-label fw-bold text-uppercase" for="message-text">Message Text</label>
                             <div class="mt-1">Edit your message</div>
                             <ValidationMessage For="(() => model.Text)"/>
-                            <InputText class="form-control bg-dark text-white input-section border-warning" id="message-text" 
+                            <InputText class="form-control bg-dark text-white input-section" id="message-text" 
                                 @bind-Value="model.Text"/>
                         </div>
                         <div class="mb-3">
@@ -41,12 +42,13 @@
                             </div>
                             <ValidationMessage For="(() => model)"/>
                             <InputFile OnChange="LoadFiles"
-                                class="form-control bg-dark text-white input-section border-warning" 
+                                class="form-control bg-dark text-white input-section" 
                                 id="message-file"
                                 accept=".png,.jpg,.jpeg,.txt,.pdf"/>
                         </div>
                         <div class="center-children">
-                            <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
+                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
+                                    type="submit">
                                 Update
                             </button>
                         </div>
@@ -161,21 +163,23 @@
                     {
                         <div class="bg-dark p-2 mb-2">
                             <h3>Settings</h3>
-                            <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => SettingsPage(conversation))">
+                            <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => SettingsPage(conversation))">
                                 Edit
                             </button>
                         </div>
                     }
                     <div class="participants-list p-2">
                         <h3 class="fw-bold text-uppercase">Participants</h3>
-                        <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
+                        <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
                         <ul class="list-group">
-                            @foreach (var p in conversation?.Participants)
-                            {
-                                if (chosenUser is null || chosenUser.Id != p.Id)
+                            <Virtualize Items="conversation?.Participants" Context="p" OverscanCount="10">
+                                @if (chosenUser is null || chosenUser.Id != p.Id)
                                 {
-                                    <li class="list-group-item mb-2">
-                                        <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
+                                    <li class="list-group-item bg-secondary text-white mb-2">
+                                        <span class="oi oi-person me-1"></span>
+                                        <span class="clickable" @onclick="(() => UserDetailsPage(p))">
+                                            @p.DisplayName
+                                        </span>
                                         @if (loggedInUser.Id != p.Id)
                                         {
                                             <button class="btn btn-primary btn-sm float-end" @onclick="(() => chosenUser = p)">Remove</button>
@@ -192,7 +196,7 @@
                                         </div>
                                     </li>
                                 }
-                            }
+                            </Virtualize>       
                         </ul>
                     </div>
                 </div>
@@ -205,15 +209,15 @@
                             <ValidationMessage For="(() => model.Text)"/>
                             <div class="col-8">
                                 <InputText placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
-                                class="form-control bg-dark text-light input-section border-warning" @bind-Value="model.Text" />  
+                                class="form-control bg-dark text-light input-section" @bind-Value="model.Text" />  
                             </div>
                             <div class="col-2">
                                 <InputFile OnChange="LoadFiles" 
-                                class="form-control bg-dark text-light input-section border-warning"
+                                class="form-control bg-dark text-light input-section"
                                 accept=".png,.jpg,.jpeg,.txt,.pdf"/>
                             </div>
                             <div class="col-2">
-                                <button type="submit" class="btn btn-outline-warning form-control" 
+                                <button type="submit" class="btn btn-outline-secondary form-control" 
                                     disabled="@(IsConnected is false)">
                                     Send
                                 </button>

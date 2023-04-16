@@ -14,7 +14,7 @@
     <h1 class="text-uppercase fw-bold text-center mb-4 text-light">Explore Servers!</h1>
 
     <div class="text-center">
-        <button class="btn btn-outline-warning btn-lg text-uppercase" @onclick="LoadCreatePage">
+        <button class="btn btn-outline-secondary btn-lg text-uppercase" @onclick="LoadCreatePage">
             Create A Server
         </button>
     </div>
@@ -35,27 +35,47 @@
     <div class="row mt-2">
         <div class="col-md-12 col-xl-12">
             <input type="text" placeholder="Search" 
-                aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+                aria-label="Search Box" class="form-control bg-dark text-light input-section"
                 @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
         </div>
         <div class="col-12 d-block d-md-none">
             @if (categories is not null && showCategories)
             {
-                <div class="friend-category bg-dark">
-                    <span class="text-uppercase fw-bold">Category</span>
-                    <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
-                    <Virtualize Items="categories" Context="c" OverscanCount="10">
-                        <div class="@SelectedCategoryClass(c.CategoryName)" 
-                            @onclick="(async() => await OnCategoryClick(c.CategoryName))">
-                            @c.CategoryName
-                        </div>
-                    </Virtualize>
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Categories</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item @SelectedCategoryClass() bg-secondary text-white mb-2 clickable" 
+                            @onclick="(async() => await OnCategoryClick())">
+                            <span class="clickable">
+                                <span class="oi @SelectedCategoryIcon() mx-1"></span>
+                                <span>All</span>
+                            </span>
+                        </li>
+                        <Virtualize Items="categories" Context="c" OverscanCount="10">
+                            <li class="list-group-item @SelectedCategoryClass(c.CategoryName) bg-secondary text-white mb-2 clickable" 
+                                @onclick="(async() => await OnCategoryClick(c.CategoryName))">
+                                <span class="clickable">
+                                    <span class="oi @SelectedCategoryIcon(c.CategoryName) mx-1"></span>
+                                    <span>@c.CategoryName</span>
+                                </span>
+                            </li>
+                        </Virtualize>
+                    </ul>
                 </div>
             }
             else
             {
-                <div class="friend-category mt-1" @onclick="(() => showCategories = true)">
-                    <span class="fw-bold">@selectedCategory</span>
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Categories</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item @SelectedCategoryClass(selectedCategory) bg-secondary text-white mb-2 clickable" 
+                            @onclick="(() => showCategories = true)">
+                            <span class="clickable">
+                                <span class="oi @SelectedCategoryIcon(selectedCategory) mx-1"></span>
+                                <span>@selectedCategory</span>
+                            </span>
+                        </li>
+                    </ul>
                 </div>
             }
         </div>
@@ -83,15 +103,26 @@
         <div class="col-md-3 col-xl-2 d-none d-md-block">
             @if (categories is not null)
             {
-                <div class="friend-category bg-dark">
-                    <span class="text-uppercase fw-bold">Category</span>
-                    <div class="@SelectedCategoryClass()" @onclick="(async() => await OnCategoryClick())">All</div>
-                    <Virtualize Items="categories" Context="c" OverscanCount="10">
-                        <div class="@SelectedCategoryClass(c.CategoryName)"
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Categories</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item @SelectedCategoryClass() bg-secondary text-white mb-2 clickable" 
+                            @onclick="(async() => await OnCategoryClick())">
+                            <span class="clickable">
+                                <span class="oi oi-book mx-1"></span>
+                                <span>All</span>
+                            </span>
+                        </li>
+                        <Virtualize Items="categories" Context="c" OverscanCount="10">
+                            <li class="list-group-item @SelectedCategoryClass(c.CategoryName) bg-secondary text-white mb-2 clickable" 
                                 @onclick="(async() => await OnCategoryClick(c.CategoryName))">
-                            @c.CategoryName
-                        </div>
-                    </Virtualize>
+                                <span class="clickable">
+                                    <span class="oi @SelectedCategoryIcon(c.CategoryName) mx-1"></span>
+                                    <span>@c.CategoryName</span>
+                                </span>
+                            </li>
+                        </Virtualize>
+                    </ul>
                 </div>
             }
         </div>
@@ -224,19 +255,54 @@ else
     {
         if (isNew == isSortedByNew)
         {
-            return "btn-outline-primary";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string SelectedCategoryClass(string category = "All")
     {
         if (category == selectedCategory)
         {
-            return "fw-bold";
+            return "bg-secondary";
         }
 
-        return "";
+        return "bg-dark";
+    }
+
+    private string SelectedCategoryIcon(string category = "All")
+    {
+        if (category == "All")
+        {
+            return "oi-book";
+        }
+
+        if (category == "Gaming")
+        {
+            return "oi-bug";
+        }
+
+        if (category == "Music")
+        {
+            return "oi-musical-note";
+        }
+
+        if (category == "Sports")
+        {
+            return "oi-badge";
+        }
+
+        if (category == "Sciences")
+        {
+            return "oi-beaker";
+        }
+
+        if (category == "Technology")
+        {
+            return "oi-monitor";
+        }
+
+        return "oi-question-mark";
     }
 }
