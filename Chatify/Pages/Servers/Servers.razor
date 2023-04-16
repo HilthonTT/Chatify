@@ -75,73 +75,7 @@
                 @if (servers is not null)
                 {
                     <Virtualize Items="servers" Context="s" OverscanCount="10">
-                        <div class="col-xl-4 col-lg-6 mb-3 center-children">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card bg-dark text-light border-warning p-2 w-100 h-100" style="width: 20rem;">
-                                        @if (string.IsNullOrWhiteSpace(s.PictureName) is false)
-                                        {
-                                            <img src="@CreateWebPath(s.PictureName)" 
-                                                class="card-img-top w-100 h-100 rounded-circle" 
-                                                alt="@s.OriginalPictureName">
-                                        }
-                                        else
-                                        {
-                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                class="card-img-top w-100 h-100 rounded-circle" 
-                                                alt="Placeholder Image">
-                                        }
-                                        <div class="mt-auto">
-                                            <div class="card-body text-break">
-                                                <h5 class="card-title">@s.ServerName</h5>
-                                                <p class="card-text">@s.ServerDescription</p>
-                                                <p class="card-text"><small class="text-muted">Owner: @s.Owner.DisplayName</small></p>
-                                                <p class="card-text"><small class="text-danger">@s.Members.Count Members</small></p>
-                                                @if (IsUserBanned(s) is false)
-                                                {
-                                                    @if (IsUserInServer(s) is false)
-                                                    {
-                                                        <button class="btn btn-outline-warning w-100" @onclick="(async() => await JoinServer(s))">
-                                                            Join Server
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => OpenDetails(s))">
-                                                            Check out
-                                                        </button>
-                                                        @if (selectedServer is null || selectedServer.Id != s.Id)
-                                                        {
-                                                            @if (s.Owner.Id != loggedInUser.Id)
-                                                            {
-                                                                <button class="btn btn-outline-danger w-100" @onclick="(() => selectedServer = s)">
-                                                                    Leave Server
-                                                                </button>
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            <div class="btn-group w-100">
-                                                                <button class="btn btn-outline-success me-1" @onclick="(async() => await LeaveServer(s))">
-                                                                    Leave
-                                                                </button>
-                                                                <button class="btn btn-outline-danger" @onclick="(() => selectedServer = null)">
-                                                                    Cancel
-                                                                </button>
-                                                            </div>
-                                                        }
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <button class="btn btn-outline-danger w-100" disabled>You are currently Banned</button>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <ServerComponent Server="s" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                 }
             </div>
@@ -255,24 +189,6 @@ else
         await SaveFilterState();
     }
 
-    private async Task JoinServer(ServerModel server)
-    {
-        server.Members.Add(new BasicUserModel(loggedInUser));
-        await serverData.UpdateServer(server);
-
-        OpenDetails(server);
-    }
-
-    private async Task LeaveServer(ServerModel server)
-    {
-        var userToRemove = server.Members.FirstOrDefault(m => m.Id == loggedInUser?.Id);
-        if (userToRemove is not null)
-        {
-            server.Members.Remove(userToRemove);
-            await serverData.UpdateServer(server);
-        }
-    }
-
     private async Task OrderByNew(bool isNew)
     {
         isSortedByNew = isNew;
@@ -292,21 +208,11 @@ else
         await FilterServers();
     }
 
-    private string CreateWebPath(string relativePath)
-    {
-        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
-    }
-
-    private void OpenDetails(ServerModel server)
-    {
-        navManager.NavigateTo($"/Server/{server.Id}");
-    }
-
     private void LoadCreatePage()
     {
         if (loggedInUser is not null)
         {
-            navManager.NavigateTo("/Create");
+            navManager.NavigateTo("/CreateServer");
         }
         else
         {
@@ -332,27 +238,5 @@ else
         }
 
         return "";
-    }
-
-    private bool IsUserInServer(ServerModel server)
-    {
-        if (server.Owner.Id == loggedInUser?.Id || server.Members.Any(m => m.Id == loggedInUser?.Id))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool IsUserBanned(ServerModel server)
-    {
-        bool IsUserInBannedList = server.BannedUsers.Any(b => b.Id == loggedInUser?.Id);
-
-        if (IsUserInBannedList)
-        {
-            return true;
-        }
-
-        return false;
     }
 }

@@ -85,7 +85,7 @@
             @if (loggedInUser is not null)
             {
                 <div class="participants-list p-2">
-                    <h3 class="fw-bold text-uppercase">Categories</h3>
+                    <h3 class="fw-bold text-uppercase">Friends</h3>
                     <ul class="list-group">
                         <Virtualize Items="loggedInUser.Friends" Context="f" OverscanCount="10">
                             <li class="list-group-item bg-secondary text-white mb-2 clickable" 
@@ -113,41 +113,7 @@
                 @if (conversations is not null)
                 {
                     <Virtualize Items="conversations" Context="c" OverscanCount="10">
-                        <div class="col-xl-4 col-lg-6 mb-3 center-children">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card bg-dark text-light border-warning p-2 h-100 d-flex flex-column" style="width: 25rem;">
-                                        @if (string.IsNullOrWhiteSpace(c.PictureName) is false)
-                                        {
-                                            <div class="text-center p-3">
-                                                <img src="@CreateWebPath(c.PictureName)" 
-                                                    class="card-img-top h-100 w-100 rounded-circle" 
-                                                    alt="@c.OriginalPictureName">
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="text-center p-3">
-                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                    class="card-img-top h-100 w-100 rounded-circle" 
-                                                    alt="Placeholder Image">
-                                            </div>
-                                        }
-                                        <div class="mt-auto">
-                                            <div class="card-body text-break">
-                                                <h5 class="card-title">@c.GroupName</h5>
-                                                <p class="card-text">@c.Category.CategoryName</p>
-                                                <p class="card-text"><small class="text-muted">Owner: @c.Owner.DisplayName</small></p>
-                                                <p class="card-text"><small class="text-danger">@c.Participants.Count Participants</small></p>
-                                                <button class="btn btn-outline-warning w-100" @onclick="(() => OpenDetails(c))">
-                                                    Check Out
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <ConversationComponent Conversation="c" />
                     </Virtualize>
                 }
             </div>
@@ -360,11 +326,6 @@ else
         }
     }
 
-    private void OpenDetails(ConversationModel conversation)
-    {
-        navManager.NavigateTo($"/Conversation/{conversation.Id}");
-    }
-
     private async Task OpenPrivateConversation(BasicUserModel user)
     {
         var conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id); 
@@ -402,11 +363,6 @@ else
         }
     }
 
-    private string CreateWebPath(string relativePath)
-    {
-        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
-    }
-
     private void LoadUserDetails(BasicUserModel user)
     {
         navManager.NavigateTo($"UserDetails/{user.Id}");
@@ -416,10 +372,10 @@ else
     {
         if (isNew == isSortedByNew)
         {
-            return "btn-outline-primary";
+            return "btn-secondary";
         }
 
-        return "btn-outline-danger";
+        return "btn-outline-secondary";
     }
 
     private string SelectedCategoryClass(string category = "All")

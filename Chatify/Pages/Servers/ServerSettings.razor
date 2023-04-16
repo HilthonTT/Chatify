@@ -11,6 +11,7 @@
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
+@inject IJSRuntime JSRuntime
 
 @if (ban is null)
 {
@@ -100,7 +101,7 @@
                                     @bind-Value="channel.ChannelDescription"/>
                             </div>
                             <div class="center-children">
-                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit" data-dismiss="modal" @onclick="UpdateChannel">
+                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
                                     Update
                                 </button>
                             </div>
@@ -130,7 +131,6 @@
                 </div>
                 <div class="modal-body">
                     <EditForm Model="editingServer" OnValidSubmit="(async() => await UpdateServer())">
-                        <DataAnnotationsValidator />
                         <div class="row">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
@@ -140,13 +140,6 @@
                                     @bind-Value="editingServer.ServerName"/>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="server-description">Server Description</label>
-                                <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
-                                <ValidationMessage For="(() => editingServer.ServerDescription)"/>
-                                <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="server-description"
-                                    @bind-Value="editingServer.ServerDescription"/>
-                            </div>
-                            <div class="mb-3">
                                 <label class="form-label fw-bold text-uppercase" for="server-icon">Server Icon</label>
                                 <div class="mt-1">Select an image for your server. This is not required.</div>
                                 <ValidationMessage For="(() => editingServer.PictureName)"/>
@@ -154,8 +147,31 @@
                                     class="form-control bg-dark text-light input-section border-warning"
                                     accept=".png,.jpg,.jpeg"/>
                             </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="category">Category</label>
+                                <ValidationMessage For="(() => editingServer.CategoryId)" />
+                                <div class="mt-1">Choose a category that suits your server's brand.</div>
+                                <InputRadioGroup id="category" @bind-Value="editingServer.CategoryId">
+                                    @if (categories is not null)
+                                    {
+                                        <Virtualize Items="categories" Context="c" OverscanCount="10">
+                                            <div class="radio-item-group">
+                                                <InputRadio Value="@c.Id" id="@c.Id"/>
+                                                <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
+                                            </div>
+                                        </Virtualize>
+                                    }
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="server-description">Server Description</label>
+                                <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
+                                <ValidationMessage For="(() => editingServer.ServerDescription)"/>
+                                <InputTextArea class="form-control bg-dark text-white input-section border-warning" id="server-description"
+                                    @bind-Value="editingServer.ServerDescription"/>
+                            </div>
                             <div class="center-children">
-                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit" data-dismiss="modal" @onclick="UpdateServer">
+                                <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
                                     Update
                                 </button>
                             </div>
@@ -205,6 +221,7 @@
                       <div>
                           <h2 class="fw-bold text-uppercase">@server.ServerName</h2>
                           <p class="h3 text-break">@server.ServerDescription</p>
+                          <p class="h3 text-break">@server.Category.CategoryName</p>
                           <p class="h3">@server.DateCreated.ToString("dd/MM/yyyy")</p>
                           <button class="btn btn-outline-warning w-100" @onclick="(() => LoadSelectedServer(server))"
                             data-toggle="modal" data-target="#serverModal">
@@ -489,6 +506,11 @@ else
         channel = new();
     }
 
+    private async Task CloseModal(string id)
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", id);
+    }
+
     private async Task UpdateChannel()
     {
         var c = await channelData.GetChannelAsync(selectedChannel.Id);
@@ -503,6 +525,8 @@ else
         await channelData.UpdateChannel(c);
         selectedChannel = null;
         channel = new();
+
+        await CloseModal("channelModal");
     }
 
     private async Task UpdateServer()
@@ -528,6 +552,7 @@ else
         }
 
         await serverData.UpdateServer(server);
+        await CloseModal("serverModal");
         editingServer = new();
         file = null;
     }
@@ -652,6 +677,7 @@ else
         editingServer.ServerName = model.ServerName;
         editingServer.ServerDescription = model.ServerDescription;
         editingServer.PictureName = model.PictureName;
+        editingServer.CategoryId = model.Category.Id;
     }
 
     private void ClearAllPages()

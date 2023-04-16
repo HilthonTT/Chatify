@@ -1,0 +1,62 @@
+﻿@inject IConfiguration config
+@inject NavigationManager navManager
+
+<div class="col-xl-4 col-lg-6 mb-3 center-children">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark text-light border-warning p-2 h-100 d-flex flex-column" style="width: 25rem;">
+                @if (string.IsNullOrWhiteSpace(Conversation.PictureName) is false)
+                {
+                    <div class="text-center p-3">
+                        <img src="@CreateWebPath(Conversation.PictureName)" 
+                            class="card-img-top h-100 w-100 rounded-circle" 
+                            alt="@Conversation.OriginalPictureName">
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-3">
+                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                            class="card-img-top h-100 w-100 rounded-circle" 
+                            alt="Placeholder Image">
+                    </div>
+                }
+                <div class="mt-auto">
+                    <div class="card-body text-break">
+                        <h5 class="card-title">@Conversation.GroupName</h5>
+                        <p class="card-text">@Conversation.Category.CategoryName</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Owner: @Conversation.Owner.DisplayName
+                            </small>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-danger">
+                                @Conversation.Participants.Count Participants
+                            </small>
+                        </p>
+                        <button class="btn btn-outline-warning w-100" @onclick="(() => OpenDetails(Conversation))">
+                            Check Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public ConversationModel Conversation { get; set; }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void OpenDetails(ConversationModel conversation)
+    {
+        navManager.NavigateTo($"/Conversation/{conversation.Id}");
+    }
+}

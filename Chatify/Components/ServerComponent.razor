@@ -1,0 +1,132 @@
+﻿@inject IConfiguration config
+@inject NavigationManager navManager
+@inject IServerData serverData
+
+<div class="col-xl-4 col-lg-6 mb-3 center-children">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark text-light border-warning p-2 w-100 h-100" style="width: 20rem;">
+                @if (string.IsNullOrWhiteSpace(Server.PictureName) is false)
+                {
+                    <img src="@CreateWebPath(Server.PictureName)" 
+                        class="card-img-top w-100 h-100 rounded-circle" 
+                        alt="@Server.OriginalPictureName">
+                }
+                else
+                {
+                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                        class="card-img-top w-100 h-100 rounded-circle" 
+                        alt="Placeholder Image">
+                }
+                <div class="mt-auto">
+                    <div class="card-body text-break">
+                        <h5 class="card-title">@Server.ServerName</h5>
+                        <p class="card-text">@Server.ServerDescription</p>
+                        <p class="card-text"><small class="text-muted">Owner: @Server.Owner.DisplayName</small></p>
+                        <p class="card-text"><small class="text-danger">@Server.Members.Count Members</small></p>
+                        @if (IsUserBanned(Server) is false)
+                        {
+                            @if (IsUserInServer(Server) is false)
+                            {
+                                <button class="btn btn-outline-warning w-100" @onclick="(async() => await JoinServer(Server))">
+                                    Join Server
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-warning w-100 mb-2" @onclick="(() => OpenDetails(Server))">
+                                    Check out
+                                </button>
+                                @if (selectedServer is null || selectedServer.Id != Server.Id)
+                                {
+                                    @if (Server.Owner.Id != LoggedInUser.Id)
+                                    {
+                                        <button class="btn btn-outline-danger w-100" @onclick="(() => selectedServer = Server)">
+                                            Leave Server
+                                        </button>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="btn-group w-100">
+                                        <button class="btn btn-outline-success me-1" @onclick="(async() => await LeaveServer(Server))">
+                                            Leave
+                                        </button>
+                                        <button class="btn btn-outline-danger" @onclick="(() => selectedServer = null)">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-danger w-100" disabled>You are currently Banned</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public ServerModel Server { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public UserModel LoggedInUser { get; set; }
+
+    private ServerModel selectedServer;
+
+    private async Task JoinServer(ServerModel server)
+    {
+        server.Members.Add(new BasicUserModel(LoggedInUser));
+        await serverData.UpdateServer(server);
+        OpenDetails(server);
+    }
+
+    private async Task LeaveServer(ServerModel server)
+    {
+        var userToRemove = server.Members.FirstOrDefault(m => m.Id == LoggedInUser?.Id);
+        if (userToRemove is not null)
+        {
+            server.Members.Remove(userToRemove);
+            await serverData.UpdateServer(server);
+        }
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void OpenDetails(ServerModel server)
+    {
+        navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private bool IsUserBanned(ServerModel server)
+    {
+        bool IsUserInBannedList = server.BannedUsers.Any(b => b.Id == LoggedInUser?.Id);
+
+        if (IsUserInBannedList)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsUserInServer(ServerModel server)
+    {
+        if (server.Owner.Id == LoggedInUser?.Id || server.Members.Any(m => m.Id == LoggedInUser?.Id))
+        {
+            return true;
+        }
+
+        return false;
+    }
+}
