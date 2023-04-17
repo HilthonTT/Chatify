@@ -87,15 +87,27 @@
                 <div class="participants-list p-2">
                     <h3 class="fw-bold text-uppercase">Friends</h3>
                     <ul class="list-group">
-                        <Virtualize Items="loggedInUser.Friends" Context="f" OverscanCount="10">
-                            <li class="list-group-item bg-secondary text-white mb-2 clickable" 
-                                @onclick="(async() => await OpenPrivateConversation(f))">
-                                <span class="clickable">
-                                    <span class="oi oi-person mx-1"></span>
-                                    <span>@f.DisplayName</span>
-                                </span>
-                            </li>
-                        </Virtualize>
+                        @if (loggedInUser.Friends.Count > 0)
+                        {
+                            <Virtualize Items="loggedInUser.Friends" Context="f" OverscanCount="10">
+                                <li class="list-group-item bg-secondary text-white mb-2 clickable" 
+                                    @onclick="(async() => await OpenPrivateConversation(f))">
+                                    <span class="clickable">
+                                        <span class="oi oi-person mx-1"></span>
+                                        <span>@f.DisplayName</span>
+                                    </span>
+                                </li>
+                            </Virtualize>
+                        }
+                        else
+                        {
+                            <span class="mb-2 text-center" 
+                                @onclick="LoadUsersPage">
+                                <button class="btn btn-secondary w-100">
+                                    Look for users
+                                </button>
+                            </span>
+                        }
                     </ul>
                 </div>
             }
@@ -113,7 +125,7 @@
                 @if (conversations is not null)
                 {
                     <Virtualize Items="conversations" Context="c" OverscanCount="10">
-                        <ConversationComponent Conversation="c" />
+                        <ConversationComponent Conversation="c" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                 }
             </div>
@@ -361,6 +373,11 @@ else
         {
             navManager.NavigateTo("/MicrosoftIdentity/Account/SignIn", true);
         }
+    }
+
+    private void LoadUsersPage()
+    {
+        navManager.NavigateTo("/Users");
     }
 
     private void LoadUserDetails(BasicUserModel user)

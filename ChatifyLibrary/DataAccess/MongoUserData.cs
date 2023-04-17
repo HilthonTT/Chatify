@@ -7,6 +7,7 @@ public class MongoUserData : IUserData
     private readonly IMongoCollection<UserModel> _users;
     private readonly IMemoryCache _cache;
     private readonly ICachingHelper _helper;
+    private const string CacheName = "UserData";
 
     public MongoUserData(IDbConnection db,
                          IMemoryCache cache,
@@ -21,6 +22,20 @@ public class MongoUserData : IUserData
     {
         var results = await _users.FindAsync(_ => true);
         return await results.ToListAsync();
+    }
+
+    public async Task<List<UserModel>> GetAllUsersCachedAsync()
+    {
+        var output = _cache.Get<List<UserModel>>(CacheName);
+        if (output is null)
+        {
+            var results = await _users.FindAsync(_ => true);
+            output = await results.ToListAsync();
+
+            _cache.Set(CacheName, output, TimeSpan.FromHours(1));
+        }
+
+        return output;
     }
 
     public async Task<List<UserModel>> GetAllUsersServerAsync(ServerModel server)

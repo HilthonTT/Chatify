@@ -7,6 +7,7 @@ public class BasicUserModel
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string DisplayName { get; set; }
+    public string FileName { get; set; }
     public DateTime DateCreated { get; set; }
 
     public BasicUserModel()
@@ -21,6 +22,7 @@ public class BasicUserModel
         LastName = user.LastName;
         DateCreated = user.DateCreated;
         DisplayName = user.DisplayName;
+        FileName = user.FileName;
     }
 
     public string FullName

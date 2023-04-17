@@ -1,0 +1,64 @@
+﻿@inject IConfiguration config
+@inject NavigationManager navManager
+
+<div class="card bg-dark border-white clickable mb-4" @onclick="OpenDetails">
+    <div class="row g-0">
+        <div class="col-md-1">
+            <div class="p-1">
+                @if (string.IsNullOrWhiteSpace(User?.FileName) is false)
+                {
+                    <div class="text-center p-3">
+                        <img src="@CreateWebPath(User.FileName)" 
+                            class="card-img-top rounded-circle" 
+                            alt="@User.FileName"
+                            style="width: 100px; height: 100px;">
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-3">
+                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                            class="card-img-top rounded-circle" 
+                            alt="Placeholder Image"
+                            style="width: 100px; height: 100px;">
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-md-11">
+            <div class="card-body">
+                <h5 class="card-title">@User.DisplayName</h5>
+                <p class="card-text">
+                    Date Created: @User.DateCreated.ToString("dd/MM/yyyy")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public BasicUserModel User { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public UserModel LoggedInUser { get; set; }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void OpenDetails()
+    {
+        if (LoggedInUser.Id == User.Id)
+        {
+            navManager.NavigateTo("/Profile");
+            return;
+        }
+
+        navManager.NavigateTo($"/UserDetails/{User.Id}");
+    }
+}

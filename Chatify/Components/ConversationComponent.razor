@@ -37,9 +37,13 @@
                                 @Conversation.Participants.Count Participants
                             </small>
                         </p>
-                        <button class="btn btn-outline-secondary w-100" @onclick="(() => OpenDetails(Conversation))">
-                            Check Out
-                        </button>
+                        @if (CanUserCheckOut())
+                        {
+                            <button class="btn btn-outline-secondary w-100" 
+                                @onclick="(() => OpenDetails(Conversation))">
+                                Check Out
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
@@ -52,6 +56,10 @@
     [EditorRequired]
     public ConversationModel Conversation { get; set; }
 
+    [Parameter]
+    [EditorRequired]
+    public UserModel LoggedInUser { get; set; }
+
     private string CreateWebPath(string relativePath)
     {
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
@@ -60,5 +68,16 @@
     private void OpenDetails(ConversationModel conversation)
     {
         navManager.NavigateTo($"/Conversation/{conversation.Id}");
+    }
+
+    private bool CanUserCheckOut()
+    {
+        if (Conversation.Participants.Select(p => p.Id == LoggedInUser.Id) is not null || 
+            Conversation.Owner.Id == LoggedInUser.Id)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

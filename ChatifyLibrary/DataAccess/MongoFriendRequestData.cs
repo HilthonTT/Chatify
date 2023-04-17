@@ -81,15 +81,27 @@ public class MongoFriendRequestData : IFriendRequestData
         return await results.FirstOrDefaultAsync();
     }
 
-    public async Task<FriendRequestModel> GetFriendRequestReceiverSenderAsync(
+    public async Task<FriendRequestModel> GetAlreadySendedFriendRequestAsync(
         UserModel sender,
         UserModel receiver)
     {
         var filter = Builders<FriendRequestModel>.Filter.Or(
                 Builders<FriendRequestModel>.Filter.Eq(f => f.Receiver.Id, receiver.Id),
-                Builders<FriendRequestModel>.Filter.Eq(f => f.Sender.Id, sender.Id),
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Sender.Id, sender.Id));
+
+        var results = await _friendsRequest.FindAsync(filter);
+        return await results.FirstOrDefaultAsync();
+    }
+
+    public async Task<FriendRequestModel> GetSenderAndReceiverFriendRequestAsync(
+        UserModel sender,
+        UserModel receiver)
+    {
+        var filter = Builders<FriendRequestModel>.Filter.Or(
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Receiver.Id, receiver.Id),
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Receiver.Id, sender.Id),
                 Builders<FriendRequestModel>.Filter.Eq(f => f.Sender.Id, receiver.Id),
-                Builders<FriendRequestModel>.Filter.Eq(f => f.Receiver.Id, sender.Id));
+                Builders<FriendRequestModel>.Filter.Eq(f => f.Sender.Id, sender.Id));
 
         var results = await _friendsRequest.FindAsync(filter);
         return await results.FirstOrDefaultAsync();

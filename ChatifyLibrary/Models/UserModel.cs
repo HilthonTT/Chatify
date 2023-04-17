@@ -6,6 +6,7 @@ public class UserModel
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; }
     public string ObjectIdentifier { get; set; }
+    public string FileName { get; set; }
     public string FriendCode { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }

@@ -5,45 +5,105 @@
 @inject IFriendRequestData requestData
 @inject IPrivateConversationData privateConversationData
 @inject IBanData banData
+@inject ICodeGenerator codeGenerator
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
+@inject IJSRuntime JSRuntime
+
+<div class="modal fade" id="friendModal" tabindex="-1" role="dialog" aria-labelledby="friendModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="friendModalLongTitle">
+                Friend @user?.DisplayName
+            </h5>
+                <button type="button" 
+                    class="btn-close btn-close-white text-white" 
+                    data-dismiss="modal" 
+                    aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+                    {
+                        <div class="text-danger">@errorMessage</div>
+                    }
+                    <div class="mt-1">Are you sure you want to add @user?.DisplayName?</div>
+                    <div class="center-children">
+                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="SendFriendRequest">
+                            Send Friend Request
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" 
+                class="btn btn-secondary"
+                data-dismiss="modal">
+                Close
+            </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="unfriendModal" tabindex="-1" role="dialog" aria-labelledby="unfriendModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="unfriendModalLongTitle">
+                Friend @user?.DisplayName
+            </h5>
+                <button type="button" 
+                    class="btn-close btn-close-white text-white" 
+                    data-dismiss="modal" 
+                    aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+                    {
+                        <div class="text-danger">@errorMessage</div>
+                    }
+                    <div class="mt-1">Are you sure you want to unfriend @user?.DisplayName?</div>
+                    <div class="center-children">
+                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="UnfriendUser">
+                            Unfriend @user?.DisplayName
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" 
+                class="btn btn-secondary"
+                data-dismiss="modal">
+                Close
+            </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @if (ban is null)
 {
     <h1 class="text-center text-uppercase fw-bold mb-4">@user?.DisplayName's Profile</h1>
-
-    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-    {
-        <div class="row justify-content-center">
-            <div class="col-lg-10 col-md-8">
-                <div class="row alert bg-warning text-black" role="alert">
-                    <div class="close-button-section">
-                        <button class="btn btn-close" @onclick="(() => errorMessage = string.Empty)" />
-                    </div>
-                    <div class="col-12">
-                        <h4 class="alert-heading">Error!</h4>
-                        <p>@errorMessage</p>
-                        <hr />
-                        <p class="mb-0">If you think this is a bug, please contact the administrator.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
 
     <div class="rounded rounded-3 shadow">
       <div class="card-body">
         <div class="row justify-content-center">
           <div class="col-lg-10 col-md-8 card bg-dark p-4">
             <div class="row">
-              <div class="col-11">
+              <div class="close-button-section">
+                  <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+              </div>
+              <div class="col-12">
                 <div class="d-flex justify-content-start">
                     <h2>@user?.DisplayName's Account</h2>
                 </div>
                 <p>This user joined Chatify on @user?.DateCreated.ToString("dd/MM/yyyy")</p>
                 @if (loggedInUser?.Id != user?.Id)
                 {
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between mb-4">
                         <button class="btn btn-secondary" @onclick="(async() => await OpenPrivateConversation(user))">
                             Launch Conversation
                         </button>
@@ -52,31 +112,26 @@
                         </AuthorizeView>
                     </div>
                 }
-                <hr />
                 <div>
-                    <h2>Friend Request</h2>
-                    <div> 
+                    <div class="mb-3"> 
                         @if (loggedInUser?.Friends.Where(u => u.Id == user?.Id).FirstOrDefault()?.Id == user?.Id)
-                        { 
+                        {
                             @if (chosenUser?.Id != user?.Id)
                             {
-                                <button class="btn btn-outline-secondary w-100" @onclick="(() => chosenUser = user)">
+                                <button class="btn btn-outline-secondary w-100" 
+                                    data-toggle="modal" 
+                                    data-target="#unfriendModal">
                                     Unfriend
                                 </button>     
-                            }
-                            else
-                            {
-                                <div class="btn-group w-100">
-                                    <button class="btn btn-outline-success me-1" @onclick="(async() => await UnfriendUser(user))">Unfriend</button>
-                                    <button class="btn btn-outline-danger" @onclick="(() => chosenUser = null)">Cancel</button>
-                                </div>
                             }
                         }
                         else
                         {
                             @if (user?.Id != loggedInUser?.Id)
                             {
-                                <button class="btn btn-outline-warning w-100" @onclick="(async() => await SendFriendRequest())">
+                                <button class="btn btn-outline-secondary w-100" 
+                                    data-toggle="modal" 
+                                    data-target="#friendModal">
                                     Send Friend Request
                                 </button>
                             }
@@ -89,29 +144,19 @@
                     <div>
                       <h2>@user?.DisplayName's Friends</h2>
                       <Virtualize Items="user?.Friends" Context="f" OverscanCount="10">
-                          <div class="bg-black p-4 clickable" @onclick="(() => OpenDetailsFriend(f))">
-                            <div class="fw-bold">
-                              @f.DisplayName
-                            </div>
-                            <div>
-                              @f.DisplayName has joined Chatify on @f.DateCreated.ToString("dd/MM/yyyy")
-                            </div>
-                          </div>
+                          <BasicUserComponent User="f" LoggedInUser="loggedInUser"/>
                       </Virtualize>
                     </div>
                 }
-                @if (conversations?.Count > 0)
-                {
-                    <hr />
-                    <h2 class="card-title mt-4">@user?.DisplayName's Conversations</h2>
-                    <Virtualize Items="conversations" Context="c" OverscanCount="10">
-                        <ConversationComponent Conversation="c"/>
-                    </Virtualize> 
-                }
-              </div>
-              <div class="col-1">
-                <div class="close-button-section">
-                  <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                <div class="row">
+                    @if (conversations?.Count > 0)
+                    {
+                        <hr />
+                        <h2 class="card-title mt-4">@user?.DisplayName's Conversations</h2>
+                        <Virtualize Items="conversations" Context="c" OverscanCount="10">
+                            <ConversationComponent Conversation="c" LoggedInUser="loggedInUser"/>
+                        </Virtualize> 
+                    }
                 </div>
               </div>
             </div>
@@ -152,6 +197,11 @@ else
         }
     }
 
+    private async Task CloseModal(string id)
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", id);
+    }
+
     private async Task OpenPrivateConversation(UserModel user)
     {
         var conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id);
@@ -184,12 +234,12 @@ else
 
     private async Task SendFriendRequest()
     {
+        string objectId = await codeGenerator.GenerateFriendRequestIdentifierAsync();
+
         if (loggedInUser is null) return;
 
         var model = await userData.GetUserFriendCodeAsync(user.FriendCode);
-        var friendRequest = friendRequests.FirstOrDefault(f => f.Receiver.Id == user.Id);
-        var isAlreadyFriendOrRequested = loggedInUser.Friends.Any(f => f.Id == model.Id) ||
-            friendRequest?.Sender.Id == loggedInUser.Id;
+        var friendRequest = await requestData.GetAlreadySendedFriendRequestAsync(loggedInUser, user);
 
         if (loggedInUser.Id == model.Id)
         {
@@ -203,7 +253,7 @@ else
             return;
         }
 
-        if (isAlreadyFriendOrRequested)
+        if (friendRequest is not null)
         {
             errorMessage = "You have already sent a friend request or have this person in your friend list.";
             return;
@@ -211,28 +261,30 @@ else
 
         var newFriendRequest = new FriendRequestModel
         {
+            ObjectIdentifier = objectId,
             Sender = new BasicUserModel(loggedInUser),
             Receiver = new BasicUserModel(model),
         };
 
         await requestData.CreateFriendRequest(newFriendRequest);
         navManager.NavigateTo($"/userDetails/{Id}", true);
+        await CloseModal("friendModal");
     }
 
-    private async Task UnfriendUser(UserModel user)
+    private async Task UnfriendUser()
     {
         if (loggedInUser is null) return;
 
-        var friendRequest = await requestData.GetFriendRequestReceiverSenderAsync(loggedInUser, user);
+        var friendRequest = await requestData.GetSenderAndReceiverFriendRequestAsync(loggedInUser, user);
 
         var friendToRemove = user.Friends.FirstOrDefault(f => f.Id == new BasicUserModel(loggedInUser).Id);
-        if (friendToRemove != null)
+        if (friendToRemove is not null)
         {
             user.Friends.Remove(friendToRemove);
         }
 
         var loggedInUserFriendToRemove = loggedInUser.Friends.FirstOrDefault(f => f.Id == new BasicUserModel(user).Id);
-        if (loggedInUserFriendToRemove != null)
+        if (loggedInUserFriendToRemove is not null)
         {
             loggedInUser.Friends.Remove(loggedInUserFriendToRemove);
         }
@@ -242,21 +294,13 @@ else
         await userData.UpdateUser(user);
         await userData.UpdateUser(loggedInUser);
         navManager.NavigateTo($"/userDetails/{Id}", true);
+
+        await CloseModal("unfriendModal");
     }
 
     private void ClosePage()
     {
         navManager.NavigateTo("/");
-    }
-
-    private void OpenDetails(BasicUserModel user)
-    {
-        navManager.NavigateTo($"/userDetails/{user.Id}");
-    }
-
-    private void OpenDetailsFriend(BasicUserModel user)
-    {
-        navManager.NavigateTo($"/userDetails/{user.Id}", true);
     }
 
     private void OpenAdminBan(UserModel user)

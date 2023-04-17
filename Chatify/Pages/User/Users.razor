@@ -3,25 +3,32 @@
 @attribute [Authorize]
 @inject IUserData userData
 @inject IBanData banData
+@inject IConfiguration config
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
+@inject ProtectedSessionStorage sessionStorage
 
 @if (ban is null)
 {
     <h1 class="text-center text-uppercase fw-bold mb-4">Users</h1>
 
+    <div class="row mb-4">
+        <div class="text-uppercase fw-bold">@users?.Count users</div>
+        <div class="col-md-12 col-xl-12">
+            <input type="text" placeholder="Search"
+                aria-label="Search Box" class="form-control bg-dark text-light input-section"
+                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-xl-12 col-lg-10">
             <div class="row">
-                <div class="col-11">
+                <div class="col-12">
                     @if (users?.Count > 0)
                     {
                         <Virtualize Items="users" Context="u" OverscanCount="10">
-                            <div @onclick="(() => OpenDetails(u))" class="user-card bg-dark">
-                                <div class="user-card__name">@u.DisplayName</div>
-                                <div class="user-card__friend-code">Friend Code: @u.FriendCode</div>
-                                <div class="user-card__date">Joined on the @u.DateCreated.ToString("dd/MM/yyyy")</div>
-                            </div>
+                            <UserComponent User="u" LoggedInUser="loggedInUser"/>
                         </Virtualize>
                     }
                     else
@@ -32,11 +39,6 @@
                             </div>
                         </div>
                     }
-                </div>
-                <div class="col-1">
-                    <div class="close-button-section">
-                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
-                    </div>
                 </div>
             </div>
         </div>
@@ -62,36 +64,34 @@ else
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
-        await FilterUsers();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await FilterUsers();
+            StateHasChanged();
+        }
     }
 
     private async Task FilterUsers()
     {
-        var output = await userData.GetAllUsersAsync();
+        var output = await userData.GetAllUsersCachedAsync();
 
         if (string.IsNullOrWhiteSpace(SearchText) is false)
         {
-            output = output.Where(u => u.FirstName.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase) ||
-                u.LastName.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            output = output.Where(u => u.DisplayName.Contains(
+                SearchText, StringComparison.InvariantCultureIgnoreCase))
+            .ToList();
         }
 
         users = output;
     }
 
-    private void ClosePage()
+    private async Task OnSearchInput(string searchInput)
     {
-        navManager.NavigateTo("/");
-    }
-
-    private void OpenDetails(UserModel user)
-    {
-        if (user.Id == loggedInUser.Id)
-        {
-            navManager.NavigateTo("/Profile");
-        }
-        else
-        {
-            navManager.NavigateTo($"/UserDetails/{user.Id}");
-        }
+        SearchText = searchInput;
+        await FilterUsers();
     }
 }

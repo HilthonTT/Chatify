@@ -5,6 +5,7 @@
 @inject IUserData userData
 @inject IBanData banData
 @inject IConfiguration config
+@inject IJSRuntime JSRuntime
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 
@@ -48,9 +49,7 @@
                                 </div>
                                 <div class="center-children">
                                     <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
-                                        type="submit" 
-                                        data-dismiss="modal" 
-                                        @onclick="UpdateConversation">
+                                        type="submit">
                                         Update
                                     </button>
                                 </div>
@@ -130,10 +129,6 @@ else
     private List<CategoryModel> categories;
     private UserModel loggedInUser;
     private BanModel ban;
-    private string currentEditingGroupName = "";
-    private string editedGroupName = "";
-    private string currentEditingCategoryId = "";
-    private string editedCategoryId = "";
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
     private IBrowserFile? file;
@@ -159,6 +154,11 @@ else
         editingConversation.PictureName = selectedConversation.PictureName;
     }
 
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", "messageModal");
+    }
+
     private async Task UpdateConversation()
     {
         string relativePath = await CaptureFile();
@@ -180,10 +180,12 @@ else
             conversation.OriginalPictureName = originalPictureName;
             conversation.PictureExtension = pictureExtension;
         }
-        
+
         await conversationData.UpdateConversation(conversation);
         editingConversation = new();
         file = null;
+
+        await CloseModal();
     }
 
     private void ClosePage(ConversationModel conversation)
