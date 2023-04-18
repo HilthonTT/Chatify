@@ -6,7 +6,7 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
-<h1 class="text-uppercase fw-bold text-center mb-4 text-light">Ban Appeals</h1>
+<h1 class="page-heading mb-4">Ban Appeals</h1>
 
 <div class="row">
     <div class="text-uppercase fw-bold">@appeals?.Count Ban Appeals</div>
@@ -37,7 +37,7 @@
 <div class="row mt-2">
     <div class="col-md-12 col-xl-12">
         <input type="text" placeholder="Search"
-            aria-label="Search Box" class="form-control bg-dark text-light input-section border-warning"
+            aria-label="Search Box" class="form-control bg-dark text-light input-section"
             @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
     </div>
     <div class="col-12 d-block d-md-none">
@@ -66,13 +66,14 @@
             <div class="participants-list p-2">
                 <h3 class="fw-bold text-uppercase">Participants</h3>
                 <ul class="list-group">
-                    <Virtualize Items="users" Context="u" OverscanCount="10">
+                    @if (users is not null)
+                    {
                         <li class="list-group-item @SelectedUsernameClass(selectedUsername) text-white mb-2 clickable" 
                         @onclick="(() => showUsernames = true)">
                             <span class="oi oi-person me-1"></span>
                             @selectedUsername
                         </li>
-                    </Virtualize>
+                    }
                 </ul>
             </div>
         }
@@ -84,11 +85,7 @@
         @if (appeals is not null)
         {
             <Virtualize Items="appeals" Context="a" OverscanCount="10">
-                <div class="user-card bg-dark" @onclick="(() => OpenDetails(a))">
-                    <div class="user-card__name">@a.AppealingUser.DisplayName</div>
-                    <div class="user-card__friend-code">Banned Until: @a.Ban.BannedUntil.ToString("dd/MM/yyyy")</div>
-                    <div class="user-card__date">Status: @((a.IsApproved ? "Approved" : "Pending"))</div>
-                </div>
+                <BanAppealComponent @key="a.Id" BanAppeal="a"/>
             </Virtualize>
         }
     </div>
@@ -130,7 +127,7 @@
     {
         loggedInUser = await authProvider.GetUserFromAuth(userData);
         appeals = await appealData.GetAllBanAppealsAsync();
-        users = await userData.GetAllUsersAsync();
+        users = await userData.GetAllUsersCachedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -148,7 +145,7 @@
         var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
         searchText = stringResults.Success ? stringResults.Value : "";
         stringResults = await sessionStorage.GetAsync<string>(nameof(selectedUsername));
-        selectedUsername = stringResults.Success ? stringResults.Value : "";
+        selectedUsername = stringResults.Success ? stringResults.Value : "All";
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
         isSortedByNew = boolResults.Success ? boolResults.Value : true;
         boolResults = await sessionStorage.GetAsync<bool>(nameof(filterByApproved));
@@ -224,11 +221,6 @@
     {
         filterByApproved = isApproved;
         await FilterAppeals();
-    }
-
-    private void OpenDetails(BanAppealModel appeal)
-    {
-        navManager.NavigateTo($"/BanAppealDetails/{appeal.Id}");
     }
 
     private string SortedByNewClass(bool isNew)

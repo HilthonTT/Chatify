@@ -5,7 +5,7 @@
     <div class="row g-0">
         <div class="col-md-1">
             <div class="p-1">
-                @if (string.IsNullOrWhiteSpace(User?.FileName) is false)
+                @if (string.IsNullOrWhiteSpace(User.FileName) is false)
                 {
                     <div class="text-center p-3">
                         <img src="@CreateWebPath(User.FileName)" 
@@ -53,7 +53,7 @@
 
     private void OpenDetails()
     {
-        if (LoggedInUser.Id == User.Id)
+        if (LoggedInUser?.Id == User?.Id)
         {
             navManager.NavigateTo("/Profile");
             return;

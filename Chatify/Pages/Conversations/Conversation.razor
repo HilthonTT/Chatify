@@ -69,7 +69,7 @@
 
 @if (ban is null)
 {
-    <h1 class="text-uppercase fw-bold text-center">@conversation?.GroupName</h1>
+    <h1 class="page-heading mb-4">@conversation?.GroupName</h1>
 
     @if (string.IsNullOrWhiteSpace(errorMessage) is false)
     {
@@ -161,7 +161,7 @@
                 <div class="col-md-4 col-xl-2">
                     @if (loggedInUser?.Id == conversation?.Owner.Id)
                     {
-                        <div class="bg-dark p-2 mb-2">
+                        <div class="bg-dark p-2 mb-4 settings-box">
                             <h3>Settings</h3>
                             <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => SettingsPage(conversation))">
                                 Edit

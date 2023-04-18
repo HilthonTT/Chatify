@@ -68,7 +68,8 @@
 
 @if (ban is null)
 {
-    <h1 class="text-center text-uppercase fw-bold">@selectedChannel?.ChannelName</h1>
+    <h1 class="page-heading">@selectedChannel?.ChannelName</h1>
+
     <p class="text-uppercase text-center">@selectedChannel?.ChannelDescription</p>
 
     @if (string.IsNullOrWhiteSpace(errorMessage) is false)
@@ -177,7 +178,7 @@
                 <div class="col-md-4 col-xl-2">
                     @if (loggedInUser?.Id == server?.Owner.Id)
                     {
-                        <div class="bg-dark p-2 mb-2">
+                        <div class="bg-dark p-2 mb-4 settings-box">
                             <h3>Settings</h3>
                             <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => SettingsPage(server))">
                                 Edit

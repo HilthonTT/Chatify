@@ -11,7 +11,7 @@
 
 @if (ban is null)
 {
-    <h1 class="text-uppercase fw-bold text-center mb-4 text-light">Explore Servers!</h1>
+    <h1 class="page-heading mb-4">Explore Servers!</h1>
 
     <div class="text-center">
         <button class="btn btn-outline-secondary btn-lg text-uppercase" @onclick="LoadCreatePage">
@@ -95,7 +95,7 @@
                 @if (servers is not null)
                 {
                     <Virtualize Items="servers" Context="s" OverscanCount="10">
-                        <ServerComponent Server="s" LoggedInUser="loggedInUser"/>
+                        <ServerComponent @key="s.Id" Server="s" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                 }
             </div>

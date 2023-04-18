@@ -6,7 +6,7 @@
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 
-<h1 class="text-center text-uppercase fw-bold mb-4">Ban Appeal</h1>
+<h1 class="page-heading mb-4">Ban Appeal</h1>
 
 @if (banAppeal is null)
 {
@@ -19,7 +19,7 @@
                 <DataAnnotationsValidator />
                 <div class="mb-3">
                     <label class="form-label fw-bold text-uppercase">Reason of ban</label>
-                    <div class="mt-1">@ban?.Reason</div>
+                    <div class="mt-1 text-break">@ban?.Reason</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold text-uppercase" for="appeal-reason">Appeal Reason</label>
@@ -92,7 +92,7 @@ else
             banAppeal = await appealData.GetBanAppealFromBan(ban);
         }
 
-        //if (ban?.UserBanned.Id != loggedInUser?.Id) navManager.NavigateTo("/");
+        if (ban?.UserBanned.Id != loggedInUser?.Id) navManager.NavigateTo("/");
     }
 
     private async Task CreateBanAppeal()

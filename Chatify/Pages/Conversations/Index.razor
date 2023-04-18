@@ -12,7 +12,8 @@
 
 @if (ban is null)
 {
-    <h1 class="text-uppercase fw-bold text-center mb-4 text-light">Conversations</h1>
+    <h1 class="page-heading mb-4">Conversations</h1>
+
 
     <div class="text-center">
         <button class="btn btn-outline-secondary btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
@@ -125,7 +126,7 @@
                 @if (conversations is not null)
                 {
                     <Virtualize Items="conversations" Context="c" OverscanCount="10">
-                        <ConversationComponent Conversation="c" LoggedInUser="loggedInUser"/>
+                        <ConversationComponent @key="c.Id" Conversation="c" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                 }
             </div>

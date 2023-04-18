@@ -11,7 +11,7 @@
 
 @if (ban is null)
 {
-   <h1 class="text-uppercase fw-bold text-center mb-4">Update @conversation?.GroupName</h1>
+   <h1 class="page-heading mb-4">Update @conversation?.GroupName</h1>
 
     @if (loggedInUser?.Id != conversation?.Owner.Id)
     {
@@ -70,7 +70,7 @@
 
         @if (conversation is not null)
         {
-            <div class="rounded rounded-3 shadow">
+            <div class="rounded rounded-3">
                 <div class="card-body">
                     <div class="row justify-content-center">
                         <div class="col-lg-10 col-md-8 card bg-dark p-4">

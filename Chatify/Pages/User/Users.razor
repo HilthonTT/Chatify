@@ -10,7 +10,7 @@
 
 @if (ban is null)
 {
-    <h1 class="text-center text-uppercase fw-bold mb-4">Users</h1>
+    <h1 class="page-heading mb-4">Users</h1>
 
     <div class="row mb-4">
         <div class="text-uppercase fw-bold">@users?.Count users</div>
@@ -28,7 +28,7 @@
                     @if (users?.Count > 0)
                     {
                         <Virtualize Items="users" Context="u" OverscanCount="10">
-                            <UserComponent User="u" LoggedInUser="loggedInUser"/>
+                            <UserComponent @key="u.Id" User="u" LoggedInUser="loggedInUser"/>
                         </Virtualize>
                     }
                     else

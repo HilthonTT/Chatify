@@ -6,10 +6,10 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
-<h1 class="text-uppercase fw-bold text-center mb-4 text-light">Bans</h1>
+<h1 class="page-heading mb-4">Bans</h1>
 
 <div class="row">
-    <div class="text-uppercase fw-bold">@bans?.Count Current Active Ban</div>
+    <div class="text-uppercase fw-bold">@bans?.Count Current Active Bans</div>
     <div class="col-md-8 col-xl-12 btn-group">
         <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)"
             @onclick="(async() => await OrderByNew(true))">
@@ -26,36 +26,97 @@
     <div class="col-md-12 col-xl-12">
         <input type="text" placeholder="Search"
             aria-label="Search Box" class="form-control bg-dark text-light input-section"
-            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+            @oninput="(async(txt) => await OnBanSearchInput((string)txt.Value))"/>
+    </div>
+    <div class="col-12 d-block d-md-none">
+        @if (users is not null && showUsernames)
+        {
+            <div class="participants-list p-2">
+                <h3 class="fw-bold text-uppercase">Participants</h3>
+                <ul class="list-group">
+                    <li class="list-group-item @SelectedUsernameClass() text-white mb-2 clickable" 
+                        @onclick="(() => OnUsernameClick())">
+                        <span class="oi oi-person me-1"></span>
+                        All
+                    </li>
+                    <Virtualize Items="users" Context="u" OverscanCount="10">
+                        <li class="list-group-item @SelectedUsernameClass(u.DisplayName) text-white mb-2 clickable" 
+                        @onclick="(() => OnUsernameClick(u.DisplayName))">
+                            <span class="oi oi-person me-1"></span>
+                            @u.DisplayName
+                        </li>
+                    </Virtualize>
+                </ul>
+            </div>
+        }
+        else
+        {
+            <div class="participants-list p-2">
+                <h3 class="fw-bold text-uppercase">Participants</h3>
+                <ul class="list-group">
+                    @if (users is not null)
+                    {
+                        <li class="list-group-item @SelectedUsernameClass(selectedUsername) text-white mb-2 clickable" 
+                        @onclick="(() => showUsernames = true)">
+                            <span class="oi oi-person me-1"></span>
+                            @selectedUsername
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
     </div>
 </div>
 
 <div class="row mt-4">
-    <div class="col-md-10 col-xl-12">
+    <div class="col-md-9 col-xl-10">
         @if (bans is not null)
         {
             <Virtualize Items="bans" Context="b" OverscanCount="10">
-                <div class="user-card bg-dark" @onclick="(() => OpenDetails(b))">
-                    <div class="user-card__name">@b.UserBanned.DisplayName - @b.UserBanned.Id</div>
-                    <div class="user-card__friend-code">Banned Until: @b.BannedUntil.ToString("dd/MM/yyyy")</div>
-                    <div class="user-card__date">Status: @((b.IsActive ? "Active" : "Not Active"))</div>
-                </div>
+                 <BanComponent @key="b.Id" Ban="b"/>
             </Virtualize>
+        }
+    </div>
+    <div class="col-md-3 col-xl-2 d-none d-md-block">
+        @if (users is not null)
+        {
+            <div class="participants-list p-2">
+                <h3 class="fw-bold text-uppercase">Participants</h3>
+                <ul class="list-group">
+                    <li class="list-group-item @SelectedUsernameClass() text-white mb-2 clickable" 
+                        @onclick="(() => OnUsernameClick())">
+                        <span class="oi oi-person me-1"></span>
+                        All
+                    </li>
+                    <Virtualize Items="users" Context="u" OverscanCount="10">
+                        <li class="list-group-item @SelectedUsernameClass(u.DisplayName) text-white mb-2 clickable" 
+                        @onclick="(() => OnUsernameClick(u.DisplayName))">
+                            <span class="oi oi-person me-1"></span>
+                            @u.DisplayName
+                        </li>
+                    </Virtualize>
+                </ul>
+            </div>
         }
     </div>
 </div>
 
 @code {
     private UserModel loggedInUser;
+    private List<UserModel> users;
     private List<BanModel> bans;
 
-    private string searchText = "";
+    private string searchBanText = "";
+    private string searchUserText = "";
+    private string selectedUsername = "";
     private bool isSortedByNew = true;
+    private bool showUsernames = false;
 
     protected override async Task OnInitializedAsync()
     {
         loggedInUser = await authProvider.GetUserFromAuth(userData);
         bans = await banData.GetAllBansAsync();
+        users = await userData.GetAllUsersCachedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -70,15 +131,21 @@
 
     private async Task LoadFilterState()
     {
-        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
-        searchText = stringResults.Success ? stringResults.Value : "";
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchBanText));
+        searchBanText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(searchUserText));
+        searchUserText = stringResults.Success ? stringResults.Value : "";
+        stringResults = await sessionStorage.GetAsync<string>(nameof(selectedUsername));
+        selectedUsername = stringResults.Success ? stringResults.Value : "All";
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
         isSortedByNew = boolResults.Success ? boolResults.Value : true;
     }
 
     private async Task SaveFilterState()
     {
-        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(selectedUsername), selectedUsername);
+        await sessionStorage.SetAsync(nameof(searchBanText), searchBanText);
+        await sessionStorage.SetAsync(nameof(searchUserText), searchUserText);
         await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
     }
 
@@ -86,15 +153,20 @@
     {
         var output = await banData.GetAllBansAsync();
 
-        if (string.IsNullOrWhiteSpace(searchText) is false)
+        if (selectedUsername != "All")
+        {
+            output = output.Where(b => b.UserBanned?.DisplayName == selectedUsername).ToList();
+        }
+
+        if (string.IsNullOrWhiteSpace(searchBanText) is false)
         {
             output = output.Where(
                 b => b.Reason.Contains(
-                    searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                    searchBanText, StringComparison.InvariantCultureIgnoreCase) ||
                 b.UserBanned.DisplayName.Contains(
-                    searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                    searchBanText, StringComparison.InvariantCultureIgnoreCase) ||
                 b.UserBanned.Id.Contains(
-                    searchText, StringComparison.InvariantCultureIgnoreCase))
+                    searchBanText, StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
         }
 
@@ -112,21 +184,44 @@
         await SaveFilterState();
     }
 
+    private async Task FilterUsers()
+    {
+        var output = await userData.GetAllUsersCachedAsync();
+
+        if (string.IsNullOrWhiteSpace(searchUserText) is false)
+        {
+            output = output.Where(u => u.DisplayName.Contains(
+                searchUserText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        users = output;
+        await SaveFilterState();
+    }
+
+    private async Task OnUsernameClick(string username = "All")
+    {
+        selectedUsername = username;
+        showUsernames = false;
+        await FilterBans();
+    }
+
     private async Task OrderByNew(bool isNew)
     {
         isSortedByNew = isNew;
         await FilterBans();
     }
 
-    private async Task OnSearchInput(string searchInput)
+    private async Task OnBanSearchInput(string searchInput)
     {
-        searchText = searchInput;
+        searchBanText = searchInput;
         await FilterBans();
     }
 
-    private void OpenDetails(BanModel ban)
+    private async Task OnUserSearchInput(string searchInput)
     {
-        navManager.NavigateTo($"/BanDetails/{ban.Id}");
+        searchUserText = searchInput;
+        await FilterUsers();
     }
 
     private string SortedByNewClass(bool isNew)
@@ -137,5 +232,15 @@
         }
 
         return "btn-outline-secondary";
+    }
+
+    private string SelectedUsernameClass(string username = "All")
+    {
+        if (username == selectedUsername)
+        {
+            return "bg-secondary";
+        }
+
+        return "bg-dark";
     }
 }

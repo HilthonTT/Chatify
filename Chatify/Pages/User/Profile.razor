@@ -51,18 +51,16 @@
 
 @if (ban is null)
 {
-    <h1 class="text-center text-uppercase fw-bold mb-4">My Profile</h1>
+    <h1 class="page-heading mb-4">My Profile</h1>
 
     <div class="rounded rounded-3">
       <div class="card-body">
         <div class="row justify-content-center">
           <div class="col-lg-10 col-md-8 card bg-dark p-4">
             <div class="row">
-
-                <div class="close-button-section">
+              <div class="close-button-section">
                   <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
-                </div>
-
+              </div>
               <div class="col-12">
                 <div class="text-center mb-4">
                   <h2>My Account</h2>
@@ -100,7 +98,7 @@
                 {
                     <hr />
                     <Virtualize Items="loggedInUser?.Friends" Context="f" OverscanCount="10">
-                        <BasicUserComponent User="f" LoggedInUser="loggedInUser"/>
+                        <BasicUserComponent @key="f.Id" User="f" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                     <hr />
                 }
@@ -108,7 +106,7 @@
                     @if (conversations?.Count > 0)
                     {
                         <Virtualize Items="conversations" Context="c" OverscanCount="10">
-                            <ConversationComponent Conversation="c" LoggedInUser="loggedInUser"/>
+                            <ConversationComponent @key="c.Id" Conversation="c" LoggedInUser="loggedInUser"/>
                         </Virtualize>
                     }
                 </div>

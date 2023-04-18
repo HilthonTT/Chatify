@@ -1,6 +1,5 @@
 ﻿@page "/Create"
 @attribute [Authorize]
-@using Chatify.Models
 @inject ICategoryData categoryData
 @inject IConversationData conversationData
 @inject IUserData userData
@@ -13,7 +12,7 @@
 
 @if (ban is null)
 {
-    <h1 class="text-center text-uppercase fw-bold mb-4">Make A Conversation</h1>
+    <h1 class="page-heading mb-4">Make A Conversation</h1>
 
     @if (string.IsNullOrWhiteSpace(errorMessage) is false)
     {

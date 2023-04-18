@@ -86,7 +86,7 @@
 
 @if (ban is null)
 {
-    <h1 class="text-center text-uppercase fw-bold mb-4">@user?.DisplayName's Profile</h1>
+    <h1 class="page-heading mb-4">@user?.DisplayName's Profile</h1>
 
     <div class="rounded rounded-3 shadow">
       <div class="card-body">
@@ -112,32 +112,6 @@
                         </AuthorizeView>
                     </div>
                 }
-                <div>
-                    <div class="mb-3"> 
-                        @if (loggedInUser?.Friends.Where(u => u.Id == user?.Id).FirstOrDefault()?.Id == user?.Id)
-                        {
-                            @if (chosenUser?.Id != user?.Id)
-                            {
-                                <button class="btn btn-outline-secondary w-100" 
-                                    data-toggle="modal" 
-                                    data-target="#unfriendModal">
-                                    Unfriend
-                                </button>     
-                            }
-                        }
-                        else
-                        {
-                            @if (user?.Id != loggedInUser?.Id)
-                            {
-                                <button class="btn btn-outline-secondary w-100" 
-                                    data-toggle="modal" 
-                                    data-target="#friendModal">
-                                    Send Friend Request
-                                </button>
-                            }
-                        }
-                    </div>     
-                </div>
                 @if (user?.Friends.Count > 0)
                 {
                     <hr />
@@ -182,8 +156,6 @@ else
     private ConversationModel archivingConversation;
     private BanModel ban;
     private string errorMessage = "";
-
-    private UserModel chosenUser;
 
     protected override async Task OnInitializedAsync()
     {

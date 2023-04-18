@@ -1,16 +1,17 @@
 ﻿@inject IConfiguration config
 @inject NavigationManager navManager
 
+
 <div class="card bg-dark border-white clickable mb-4" @onclick="OpenDetails">
     <div class="row g-0">
         <div class="col-md-1">
             <div class="p-1">
-                @if (string.IsNullOrWhiteSpace(User.FileName) is false)
+                @if (string.IsNullOrWhiteSpace(Ban.UserBanned.FileName) is false)
                 {
                     <div class="text-center p-3">
-                        <img src="@CreateWebPath(User.FileName)" 
+                        <img src="@CreateWebPath(Ban.UserBanned.FileName)" 
                             class="card-img-top rounded-circle" 
-                            alt="@User.FileName"
+                            alt="@Ban.UserBanned.FileName"
                             style="width: 100px; height: 100px;">
                     </div>
                 }
@@ -25,12 +26,18 @@
                 }
             </div>
         </div>
-        <div class="col-md-11">
+        <div class="col-md-11 align-content-center">
             <div class="card-body">
-                <h5 class="card-title">@User.DisplayName</h5>
-                <p class="card-text">
-                    Date Created: @User.DateCreated.ToString("dd/MM/yyyy")
-                </p>
+                <h5 class="card-title h4">@Ban.UserBanned.DisplayName</h5>
+                <div class="card-text">
+                    Banned Until: @Ban.BannedUntil.ToString("dd/MM/yyyy HH:mm")
+                </div>
+                <div class="card-text">
+                    Banned Until: @Ban.BannedUntil.ToString("dd/MM/yyyy HH:mm")
+                </div>               
+                <div class="card-text">
+                    Status: @((Ban.IsActive ? "Active" : "Inactive"))
+                </div>
             </div>
         </div>
     </div>
@@ -40,11 +47,7 @@
 @code {
     [Parameter]
     [EditorRequired]
-    public BasicUserModel User { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public UserModel LoggedInUser { get; set; }
+    public BanModel Ban { get; set; }
 
     private string CreateWebPath(string relativePath)
     {
@@ -53,12 +56,6 @@
 
     private void OpenDetails()
     {
-        if (LoggedInUser.Id == User.Id)
-        {
-            navManager.NavigateTo("/Profile");
-            return;
-        }
-
-        navManager.NavigateTo($"/UserDetails/{User.Id}");
+        navManager.NavigateTo($"/BanDetails/{Ban.Id}");
     }
 }
