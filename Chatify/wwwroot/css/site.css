@@ -286,7 +286,7 @@ a, .btn-link {
 }
 
 .radio-item-group label {
-    border-color: white;
+    border-color: red;
     border-width: 1px;
     border-style: solid;
     border-radius: 10px;

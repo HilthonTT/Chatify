@@ -8,7 +8,7 @@ public class RoleModel
     public string RoleName { get; set; }
     public string RoleDescription { get; set; }
     public ServerModel Server { get; set; }
-    public List<BasicUserModel> Users { get; set; }
+    public List<BasicUserModel> Users { get; set; } = new();
     public bool CanBanMember { get; set; }
     public bool CanKickMember { get; set; }
     public bool CanCreateChannel { get; set; }

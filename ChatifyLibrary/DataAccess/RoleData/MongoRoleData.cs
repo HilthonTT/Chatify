@@ -36,6 +36,30 @@ public class MongoRoleData : IRoleData
         return output;
     }
 
+    public async Task<RoleModel> GetUserServerRoleAsync(UserModel user, ServerModel server)
+    {
+        string cachingString = _helper.RoleCachingString(user.Id + "-" + server.Id);
+
+        var output = _cache.Get<RoleModel>(cachingString);
+        if (output is null)
+        {
+            var filter = Builders<RoleModel>.Filter.And(
+                    Builders<RoleModel>.Filter.Eq(r => r.Server.Id, server.Id),
+                    Builders<RoleModel>.Filter.ElemMatch(
+                        r => r.Users,
+                        u => u.Id == user.Id),
+                    Builders<RoleModel>.Filter.Eq(r => r.Archived, false));
+
+            var results = await _roles.FindAsync(filter);
+
+            output = await results.FirstOrDefaultAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(30));
+        }
+
+        return output;
+    }
+
     public async Task<RoleModel> GetRoleAsync(string id)
     {
         var results = await _roles.FindAsync(r => r.Id == id);

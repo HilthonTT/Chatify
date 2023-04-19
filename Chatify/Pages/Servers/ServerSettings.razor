@@ -1,11 +1,11 @@
 ﻿@page "/ServerSettings/{Id}"
-@using Microsoft.JSInterop
 @attribute [Authorize]
 @inject IServerData serverData
 @inject IUserData userData
 @inject ICategoryData categoryData
 @inject IChannelData channelData
 @inject IBanData banData
+@inject IRoleData roleData
 @inject IConfiguration config
 @inject ICodeGenerator codeGenerator
 @inject NavigationManager navManager
@@ -190,6 +190,151 @@
         </div>
     </div>
 
+    <div class="modal fade" id="roleModal" tabindex="-1" role="dialog" aria-labelledby="roleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="roleModalLongTitle">
+                    Edit @selectedRole?.RoleName
+                </h5>
+                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="role" OnValidSubmit="(async() => await UpdateRole())">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-name">Role Name</label>
+                                <div class="mt-1">Name your role's name</div>
+                                <ValidationMessage For="(() => role.RoleName)"/>
+                                <InputText class="form-control bg-dark text-white input-section" id="role-name" 
+                                    @bind-Value="role.RoleName"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-description">Role Description</label>
+                                <div class="mt-1">Describe your role's purpose. What kind do they represent?</div>
+                                <ValidationMessage For="(() => role.RoleDescription)"/>
+                                <InputTextArea class="form-control bg-dark text-white input-section" id="role-description"
+                                    @bind-Value="role.RoleDescription"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-can-ban-member">Ability to ban members.</label>
+                                <div class="mt-1">Choose the role's ability to ban members.</div>
+                                <InputRadioGroup id="category" @bind-Value="role.CanBanMember">
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="true" id="true-ban-member"/>
+                                        <label for="true-ban-member">Able to ban member</label>
+                                    </div>
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="false" id="false-ban-member"/>
+                                        <label for="false-ban-member">Unable to ban member</label>
+                                    </div>
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-can-kick-member">Ability to kick members.</label>
+                                <div class="mt-1">Choose the role's ability to kick members.</div>
+                                <InputRadioGroup id="category" @bind-Value="role.CanKickMember">
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="true" id="true-kick-member"/>
+                                        <label for="true-kick-member">Able to kick member</label>
+                                    </div>
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="false" id="false-kick-member"/>
+                                        <label for="false-kick-member">Unable to kick member</label>
+                                    </div>
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-can-create-channels">Ability to create channels.</label>
+                                <div class="mt-1">Choose the role's ability to create channels.</div>
+                                <InputRadioGroup id="category" @bind-Value="role.CanCreateChannel">
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="true" id="true-create-channel"/>
+                                        <label for="true-create-channel">Able to create channels</label>
+                                    </div>
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="false" id="false-create-channel"/>
+                                        <label for="false-create-channel">Unable to create channels</label>
+                                    </div>
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-can-create-roles">Ability to create roles.</label>
+                                <div class="mt-1">Choose the role's ability to create roles.</div>
+                                <InputRadioGroup id="category" @bind-Value="role.CanCreateRole">
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="true" id="true-create-role"/>
+                                        <label for="true-create-role">Able to create roles</label>
+                                    </div>
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="false" id="false-create-role"/>
+                                        <label for="false-create-role">Unable to create roles</label>
+                                    </div>
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-can-give-roles">Ability to give roles.</label>
+                                <div class="mt-1">Choose the role's ability to give roles.</div>
+                                <InputRadioGroup id="category" @bind-Value="role.CanGiveRole">
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="true" id="true-give-roles"/>
+                                        <label for="true-give-roles">Able to give roles</label>
+                                    </div>
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="false" id="false-give-roles"/>
+                                        <label for="false-give-roles">Unable to give roles</label>
+                                    </div>
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-can-view-audit-logs">Ability to view audit logs.</label>
+                                <div class="mt-1">Choose the role's ability to view the audit logs.</div>
+                                <InputRadioGroup id="category" @bind-Value="role.CanViewAuditLog">
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="true" id="true-view-audit-logs"/>
+                                        <label for="true-view-audit-logs">Able to view the audit logs</label>
+                                    </div>
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="false" id="false-view-audit-logs"/>
+                                        <label for="false-view-audit-logs">Unable to view the audit logs</label>
+                                    </div>
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-can-edit-server">Ability to edit the server's details.</label>
+                                <div class="mt-1">Choose the role's ability to edit the server's details.</div>
+                                <InputRadioGroup id="category" @bind-Value="role.CanEditServer">
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="true" id="true-edit-server"/>
+                                        <label for="true-edit-server">Able to edit the server's details</label>
+                                    </div>
+                                    <div class="radio-item-group">
+                                        <InputRadio Value="false" id="false-edit-server"/>
+                                        <label for="false-edit-server">Unable to edit the server's details</label>
+                                    </div>
+                                </InputRadioGroup>
+                            </div>
+                            <div class="center-children">
+                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                    Update Role
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal" 
+                    @onclick="(() => selectedRole = null)">
+                    Close
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
       @if (server is not null)
       {
         <div class="rounded rounded-3">
@@ -211,9 +356,17 @@
                           @onclick="(async() => await ShowChannelsPage(true))">
                           Show Channels
                       </button>
-                      <button class="btn @GetCreatePageClass(true)"
-                          @onclick="(async() => await ShowCreatePage(true))">
+                      <button class="btn @GetCreateChannelPageClass(true)"
+                          @onclick="(async() => await ShowCreateChannelPage(true))">
                           Create Channel
+                      </button>
+                      <button class="btn @GetRolesPageClass(true)"
+                          @onclick="(async() => await ShowRolesPage(true))">
+                          Show Roles
+                      </button>
+                      <button class="btn @GetCreateRolePageClass(true)"
+                          @onclick="(async() => await ShowCreateRolePage(true))">
+                          Create Role
                       </button>
                     </div>
                     @if (showServerDetailsPage)
@@ -343,28 +496,43 @@
                                     @oninput="(async(txt) => await OnSearchInputChannel((string)txt.Value))"/>
                               </div>
                             </div>
-                            <div class="row">
+                            <div class="row mt-2">
                               <div class="col-12">
                                 <Virtualize Items="channels" Context="c" OverscanCount="10">
-                                  <div class="user-card unclickable bg-black">
-                                    <div class="d-flex justify-content-between">
-                                        <div class="">
-                                          <div class="user-card__name clickable">@c.ChannelName</div>
-                                          <div class="user-card__friend-code mt-2">@c.ChannelDescription</div>
-                                          <div class="user-card__date">Created on the @c.DateCreated.ToString("dd/MM/yyyy")</div>
-                                        </div>
-                                        <div class="btn-group" role="group">
-                                            <button id="btn-group-settings" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <p><i class="fas fa-cog clickable"></i></p>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
-                                                <button class="dropdown-item text-success" data-toggle="modal" data-target="#channelModal" 
-                                                    @onclick="(() => LoadSelectedChannel(c))">
-                                                    Edit
-                                                </button>
-                                            </div>
-                                        </div>       
-                                    </div>                          
+                                  <div class="card bg-dark border-white unclickable mb-4">
+                                      <div class="row g-0">
+                                          <div class="col-md-12">
+                                             <div class="d-flex justify-content-between">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@c.ChannelName</h5>
+                                                    <p class="card-text">
+                                                        @c.ChannelDescription
+                                                    </p>
+                                                    <p class="card-text">
+                                                        Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
+                                                    </p>
+                                                </div>
+                                                <div class="btn-group" role="group">
+                                                    <button id="btn-group-settings" type="button" 
+                                                        class="btn btn-secondary dropdown-toggle" 
+                                                        data-toggle="dropdown" 
+                                                        aria-haspopup="true" 
+                                                        aria-expanded="false">
+                                                        <p><i class="fas fa-cog clickable"></i></p>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-dark" 
+                                                         aria-labelledby="btn-group-settings">
+                                                        <button class="dropdown-item text-success" 
+                                                            data-toggle="modal" 
+                                                            data-target="#channelModal"
+                                                            @onclick="(() => LoadSelectedChannel(c))">
+                                                            Edit
+                                                        </button>
+                                                    </div>
+                                                </div>       
+                                            </div>                          
+                                          </div>
+                                      </div>
                                   </div>
                                 </Virtualize>
                               </div>
@@ -403,6 +571,218 @@
                             </div>
                         </div>
                       }
+                      else if (showRolesPage && roles is not null) 
+                      {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="row mb-4 mt-2">
+                              <div class="col-12">
+                                  <div class="col-md-8 col-xl-12 btn-group">
+                                    <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+                                        @onclick="(async() => await SortedByNew(true))">
+                                        New
+                                    </button>
+                                    <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                                        @onclick="(async() => await SortedByNew(false))">
+                                        Old
+                                    </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="row mb-2">
+                              <div class="col-12">
+                                <input type="text" placeholder="Search" 
+                                    aria-label="Search Box" class="form-control bg-dark text-light input-section"
+                                    @oninput="(async(txt) => await OnSearchInputRole((string)txt.Value))"/>
+                              </div>
+                            </div>
+                            <div class="row mt-2">
+                              <div class="col-12">
+                                <Virtualize Items="roles" Context="r" OverscanCount="10">
+                                  <div class="card bg-dark border-white unclickable mb-4">
+                                      <div class="row g-0">
+                                          <div class="col-md-12">
+                                             <div class="d-flex justify-content-between">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@r.RoleName</h5>
+                                                    <p class="card-text">
+                                                       @r.RoleDescription
+                                                    </p>
+                                                    <p class="card-text">
+                                                        Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
+                                                    </p>
+                                                </div>
+                                                <div class="btn-group" role="group">
+                                                    <button id="btn-group-settings" type="button" 
+                                                        class="btn btn-secondary dropdown-toggle" 
+                                                        data-toggle="dropdown" 
+                                                        aria-haspopup="true" 
+                                                        aria-expanded="false">
+                                                        <p><i class="fas fa-cog clickable"></i></p>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-dark" 
+                                                         aria-labelledby="btn-group-settings">
+                                                        <button class="dropdown-item text-success" 
+                                                            data-toggle="modal" 
+                                                            data-target="#roleModal"
+                                                            @onclick="(() => LoadSelectedRole(r))">
+                                                            Edit
+                                                        </button>
+                                                        @if (HasUserGotRole(loggedInUser, r) is false)
+                                                        {
+                                                            <button class="dropdown-item text-success"
+                                                            @onclick="(() => GiveRole(loggedInUser, r))">
+                                                                Give Role
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button class="dropdown-item text-success"
+                                                            @onclick="(() => RemoveRole(loggedInUser, r))">
+                                                                Remove Role
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                </div>       
+                                            </div>                          
+                                          </div>
+                                      </div>
+                                  </div>
+                                </Virtualize>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                      else if (showCreateRolePage) 
+                      {
+                          <div class="row">
+                            <div class="col-xl-12 col-lg-10">
+                                <EditForm Model="role" OnValidSubmit="(async() => await CreateRole())">
+                                    <DataAnnotationsValidator />
+                                    <div class="row">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="role-name">Role Name</label>
+                                            <div class="mt-1">Name your role's name</div>
+                                            <ValidationMessage For="(() => role.RoleName)"/>
+                                            <InputText class="form-control bg-dark text-white input-section" id="role-name" 
+                                                @bind-Value="role.RoleName"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="role-description">Role Description</label>
+                                            <div class="mt-1">Describe your role's purpose. What kind do they represent?</div>
+                                            <ValidationMessage For="(() => role.RoleDescription)"/>
+                                            <InputTextArea class="form-control bg-dark text-white input-section" id="role-description"
+                                                @bind-Value="role.RoleDescription"/>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-ban-member">Ability to ban members.</label>
+                                            <div class="mt-1">Choose the role's ability to ban members.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanBanMember">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-ban-member"/>
+                                                    <label for="true-ban-member">Able to ban member</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-ban-member"/>
+                                                    <label for="false-ban-member">Unable to ban member</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-kick-member">Ability to kick members.</label>
+                                            <div class="mt-1">Choose the role's ability to kick members.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanKickMember">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-kick-member"/>
+                                                    <label for="true-kick-member">Able to kick member</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-kick-member"/>
+                                                    <label for="false-kick-member">Unable to kick member</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-create-channels">Ability to create channels.</label>
+                                            <div class="mt-1">Choose the role's ability to create channels.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanCreateChannel">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-create-channel"/>
+                                                    <label for="true-create-channel">Able to create channels</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-create-channel"/>
+                                                    <label for="false-create-channel">Unable to create channels</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-create-roles">Ability to create roles.</label>
+                                            <div class="mt-1">Choose the role's ability to create roles.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanCreateRole">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-create-role"/>
+                                                    <label for="true-create-role">Able to create roles</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-create-role"/>
+                                                    <label for="false-create-role">Unable to create roles</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-give-roles">Ability to give roles.</label>
+                                            <div class="mt-1">Choose the role's ability to give roles.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanGiveRole">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-give-roles"/>
+                                                    <label for="true-give-roles">Able to give roles</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-give-roles"/>
+                                                    <label for="false-give-roles">Unable to give roles</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-view-audit-logs">Ability to view audit logs.</label>
+                                            <div class="mt-1">Choose the role's ability to view the audit logs.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanViewAuditLog">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-view-audit-logs"/>
+                                                    <label for="true-view-audit-logs">Able to view the audit logs</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-view-audit-logs"/>
+                                                    <label for="false-view-audit-logs">Unable to view the audit logs</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-edit-server">Ability to edit the server's details.</label>
+                                            <div class="mt-1">Choose the role's ability to edit the server's details.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanEditServer">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-edit-server"/>
+                                                    <label for="true-edit-server">Able to edit the server's details</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-edit-server"/>
+                                                    <label for="false-edit-server">Unable to edit the server's details</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="center-children">
+                                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                                Create Role
+                                            </button>
+                                        </div>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        </div>
+                      }
                   </div>
                   <div class="col-1">
                     <div class="close-button-section">
@@ -427,6 +807,7 @@ else
     public string Id { get; set; }
 
     private CreateChannelModel channel = new();
+    private CreateRoleModel role = new();
     private CreateServerModel editingServer = new();
 
     private ServerModel server;
@@ -438,18 +819,24 @@ else
     private UserModel selectedUserToUnban;
 
     private ChannelModel selectedChannel;
+    private RoleModel selectedRole;
     private BanModel ban;
+    private RoleModel loggedInUserRole;
 
     private List<CategoryModel> categories;
     private List<UserModel> users;
     private List<ChannelModel> channels;
+    private List<RoleModel> roles;
 
     private string searchText = "";
     private string searchChannelText = "";
+    private string searchRoleText = "";
     private bool showServerDetailsPage = true;
     private bool showServerMembersPage = false;
     private bool showCreateChannelPage = false;
+    private bool showCreateRolePage = false;
     private bool showChannelsPage = false;
+    private bool showRolesPage = false;
     private bool priorityBannedUsers = false;
     private bool isSortedByNew = true;
 
@@ -466,11 +853,13 @@ else
         if (loggedInUser is not null)
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
+            loggedInUserRole = await roleData.GetUserServerRoleAsync(loggedInUser, server);
         }
         if (server is not null)
         {
             users = await userData.GetAllUsersServerAsync(server);
             channels = await channelData.GetAllChannelsServerAsync(server);
+            roles = await roleData.GetAllRolesServerAsync(server);
         }
     }
 
@@ -483,9 +872,29 @@ else
             {
                 await FilterUsers();
                 await FilterChannels();
+                await FilterRoles();
             }
             StateHasChanged();
         }
+    }
+
+    private async Task CreateRole()
+    {
+        RoleModel r = new()
+        {
+            RoleName = role.RoleName,
+            RoleDescription = role.RoleDescription,
+            Server = server,
+            CanBanMember = role.CanBanMember,
+            CanKickMember = role.CanKickMember,
+            CanCreateChannel = role.CanCreateChannel,
+            CanGiveRole = role.CanGiveRole,
+            CanViewAuditLog = role.CanViewAuditLog,
+            CanEditServer = role.CanEditServer,
+        };
+
+        await roleData.CreateRole(r);
+        role = new();
     }
 
     private async Task CreateChannel()
@@ -559,6 +968,30 @@ else
         file = null;
     }
 
+    private async Task UpdateRole()
+    {
+        RoleModel r = new()
+        {
+            Id = selectedRole.Id,
+            Server = selectedRole.Server,
+            Users = selectedRole.Users,
+            RoleDescription = role.RoleDescription,
+            CanBanMember = role.CanBanMember,
+            CanKickMember = role.CanKickMember,
+            CanCreateChannel = role.CanCreateChannel,
+            CanCreateRole = role.CanCreateRole,
+            CanGiveRole = role.CanGiveRole,
+            CanViewAuditLog = role.CanViewAuditLog,
+            CanEditServer = role.CanEditServer,
+            DateCreated = selectedRole.DateCreated,
+        };
+
+        await roleData.UpdateRole(r);
+        await CloseModal("roleModal");
+        role = new();
+        selectedRole = null;
+    }
+
     private async Task LoadFilterState()
     {
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(showServerDetailsPage));
@@ -567,6 +1000,10 @@ else
         showServerMembersPage = boolResults.Success ? boolResults.Value : false;
         boolResults = await sessionStorage.GetAsync<bool>(nameof(showCreateChannelPage));
         showCreateChannelPage = boolResults.Success ? boolResults.Value : false;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(showCreateRolePage));
+        showCreateRolePage = boolResults.Success ? boolResults.Value : false;
+        boolResults = await sessionStorage.GetAsync<bool>(nameof(showRolesPage));
+        showRolesPage = boolResults.Success ? boolResults.Value : false;
         boolResults = await sessionStorage.GetAsync<bool>(nameof(priorityBannedUsers));
         priorityBannedUsers = boolResults.Success ? boolResults.Value : false;
         boolResults = await sessionStorage.GetAsync<bool>(nameof(showChannelsPage));
@@ -582,10 +1019,13 @@ else
         await sessionStorage.SetAsync(nameof(showServerDetailsPage), showServerDetailsPage);
         await sessionStorage.SetAsync(nameof(showServerMembersPage), showServerMembersPage);
         await sessionStorage.SetAsync(nameof(showCreateChannelPage), showCreateChannelPage);
+        await sessionStorage.SetAsync(nameof(showCreateRolePage), showCreateRolePage);
         await sessionStorage.SetAsync(nameof(showChannelsPage), showChannelsPage);
         await sessionStorage.SetAsync(nameof(priorityBannedUsers), priorityBannedUsers);
         await sessionStorage.SetAsync(nameof(searchText), searchText);
         await sessionStorage.SetAsync(nameof(searchChannelText), searchChannelText);
+        await sessionStorage.SetAsync(nameof(searchRoleText), searchRoleText);
+        await sessionStorage.SetAsync(nameof(showRolesPage), showRolesPage);
     }
 
     private async Task FilterUsers()
@@ -642,10 +1082,38 @@ else
         await SaveFilterState();
     }
 
+    private async Task FilterRoles()
+    {
+        var output = await roleData.GetAllRolesServerAsync(server);
+
+        if (string.IsNullOrWhiteSpace(searchRoleText) is false)
+        {
+            output = output.Where(
+                r => r.RoleName.Contains(
+                    searchRoleText, StringComparison.InvariantCultureIgnoreCase) ||
+                r.RoleDescription.Contains(
+                    searchRoleText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(r => r.DateCreated).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(r => r.DateCreated).ToList();
+        }
+
+        roles = output;
+        await SaveFilterState();
+    }
+
     private async Task SortedByNew(bool isNew)
     {
         isSortedByNew = isNew;
         await FilterChannels();
+        await FilterRoles();
     }
 
     private async Task OnSearchInputChannel(string searchInput)
@@ -654,23 +1122,43 @@ else
         await FilterChannels();
     }
 
-    private async Task PriorityBannedUsers(bool isPriority)
-    {
-        priorityBannedUsers = isPriority;
-        await FilterUsers();
-    }
-
     private async Task OnSearchInputUser(string searchInput)
     {
         searchText = searchInput;
         await FilterUsers();
     }
 
+    private async Task OnSearchInputRole(string searchInput)
+    {
+        searchRoleText = searchInput;
+        await FilterRoles();
+    }
+
+    private async Task PriorityBannedUsers(bool isPriority)
+    {
+        priorityBannedUsers = isPriority;
+        await FilterUsers();
+    } 
+
     private void LoadSelectedChannel(ChannelModel model)
     {
         selectedChannel = model;
         channel.ChannelName = model.ChannelName;
         channel.ChannelDescription = model.ChannelDescription;
+    }
+
+    private void LoadSelectedRole(RoleModel model)
+    {
+        selectedRole = model;
+        role.RoleName = model.RoleName;
+        role.RoleDescription = model.RoleDescription;
+        role.CanBanMember = model.CanBanMember;
+        role.CanKickMember = model.CanKickMember;
+        role.CanCreateChannel = model.CanCreateChannel;
+        role.CanCreateRole = model.CanCreateRole;
+        role.CanGiveRole = model.CanGiveRole;
+        role.CanViewAuditLog = model.CanViewAuditLog;
+        role.CanEditServer = model.CanEditServer;
     }
 
     private void LoadSelectedServer(ServerModel model)
@@ -687,7 +1175,9 @@ else
         showServerDetailsPage = false;
         showServerMembersPage = false;
         showCreateChannelPage = false;
+        showCreateRolePage = false;
         showChannelsPage = false;
+        showRolesPage = false;
     }
 
     private async Task ShowDetailsClick(bool isShowing)
@@ -704,7 +1194,7 @@ else
         await SaveFilterState();
     }
 
-    private async Task ShowCreatePage(bool isShowing)
+    private async Task ShowCreateChannelPage(bool isShowing)
     {
         ClearAllPages();
         showCreateChannelPage = isShowing;
@@ -715,6 +1205,20 @@ else
     {
         ClearAllPages();
         showChannelsPage = isShowing;
+        await SaveFilterState();
+    }
+
+    private async Task ShowCreateRolePage(bool isShowing)
+    {
+        ClearAllPages();
+        showCreateRolePage = isShowing;
+        await SaveFilterState();
+    }
+
+    private async Task ShowRolesPage(bool isShowing)
+    {
+        ClearAllPages();
+        showRolesPage = isShowing;
         await SaveFilterState();
     }
 
@@ -750,6 +1254,21 @@ else
 
         await serverData.UpdateServer(server);
         ClearSelectedUsers();
+    }
+
+    private async Task GiveRole(UserModel user, RoleModel role)
+    {
+        role.Users.Add(new BasicUserModel(user));
+
+        await roleData.UpdateRole(role);
+    }
+
+    private async Task RemoveRole(UserModel user, RoleModel role)
+    {
+        var userToRemove = role.Users.Where(u => u.Id == user.Id).FirstOrDefault();
+        role.Users.Remove(userToRemove);
+
+        await roleData.UpdateRole(role);
     }
 
     private void ClosePage()
@@ -848,9 +1367,29 @@ else
         return "btn-outline-secondary";
     }
 
-    private string GetCreatePageClass(bool isShowing)
+    private string GetCreateChannelPageClass(bool isShowing)
     {
         if (showCreateChannelPage == isShowing)
+        {
+            return "btn-secondary";
+        }
+
+        return "btn-outline-secondary";
+    }
+
+    private string GetCreateRolePageClass(bool isShowing)
+    {
+        if (showCreateRolePage == isShowing)
+        {
+            return "btn-secondary";
+        }
+
+        return "btn-outline-secondary";
+    }
+
+    private string GetRolesPageClass(bool isShowing)
+    {
+        if (showRolesPage == isShowing)
         {
             return "btn-secondary";
         }
@@ -872,7 +1411,7 @@ else
     {
         if (isSortedByNew == isNew)
         {
-             return "btn-secondary";
+            return "btn-secondary";
         }
 
         return "btn-outline-secondary";
@@ -905,6 +1444,16 @@ else
             }
 
             return false;
+        }
+
+        return false;
+    }
+
+    private bool HasUserGotRole(UserModel user, RoleModel role)
+    {
+        if (role.Users.Where(u => u.Id == user.Id).FirstOrDefault() is not null)
+        {
+            return true;
         }
 
         return false;
