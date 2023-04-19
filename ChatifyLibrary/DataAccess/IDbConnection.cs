@@ -28,4 +28,8 @@ public interface IDbConnection
     string ChannelCollectionName { get; }
     string ServerInvitationCollectionName { get; }
     IMongoCollection<ServerInvitationModel> ServerInvitationCollection { get; }
+    string RoleCollectionName { get; }
+    string AuditLogCollectionName { get; }
+    IMongoCollection<RoleModel> RoleCollection { get; }
+    IMongoCollection<AuditLogModel> AuditLogCollection { get; }
 }

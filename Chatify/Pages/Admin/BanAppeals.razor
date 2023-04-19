@@ -38,13 +38,16 @@
     <div class="col-md-12 col-xl-12">
         <input type="text" placeholder="Search"
             aria-label="Search Box" class="form-control bg-dark text-light input-section"
-            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+            @oninput="(async(txt) => await OnAppealSearchInput((string)txt.Value))"/>
     </div>
     <div class="col-12 d-block d-md-none">
         @if (users is not null && showUsernames)
         {
             <div class="participants-list p-2">
-                <h3 class="fw-bold text-uppercase">Participants</h3>
+                <h3 class="fw-bold text-uppercase">Users</h3>
+                <input class="form-control bg-dark text-light input-section mb-2"
+                        type="text" aria-label="Search User Box" placeholder="Search username"
+                        @oninput="((txt) => OnUserSearchInput((string)txt.Value))"/>
                 <ul class="list-group">
                     <li class="list-group-item @SelectedUsernameClass() text-white mb-2 clickable" 
                         @onclick="(() => OnUsernameClick())">
@@ -64,7 +67,7 @@
         else
         {
             <div class="participants-list p-2">
-                <h3 class="fw-bold text-uppercase">Participants</h3>
+                <h3 class="fw-bold text-uppercase">Users</h3>
                 <ul class="list-group">
                     @if (users is not null)
                     {
@@ -93,7 +96,10 @@
         @if (users is not null)
         {
             <div class="participants-list p-2">
-                <h3 class="fw-bold text-uppercase">Participants</h3>
+                <h3 class="fw-bold text-uppercase">Users</h3>
+                <input class="form-control bg-dark text-light input-section mb-2"
+                        type="text" aria-label="Search User Box" placeholder="Search username"
+                        @oninput="((txt) => OnUserSearchInput((string)txt.Value))"/>
                 <ul class="list-group">
                     <li class="list-group-item @SelectedUsernameClass() text-white mb-2 clickable" 
                         @onclick="(() => OnUsernameClick())">
@@ -117,7 +123,8 @@
     private UserModel loggedInUser;
     private List<BanAppealModel> appeals;
     private List<UserModel> users;
-    private string searchText = "";
+    private string searchUserText = "";
+    private string searchAppealText = "";
     private string selectedUsername = "";
     private bool isSortedByNew = true;
     private bool showUsernames = false;
@@ -142,8 +149,8 @@
 
     private async Task LoadFilterState()
     {
-        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
-        searchText = stringResults.Success ? stringResults.Value : "";
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchAppealText));
+        searchAppealText = stringResults.Success ? stringResults.Value : "";
         stringResults = await sessionStorage.GetAsync<string>(nameof(selectedUsername));
         selectedUsername = stringResults.Success ? stringResults.Value : "All";
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
@@ -154,7 +161,7 @@
 
     private async Task SaveFilterState()
     {
-        await sessionStorage.SetAsync(nameof(searchText), searchText);
+        await sessionStorage.SetAsync(nameof(searchAppealText), searchAppealText);
         await sessionStorage.SetAsync(nameof(selectedUsername), selectedUsername);
         await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
         await sessionStorage.SetAsync(nameof(filterByApproved), filterByApproved);
@@ -169,10 +176,10 @@
             output = output.Where(a => a.AppealingUser?.DisplayName == selectedUsername).ToList();
         }
 
-        if (string.IsNullOrWhiteSpace(searchText) is false)
+        if (string.IsNullOrWhiteSpace(searchAppealText) is false)
         {
             output = output.Where(a => a.AppealReason.Contains(
-                searchText, StringComparison.InvariantCultureIgnoreCase))
+                searchAppealText, StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
         }
 
@@ -198,16 +205,37 @@
         await SaveFilterState();
     }
 
+    private async Task FilterUsers()
+    {
+        var output = await userData.GetAllUsersCachedAsync();
+
+        if (string.IsNullOrWhiteSpace(searchUserText) is false)
+        {
+            output = output.Where(u => u.DisplayName.Contains(
+                searchUserText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        users = output;
+        await SaveFilterState();
+    }
+
     private async Task OrderByNew(bool isNew)
     {
         isSortedByNew = isNew;
         await FilterAppeals();
     }
 
-    private async Task OnSearchInput(string searchInput)
+    private async Task OnAppealSearchInput(string searchInput)
     {
-        searchText = searchInput;
+        searchAppealText = searchInput;
         await FilterAppeals();
+    }
+
+    private async Task OnUserSearchInput(string searchInput)
+    {
+        searchUserText = searchInput;
+        await FilterUsers();
     }
 
     private async Task OnUsernameClick(string username = "All")

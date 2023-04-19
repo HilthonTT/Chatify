@@ -61,4 +61,14 @@ public class CachingHelper : ICachingHelper
     {
         return $"InvitationData-{id}";
     }
+
+    public string RoleCachingString(string id)
+    {
+        return $"RoleData-{id}";
+    }
+
+    public string AuditLogCachingString(string id)
+    {
+        return $"AuditLogData-{id}";
+    }
 }

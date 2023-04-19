@@ -1,6 +1,7 @@
 
 Features to add:
 
-	* Add AuditLogs for conversations.
-	* Make sure the Conversation doesn't exceed more than 10 participants
-	* Make server class, people need to send invites in order to join the server or type in the server address.
+	* Add AuditLogs for conversations and servers.
+	* Add roles in server
+	* Add search bar for Users in BanAppeals.razor and Bans.razor
+	* Add Server invitations

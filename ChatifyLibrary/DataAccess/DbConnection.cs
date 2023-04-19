@@ -20,8 +20,10 @@ public class DbConnection : IDbConnection
     public string BanAppealCollectionName { get; private set; } = "ban-appeals";
     public string ServerCollectionName { get; private set; } = "servers";
     public string ServerInvitationCollectionName { get; private set; } = "server-invitations";
-    public string ChannelCollectionName { get; private set; } = "channels"; 
-    
+    public string ChannelCollectionName { get; private set; } = "channels";
+    public string RoleCollectionName { get; private set; } = "roles";
+    public string AuditLogCollectionName { get; private set; } = "audit-logs";
+
     public MongoClient Client { get; private set; }
     public IMongoCollection<ConversationModel> ConversationCollection { get; private set; }
     public IMongoCollection<MessageModel> MessageCollection { get; private set; }
@@ -35,7 +37,9 @@ public class DbConnection : IDbConnection
     public IMongoCollection<ServerModel> ServerCollection { get; private set; }
     public IMongoCollection<ServerInvitationModel> ServerInvitationCollection { get; private set; }
     public IMongoCollection<ChannelModel> ChannelCollection { get; private set; }
-    
+    public IMongoCollection<RoleModel> RoleCollection { get; private set; }
+    public IMongoCollection<AuditLogModel> AuditLogCollection { get; private set; }
+
     public DbConnection(IConfiguration config)
     {
         _config = config;
@@ -55,5 +59,7 @@ public class DbConnection : IDbConnection
         ServerCollection = _db.GetCollection<ServerModel>(ServerCollectionName);
         ServerInvitationCollection = _db.GetCollection<ServerInvitationModel>(ServerInvitationCollectionName);
         ChannelCollection = _db.GetCollection<ChannelModel>(ChannelCollectionName);
+        RoleCollection = _db.GetCollection<RoleModel>(RoleCollectionName);
+        AuditLogCollection = _db.GetCollection<AuditLogModel>(AuditLogCollectionName);
     }
 }

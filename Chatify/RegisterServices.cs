@@ -1,5 +1,6 @@
 ﻿using Chatify.Helpers;
 using ChatifyLibrary.DataAccess;
+using ChatifyLibrary.DataAccess.AuditLogData;
 using ChatifyLibrary.Helper;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -54,6 +55,8 @@ public static class RegisterServices
         builder.Services.AddSingleton<IServerData, MongoServerData>();
         builder.Services.AddSingleton<IServerInvitationData, MongoServerInvitationData>();
         builder.Services.AddSingleton<IChannelData, MongoChannelData>();
+        builder.Services.AddSingleton<IRoleData, MongoRoleData>();
+        builder.Services.AddSingleton<IAuditLogData, MongoAuditLogData>();
 
         builder.Services.AddSingleton<ICodeGenerator, CodeGenerator>();
     }

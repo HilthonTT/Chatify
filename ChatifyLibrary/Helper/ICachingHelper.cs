@@ -14,4 +14,6 @@ public interface ICachingHelper
     string ServerCachingString(string id);
     string ServerInvitationCachingString(string id);
     string UserCachingString(string id);
+    string RoleCachingString(string id);
+    string AuditLogCachingString(string id);
 }
