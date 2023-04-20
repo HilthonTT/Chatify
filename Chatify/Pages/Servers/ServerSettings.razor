@@ -17,7 +17,7 @@
 {
   <h1 class="page-heading mb-4">@server?.ServerName Settings</h1>
 
-  @if (loggedInUser?.Id != server?.Owner.Id)
+  @if (HasAnyPermission() is false)
   {
     <NotAuthorized />
   }
@@ -131,6 +131,7 @@
                 </div>
                 <div class="modal-body">
                     <EditForm Model="editingServer" OnValidSubmit="(async() => await UpdateServer())">
+                        <DataAnnotationsValidator  />
                         <div class="row">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
@@ -335,6 +336,55 @@
         </div>
     </div>
 
+    <div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="editRoleModalLongTitle">
+                    Edit @selectedUser?.DisplayName's role
+                </h5>
+                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="editingUserRole" OnValidSubmit="(async() => await UpdateUserRole())">
+                        <DataAnnotationsValidator  />
+                        <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="role-name">@selectedUser?.DisplayName's role</label>
+                                <ValidationMessage For="(() => editingUserRole.RoleId)" />
+                                <div class="mt-1">Edit @selectedUser?.DisplayName's role</div>
+                                <InputRadioGroup id="role" @bind-Value="editingUserRole.RoleId">
+                                    @if (roles is not null)
+                                    {
+                                        <Virtualize Items="roles" Context="r" OverscanCount="10">
+                                            <div class="radio-item-group">
+                                                <InputRadio Value="@r.Id" id="@r.Id"/>
+                                                <label for="@r.Id">@r.RoleName - @r.RoleDescription</label>
+                                            </div>
+                                        </Virtualize>
+                                    }
+                                </InputRadioGroup>
+                            </div>
+                            <div class="center-children">
+                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                    Edit Role
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal" 
+                    @onclick="(() => selectedUser = null)">
+                    Close
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
       @if (server is not null)
       {
         <div class="rounded rounded-3">
@@ -344,30 +394,39 @@
                 <div class="row">
                   <div class="col-11">
                     <div class="btn-group center-children mb-4">
-                      <button class="btn me-1 @GetOpenDetailsPageClass(true)" 
-                          @onclick="(async() => await ShowDetailsClick(true))">
-                          Show Server Details
-                      </button>
-                      <button class="btn me-1 @GetMembersPageClass(true)" 
-                          @onclick="(async() => await ShowMembersPage(true))">
-                          Show Members
-                      </button>
-                      <button class="btn me-1 @GetChannelsPageClass(true)" 
-                          @onclick="(async() => await ShowChannelsPage(true))">
-                          Show Channels
-                      </button>
-                      <button class="btn @GetCreateChannelPageClass(true)"
-                          @onclick="(async() => await ShowCreateChannelPage(true))">
-                          Create Channel
-                      </button>
-                      <button class="btn @GetRolesPageClass(true)"
-                          @onclick="(async() => await ShowRolesPage(true))">
-                          Show Roles
-                      </button>
-                      <button class="btn @GetCreateRolePageClass(true)"
-                          @onclick="(async() => await ShowCreateRolePage(true))">
-                          Create Role
-                      </button>
+                        @if (CanEditServer())
+                        {
+                            <button class="btn me-1 @GetOpenDetailsPageClass(true)" 
+                                @onclick="(async() => await ShowDetailsClick(true))">
+                                Show Server Details
+                            </button>           
+                        }
+                        <button class="btn me-1 @GetMembersPageClass(true)" 
+                            @onclick="(async() => await ShowMembersPage(true))">
+                            Show Members
+                        </button>        
+                        <button class="btn me-1 @GetChannelsPageClass(true)" 
+                            @onclick="(async() => await ShowChannelsPage(true))">
+                            Show Channels
+                        </button> 
+                        @if (CanCreateChannel())
+                        {
+                            <button class="btn @GetCreateChannelPageClass(true)"
+                                @onclick="(async() => await ShowCreateChannelPage(true))">
+                                Create Channel
+                            </button>
+                        }
+                        <button class="btn @GetRolesPageClass(true)"
+                            @onclick="(async() => await ShowRolesPage(true))">
+                            Show Roles
+                        </button>
+                        @if (CanCreateRole())
+                        {
+                        <button class="btn @GetCreateRolePageClass(true)"
+                            @onclick="(async() => await ShowCreateRolePage(true))">
+                            Create Role
+                        </button>                  
+                        } 
                     </div>
                     @if (showServerDetailsPage)
                     {
@@ -427,44 +486,96 @@
                             <div class="row">
                               <div class="col-12">
                                 <Virtualize Items="users" Context="u" OverscanCount="10">
-                                  <div class="user-card unclickable bg-black">
-                                    <div class="d-flex justify-content-between">
-                                        <div class="">
-                                          <div class="user-card__name clickable" @onclick="(() => OpenUserDetails(u))">@u.DisplayName</div>
-                                          <div class="user-card__friend-code mt-2">Status: @((server.BannedUsers.Any(b => b.Id == u.Id)) ? "Banned" : "Not Banned")</div>
-                                          <div class="user-card__friend-code">Friend Code: @u.FriendCode</div>
-                                          <div class="user-card__date">Joined on the @u.DateCreated.ToString("dd/MM/yyyy")</div>
-                                        </div>
-                                        @if (u.Id != loggedInUser.Id)
-                                        {
-                                            <div class="btn-group" role="group">
-                                                <button id="btn-group-settings" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <p><i class="fas fa-cog clickable"></i></p>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
-                                                    @if (IsUserBanned(u) is false)
+                                    <div class="card bg-dark border-white mb-4">
+                                        <div class="row g-0">
+                                            <div class="col-1">
+                                                <div class="p-1">
+                                                    @if (string.IsNullOrWhiteSpace(u.FileName) is false)
                                                     {
-                                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
-                                                            @onclick="(() => selectedUserToKick = u)">
-                                                            Kick Member
-                                                        </button>
-                                                        <button class="dropdown-item text-danger" data-toggle="modal" data-target="#userModalCenter" 
-                                                            @onclick="(() => selectedUserToBan = u)">
-                                                            Ban Member
-                                                        </button>
+                                                        <div class="text-center p-3">
+                                                            <img src="@CreateWebPath(u.FileName)" 
+                                                                class="card-img-top rounded-circle" 
+                                                                alt="@u.FileName"
+                                                                style="width: 100px; height: 100px;">
+                                                        </div>
                                                     }
                                                     else
                                                     {
-                                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
-                                                            @onclick="(() => selectedUserToUnban = u)">
-                                                            Unban Member
-                                                        </button>
+                                                        <div class="text-center p-3">
+                                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                                class="card-img-top rounded-circle" 
+                                                                alt="Placeholder Image"
+                                                                style="width: 100px; height: 100px;">
+                                                        </div>
                                                     }
                                                 </div>
-                                            </div>       
-                                        }
-                                    </div>                          
-                                  </div>
+                                            </div>
+                                            <div class="col-11 d-flex justify-content-between">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@u.DisplayName</h5>
+                                                    @if (string.IsNullOrWhiteSpace(GetUserRoleName(u)) is false)
+                                                    {
+                                                        <p class="card-text">
+                                                            Role: @GetUserRoleName(u)
+                                                        </p>    
+                                                    }
+                                                    <p class="card-text">
+                                                        Status: @((IsUserBanned(u) ? "Banned" : "Active"))
+                                                    </p>
+                                                    <p class="card-text">
+                                                        Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
+                                                    </p>
+                                                </div>
+                                                @if (u.Id != loggedInUser.Id)
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        <button id="btn-group-settings" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <p><i class="fas fa-cog clickable"></i></p>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
+                                                            @if (IsUserBanned(u) is false && (CanKickMember() || CanBanMember() || CanGiveRole()))
+                                                            {
+                                                                @if (CanGiveRole())
+                                                                {
+                                                                    <button class="dropdown-item text-success" 
+                                                                        data-toggle="modal" 
+                                                                        data-target="#editRoleModal" 
+                                                                        @onclick="(() => selectedUser = u)">
+                                                                        Give Role
+                                                                    </button>         
+                                                                }
+                                                                @if (CanKickMember())
+                                                                {
+                                                                    <button class="dropdown-item text-success" 
+                                                                        data-toggle="modal" 
+                                                                        data-target="#userModalCenter" 
+                                                                        @onclick="(() => selectedUserToKick = u)">
+                                                                        Kick Member
+                                                                    </button>            
+                                                                }
+                                                                @if (CanBanMember())
+                                                                {
+                                                                    <button class="dropdown-item text-danger" 
+                                                                        data-toggle="modal" 
+                                                                        data-target="#userModalCenter" 
+                                                                        @onclick="(() => selectedUserToBan = u)">
+                                                                        Ban Member
+                                                                    </button>        
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
+                                                                    @onclick="(() => selectedUserToUnban = u)">
+                                                                    Unban Member
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                    </div>     
+                                                }                    
+                                            </div>
+                                        </div>                 
+                                    </div>
                                 </Virtualize>
                               </div>
                             </div>
@@ -512,24 +623,27 @@
                                                         Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
                                                     </p>
                                                 </div>
-                                                <div class="btn-group" role="group">
-                                                    <button id="btn-group-settings" type="button" 
-                                                        class="btn btn-secondary dropdown-toggle" 
-                                                        data-toggle="dropdown" 
-                                                        aria-haspopup="true" 
-                                                        aria-expanded="false">
-                                                        <p><i class="fas fa-cog clickable"></i></p>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-dark" 
-                                                         aria-labelledby="btn-group-settings">
-                                                        <button class="dropdown-item text-success" 
-                                                            data-toggle="modal" 
-                                                            data-target="#channelModal"
-                                                            @onclick="(() => LoadSelectedChannel(c))">
-                                                            Edit
+                                                @if (CanCreateChannel())
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        <button id="btn-group-settings" type="button" 
+                                                            class="btn btn-secondary dropdown-toggle" 
+                                                            data-toggle="dropdown" 
+                                                            aria-haspopup="true" 
+                                                            aria-expanded="false">
+                                                            <p><i class="fas fa-cog clickable"></i></p>
                                                         </button>
+                                                        <div class="dropdown-menu dropdown-menu-dark" 
+                                                             aria-labelledby="btn-group-settings">
+                                                            <button class="dropdown-item text-success" 
+                                                                data-toggle="modal" 
+                                                                data-target="#channelModal"
+                                                                @onclick="(() => LoadSelectedChannel(c))">
+                                                                Edit
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>       
+                                                }
                                             </div>                          
                                           </div>
                                       </div>
@@ -612,38 +726,41 @@
                                                         Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
                                                     </p>
                                                 </div>
-                                                <div class="btn-group" role="group">
-                                                    <button id="btn-group-settings" type="button" 
-                                                        class="btn btn-secondary dropdown-toggle" 
-                                                        data-toggle="dropdown" 
-                                                        aria-haspopup="true" 
-                                                        aria-expanded="false">
-                                                        <p><i class="fas fa-cog clickable"></i></p>
-                                                    </button>
-                                                    <div class="dropdown-menu dropdown-menu-dark" 
-                                                         aria-labelledby="btn-group-settings">
-                                                        <button class="dropdown-item text-success" 
-                                                            data-toggle="modal" 
-                                                            data-target="#roleModal"
-                                                            @onclick="(() => LoadSelectedRole(r))">
-                                                            Edit
+                                                @if (CanGiveRole())
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        <button id="btn-group-settings" type="button" 
+                                                            class="btn btn-secondary dropdown-toggle" 
+                                                            data-toggle="dropdown" 
+                                                            aria-haspopup="true" 
+                                                            aria-expanded="false">
+                                                            <p><i class="fas fa-cog clickable"></i></p>
                                                         </button>
-                                                        @if (HasUserGotRole(loggedInUser, r) is false)
-                                                        {
-                                                            <button class="dropdown-item text-success"
-                                                            @onclick="(() => GiveRole(loggedInUser, r))">
-                                                                Give Role
+                                                        <div class="dropdown-menu dropdown-menu-dark" 
+                                                             aria-labelledby="btn-group-settings">
+                                                            <button class="dropdown-item text-success" 
+                                                                data-toggle="modal" 
+                                                                data-target="#roleModal"
+                                                                @onclick="(() => LoadSelectedRole(r))">
+                                                                Edit
                                                             </button>
-                                                        }
-                                                        else
-                                                        {
-                                                            <button class="dropdown-item text-success"
-                                                            @onclick="(() => RemoveRole(loggedInUser, r))">
-                                                                Remove Role
-                                                            </button>
-                                                        }
-                                                    </div>
-                                                </div>       
+                                                            @if (HasUserGotRole(loggedInUser, r) is false)
+                                                            {
+                                                                <button class="dropdown-item text-success"
+                                                                @onclick="(() => GiveRole(loggedInUser, r))">
+                                                                    Give Role
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <button class="dropdown-item text-success"
+                                                                @onclick="(() => RemoveRole(loggedInUser, r))">
+                                                                    Remove Role
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                    </div>            
+                                                }
                                             </div>                          
                                           </div>
                                       </div>
@@ -809,11 +926,13 @@ else
     private CreateChannelModel channel = new();
     private CreateRoleModel role = new();
     private CreateServerModel editingServer = new();
+    private EditingUserRoleModel editingUserRole = new();
 
     private ServerModel server;
     private ServerModel selectedServer;
 
     private UserModel loggedInUser;
+    private UserModel selectedUser;
     private UserModel selectedUserToKick;
     private UserModel selectedUserToBan;
     private UserModel selectedUserToUnban;
@@ -878,6 +997,23 @@ else
         }
     }
 
+    private string GetUserRoleName(UserModel user)
+    {
+        var role = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
+
+        if (user.Id == server.Owner.Id)
+        {
+            return "Owner";
+        }
+
+        if (role is not null)
+        {
+            return role.RoleName;
+        }
+
+        return "";
+    }
+
     private async Task CreateRole()
     {
         RoleModel r = new()
@@ -938,6 +1074,29 @@ else
         channel = new();
 
         await CloseModal("channelModal");
+    }
+
+    private async Task UpdateUserRole()
+    {
+        var user = await userData.GetUserAsync(selectedUser.Id);
+
+        var currentUserRole = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
+        if (currentUserRole is not null)
+        {
+            var userToRemove = currentUserRole.Users.Where(u => u.Id == user.Id).FirstOrDefault();
+            currentUserRole.Users.Remove(userToRemove);
+            await roleData.UpdateRole(currentUserRole);
+        }
+
+        var newUserRole = roles.Where(r => r.Id == editingUserRole.RoleId).FirstOrDefault();
+        newUserRole.Users.Add(new BasicUserModel(user));
+        await roleData.UpdateRole(newUserRole);
+
+        selectedRole = null;
+        selectedUser = null;
+        editingUserRole = new();
+
+        await CloseModal("editRoleModal");
     }
 
     private async Task UpdateServer()
@@ -1047,8 +1206,8 @@ else
         else
         {
             output = output.OrderByDescending(
-                u => u.DateCreated).ThenByDescending(
-                u => !IsUserBanned(u)).ToList();
+                u => !IsUserBanned(u)).ThenByDescending(
+                u => u.DateCreated).ToList();
         }
 
         users = output;
@@ -1454,6 +1613,221 @@ else
         if (role.Users.Where(u => u.Id == user.Id).FirstOrDefault() is not null)
         {
             return true;
+        }
+
+        return false;
+    }
+
+    private bool IsUserRoleNull()
+    {
+        if (loggedInUserRole is null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsUserOwner()
+    {
+        if (loggedInUser is null || server is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanBanMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (loggedInUserRole.CanBanMember || IsUserOwner())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanKickMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (loggedInUserRole.CanKickMember)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateChannel()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (loggedInUserRole.CanCreateChannel)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (loggedInUserRole.CanCreateRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanGiveRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (loggedInUserRole.CanGiveRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanViewAuditLog()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (loggedInUserRole.CanViewAuditLog)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanEditServer()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (loggedInUserRole.CanEditServer)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAnyPermission()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (CanBanMember())
+        {
+            return true;
+        }
+
+        if (CanKickMember())
+        {
+            return true;
+        }
+
+        if (CanCreateChannel())
+        {
+            return true;
+        }
+
+        if (CanCreateRole())
+        {
+            return true;
+        }
+
+        if (CanGiveRole())
+        {
+            return true;
+        }
+
+        if (CanViewAuditLog())
+        {
+            return true;
+        }
+
+        if (CanEditServer())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
         }
 
         return false;

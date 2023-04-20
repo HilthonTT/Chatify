@@ -68,11 +68,17 @@ public class MongoRoleData : IRoleData
 
     public Task CreateRole(RoleModel role)
     {
+        string cachingString = _helper.RoleCachingString(role.Server.Id);
+        _cache.Remove(cachingString);
+
         return _roles.InsertOneAsync(role);
     }
 
     public Task UpdateRole(RoleModel role)
     {
+        string cachingString = _helper.RoleCachingString(role.Server.Id);
+        _cache.Remove(cachingString);
+
         var filter = Builders<RoleModel>.Filter.Eq("Id", role.Id);
         return _roles.ReplaceOneAsync(filter, role, new ReplaceOptions { IsUpsert = true });
     }
