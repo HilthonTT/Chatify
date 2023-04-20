@@ -1,6 +1,41 @@
 ﻿@inject IConfiguration config
 @inject NavigationManager navManager
 @inject IServerData serverData
+@inject IRoleData roleData
+@inject IJSRuntime JSRuntime
+
+<div class="modal fade" id="modal-@Server.Id" tabindex="-1" role="dialog" aria-labelledby="modalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="modalLongTitle">
+                Leave @Server.ServerName?
+            </h5>
+            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="mb-3">
+                        <div class="mt-1 text-center h5">Are you sure you would like to leave @Server.ServerName?</div>
+                    </div>
+                    <div class="center-children">
+                        <button class="btn btn-secondary btn-lg text-uppercase mt-4"
+                            @onclick="(async() => await LeaveServer(Server))">
+                            Leave
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="col-xl-4 col-lg-6 mb-3 center-children">
     <div class="row">
@@ -51,25 +86,14 @@
                                 <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => OpenDetails(Server))">
                                     Check out
                                 </button>
-                                @if (selectedServer is null || selectedServer.Id != Server.Id)
+                                @if (Server.Owner.Id != LoggedInUser.Id)
                                 {
-                                    @if (Server.Owner.Id != LoggedInUser.Id)
-                                    {
-                                        <button class="btn btn-outline-danger w-100" @onclick="(() => selectedServer = Server)">
-                                            Leave Server
-                                        </button>
-                                    }
-                                }
-                                else
-                                {
-                                    <div class="btn-group w-100">
-                                        <button class="btn btn-outline-success me-1" @onclick="(async() => await LeaveServer(Server))">
-                                            Leave
-                                        </button>
-                                        <button class="btn btn-outline-danger" @onclick="(() => selectedServer = null)">
-                                            Cancel
-                                        </button>
-                                    </div>
+                                    <button class="btn btn-outline-danger w-100" 
+                                        data-toggle="modal" 
+                                        data-target="#modal-@Server.Id"
+                                        @onclick="(() => selectedServer = Server)">
+                                        Leave Server
+                                    </button>
                                 }
                             }
                         }
@@ -95,6 +119,11 @@
 
     private ServerModel selectedServer;
 
+    private async Task CloseModal(ServerModel server)
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", $"modal-{server.Id}");
+    }
+
     private async Task JoinServer(ServerModel server)
     {
         server.Members.Add(new BasicUserModel(LoggedInUser));
@@ -105,11 +134,21 @@
     private async Task LeaveServer(ServerModel server)
     {
         var userToRemove = server.Members.FirstOrDefault(m => m.Id == LoggedInUser?.Id);
+        var userServerRole = await roleData.GetUserServerRoleAsync(LoggedInUser, Server);
+        if (userServerRole is not null)
+        {
+            var userToRoleRemove = userServerRole.Users.Where(u => u.Id == LoggedInUser.Id).FirstOrDefault();
+            userServerRole.Users.Remove(userToRoleRemove);
+            await roleData.UpdateRole(userServerRole);
+        }
+
         if (userToRemove is not null)
         {
             server.Members.Remove(userToRemove);
             await serverData.UpdateServer(server);
         }
+
+        await CloseModal(server);
     }
 
     private string CreateWebPath(string relativePath)

@@ -621,7 +621,7 @@ else
         }
 
         // If the logged-in user is not the owner, check if they have a role with the necessary permissions
-        if (loggedInUserRole is not null || server is not null)
+        if (loggedInUserRole is not null)
         { 
             // Check if the user has any of the following role-based permissions: ban member, kick member, create channel, create role, give role, view audit log, or edit server
             if (loggedInUserRole.CanBanMember || 
