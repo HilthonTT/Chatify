@@ -1,0 +1,99 @@
+﻿@inject IFriendRequestData requestData
+@inject IUserData userData
+@inject IJSRuntime JSRuntime
+
+<div class="modal fade" id="requestModal-@FriendRequest.Id" tabindex="-1" role="dialog" aria-labelledby="requestModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="requestModalLongTitle">
+                Friend @FriendRequest.Sender.DisplayName
+            </h5>
+                <button type="button" 
+                    class="btn-close btn-close-white text-white" 
+                    data-dismiss="modal" 
+                    aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="mt-1">Are you sure you want to add @FriendRequest.Sender?.DisplayName?</div>
+                    <div class="center-children">
+                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="AcceptRequest">
+                            Accept Friend Request
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" 
+                class="btn btn-secondary"
+                data-dismiss="modal">
+                Close
+            </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-2">
+    <div class="card-body bg-dark">
+        <h5 class="card-title">Request sent by: @FriendRequest.Sender.DisplayName</h5>
+        <p class="card-text">Sent at @FriendRequest.RequestDate UTC</p>
+        <p class="card-text">Status: @GetStatusText()</p>
+        <button class="btn btn-secondary w-100" 
+            data-toggle="modal"
+            data-target="#requestModal-@FriendRequest.Id">Accept</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public FriendRequestModel FriendRequest { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public List<FriendRequestModel> PendingRequests { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public UserModel LoggedInUser { get; set; }
+
+    [Parameter]
+    public EventCallback<FriendRequestModel> RequestChanged { get; set; }
+
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", $"requestModal-{FriendRequest.Id}");
+    }
+
+    private async Task AcceptRequest()
+    {
+        if (FriendRequest.IsAccepted) return;
+
+        var sender = await userData.GetUserAsync(FriendRequest.Sender.Id);
+
+        FriendRequest.IsAccepted = true;
+        LoggedInUser.Friends.Add(FriendRequest.Sender);
+        sender.Friends.Add(new BasicUserModel(LoggedInUser));
+
+        await requestData.UpdateFriendRequest(FriendRequest);
+        await userData.UpdateUser(LoggedInUser);
+        await userData.UpdateUser(sender);
+
+        PendingRequests.Remove(FriendRequest);
+
+        await RequestChanged.InvokeAsync(FriendRequest);
+        await CloseModal();
+    }
+
+    private string GetStatusText()
+    {
+        if (FriendRequest.IsAccepted)
+        {
+            return "Accepted";
+        }
+
+        return "Not Considered";
+    }
+}

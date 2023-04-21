@@ -83,54 +83,7 @@
                   @if (messages is not null)
                   {
                     <Virtualize Items="messages" Context="m" OverscanCount="10">
-                      <div class="message bg-dark @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <div class="message-sender">@m.Sender.DisplayName</div>
-                                <div class="message-text text-break">@m.Text</div>
-                                <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                                @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
-                                {
-                                    <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                                }
-                            </div>
-                            @if (m.Sender.Id == loggedInUser?.Id)
-                            {
-                                <div class="btn-group" role="group">
-                                    <button id="btn-group-settings" 
-                                        type="button" class="btn btn-secondary dropdown-toggle" 
-                                        data-toggle="dropdown" 
-                                        aria-haspopup="true" 
-                                        aria-expanded="false">
-                                        <p><i class="fas fa-cog clickable"></i></p>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
-                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#messageModal"
-                                            @onclick="(() => LoadSelectedMessage(m))">
-                                            Edit
-                                        </button>
-                                    </div>
-                                </div>       
-                            }
-                        </div>
-                        @if (string.IsNullOrWhiteSpace(m.FileName) is false)
-                        {
-                            @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
-                            {
-                                <div class="d-flex justify-content-start">
-                                    <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="message-text">
-                                    <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
-                                        @m.OriginalFileName
-                                    </a>
-                                </div>
-                            }
-                        }
-                      </div>
+                      <PrivateMessage @key="m.Id" Message="m" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                     <div class="messages-mb" />
                   }

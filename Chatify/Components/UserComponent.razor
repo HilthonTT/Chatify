@@ -1,7 +1,7 @@
 ﻿@inject IConfiguration config
 @inject NavigationManager navManager
 
-<div class="card bg-dark border-white clickable mb-4" @onclick="OpenDetails">
+<div class="card bg-dark border-white mb-4">
     <div class="row g-0">
         <div class="col-md-1">
             <div class="p-1">
@@ -9,27 +9,33 @@
                 {
                     <div class="text-center p-3">
                         <img src="@CreateWebPath(User.FileName)" 
-                            class="card-img-top rounded-circle" 
+                            class="card-img-top rounded-circle clickable" 
                             alt="@User.FileName"
-                            style="width: 100px; height: 100px;">
+                            style="width: 100px; height: 100px;"
+                            @onclick="OpenDetails">
                     </div>
                 }
                 else
                 {
                     <div class="text-center p-3">
                         <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                            class="card-img-top rounded-circle" 
+                            class="card-img-top rounded-circle clickable" 
                             alt="Placeholder Image"
-                            style="width: 100px; height: 100px;">
+                            style="width: 100px; height: 100px;"
+                            @onclick="OpenDetails">
                     </div>
                 }
             </div>
         </div>
         <div class="col-md-11 align-content-center">
             <div class="card-body">
-                <h5 class="card-title">@User.DisplayName</h5>
+                <h5 class="card-title clickable" @onclick="OpenDetails">@User.DisplayName</h5>
                 <p class="card-text">
-                    Date Created: @User.DateCreated.ToString("dd/MM/yyyy")
+                    Friend Code: 
+                    <span class="fw-bold text-danger">@User.FriendCode</span>
+                </p>
+                <p class="card-text">
+                    Date Joined: @User.DateCreated.ToString("dd/MM/yyyy")
                 </p>
             </div>
         </div>

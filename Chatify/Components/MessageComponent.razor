@@ -1,0 +1,218 @@
+﻿@inject IJSRuntime JSRuntime
+@inject IConfiguration config
+@inject IMessageData messageData
+
+<div class="modal fade" id="messageModal-@Message.Id" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLongTitle">
+                    Edit @Message.Text
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <EditForm Model="model" OnValidSubmit="(async() => await UpdateMessage())">
+                    <DataAnnotationsValidator />
+                    <div class="row">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="message-text">Message Text</label>
+                            <div class="mt-1">Edit your message</div>
+                            <ValidationMessage For="(() => model.Text)"/>
+                            <InputText class="form-control bg-dark text-white input-section" id="message-text" 
+                                @bind-Value="model.Text"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="message-file">Insert your message file</label>
+                            <div class="mt-1 mb-2">
+                                <div>Select a file you want to associate with the message.</div>
+                                <div class="text-danger">Leave blank to leave previous file.</div>
+                            </div>
+                            <ValidationMessage For="(() => model)"/>
+                            <InputFile OnChange="LoadFiles"
+                                class="form-control bg-dark text-white input-section" 
+                                id="message-file"
+                                accept=".png,.jpg,.jpeg,.txt,.pdf"/>
+                        </div>
+                        <div class="center-children">
+                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
+                                    type="submit">
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="message bg-dark @((Message.Sender.Id == LoggedInUser.Id) ? "self" : "")">
+    <div class="d-flex justify-content-between">
+        <div>
+            <div class="message-sender">@Message.Sender.DisplayName</div>
+            <div class="message-text text-break">@Message.Text</div>
+            <div class="message-timestamp mb-1">Sent at: @Message.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+            @if (Message.Timestamp.ToString("dd-MM-yyyy HH:mm") != Message.LastEdited.ToString("dd-MM-yyyy HH:mm"))
+            {
+                <div class="message-timestamp mb-1">Edited on: @Message.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
+            }
+        </div>
+        @if (Message.Sender.Id == LoggedInUser.Id)
+        {
+            <div class="btn-group" role="group">
+                <button id="btn-group-settings" 
+                    type="button" class="btn btn-secondary dropdown-toggle" 
+                    data-toggle="dropdown" 
+                    aria-haspopup="true" 
+                    aria-expanded="false">
+                    <p><i class="fas fa-cog clickable"></i></p>
+                </button>
+                <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
+                    <button class="dropdown-item text-success" 
+                        data-toggle="modal" 
+                        data-target="#messageModal-@Message.Id">
+                        Edit
+                    </button>
+                </div>
+            </div>       
+        }
+    </div>
+    @if (string.IsNullOrWhiteSpace(Message.FileName) is false)
+    {
+        @if (Message.FileExtension == ".png" || Message.FileExtension == ".jpg" || Message.FileExtension == ".jpeg")
+        {
+            <div class="d-flex justify-content-start">
+                <img class="img-fluid" 
+                    src="@CreateWebPath(Message.FileName)" 
+                    alt="@Message.OriginalFileName" 
+                    style="width: 350px; height: 350px;"/>
+            </div>
+        }
+        else
+        {
+            <div class="message-text">
+                <a class="link-warning" href="@CreateWebPath(Message.FileName)" download="@Message.OriginalFileName">
+                    @Message.OriginalFileName
+                </a>
+            </div>
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public MessageModel Message { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public UserModel LoggedInUser { get; set; }
+
+    private CreateMessageModel model = new();
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+    private IBrowserFile? file;
+    private string errorMessage = "";
+    private string fileName = "";
+    private string fileExtension = "";
+
+    protected override void OnInitialized()
+    {
+        model.Text = Message.Text;
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void GetFileExtensionAndFileName()
+    {
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName();
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        errorMessage = "";
+
+        if (file is null || LoggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage"), 
+                LoggedInUser.Email, 
+                newFileName);
+
+            string relativePath = Path.Combine(LoggedInUser.Email, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"), 
+                    LoggedInUser.Email));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"File: {file.Name} Error: {ex.Message}";
+            throw;
+        }
+    }
+
+    private async Task CloseModal(MessageModel message)
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", $"messageModal-{message.Id}");
+    }
+
+    private async Task UpdateMessage()
+    {
+        string relativePath = await CaptureFile();
+        string oldFileName = Message.FileName;
+        string oldOriginalFile = Message.OriginalFileName;
+        string oldExtension = Message.FileExtension;
+
+        Message.Text = model.Text;
+        Message.LastEdited = DateTime.UtcNow;
+        if (file is not null)
+        {
+            Message.FileName = relativePath;
+            Message.OriginalFileName = fileName;
+            Message.FileExtension = fileExtension;
+        }
+        else
+        {
+            Message.FileName = oldFileName;
+            Message.OriginalFileName = oldOriginalFile;
+            Message.FileExtension = oldExtension;
+        }
+
+        await messageData.UpdateMessageAsync(Message);
+        model = new();
+        file = null;
+
+        await CloseModal(Message);
+    }
+}

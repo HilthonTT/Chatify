@@ -13,26 +13,30 @@
     <h1 class="page-heading mb-4">Send A Friend Request</h1>
 
     <div class="row justify-content-center">
-      <div class="col-xl-10 col-lg-8 col-md-10 card bg-dark p-4">
-        @if (string.IsNullOrWhiteSpace(displayMessage) == false)
-        {
-            <div class="alert @GetAlertClass()">@displayMessage</div>
-        }
-        <EditForm Model="request" OnValidSubmit="(async() => await SendRequest())">
-            <DataAnnotationsValidator />
-            <div class="mb-3">
-              <label class="form-label fw-bold text-uppercase" for="friend-code">Friend Code</label>
-              <div class="mb-1">Insert the friend code of the person you want to add.</div>
-              <ValidationMessage For="(() => request.FriendCode)" />
-              <InputText class="form-control bg-dark text-light input-section border-warning" id="friend-code" @bind-Value="request.FriendCode"/>
+      <div class="col-xl-10 col-lg-8 col-md-10 card bg-dark border-white p-4">
+        <div class="row">
+            <div class="close-button-section">
+                <button class="btn btn-close btn-close-white" @onclick="ClosePage" />
             </div>
-            <div class="text-center mt-4">
-              <button type="submit" class="btn btn-outline-warning btn-lg text-uppercase">Send Request</button>
+            <div class="col-12">
+                <EditForm Model="request" OnValidSubmit="(async() => await SendRequest())">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                      <label class="form-label fw-bold text-uppercase" for="friend-code">Friend Code</label>
+                      <div class="mb-1">Insert the friend code of the person you want to add.</div>
+                      <ValidationMessage For="(() => request.FriendCode)" />
+                        @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+                        {
+                            <div class="@GetErrorMessageClass() mb-2">@errorMessage</div>
+                        }
+                      <InputText class="form-control bg-dark text-light input-section" id="friend-code" @bind-Value="request.FriendCode"/>
+                    </div>
+                    <div class="text-center mt-4">
+                      <button type="submit" class="btn btn-secondary btn-lg text-uppercase">Send Request</button>
+                    </div>
+                </EditForm>
             </div>
-            <div class="text-center mt-4">
-              <button class="btn btn-outline-secondary" @onclick="ClosePage">Cancel</button>
-            </div>
-        </EditForm>
+        </div>
       </div>
     </div>
 }
@@ -46,7 +50,7 @@ else
     private List<FriendRequestModel> friendRequests;
     private UserModel loggedInUser;
     private BanModel ban;
-    private string displayMessage = "";
+    private string errorMessage = "";
     private bool isSuccess = false;
 
     protected override async Task OnInitializedAsync()
@@ -61,36 +65,33 @@ else
 
     private async Task SendRequest()
     {
-        displayMessage = "";
+        isSuccess = false;
+        errorMessage = "";
         var user = await userData.GetUserFriendCodeAsync(request.FriendCode);
         var friendRequest = friendRequests.Where(f => f.Receiver.Id == user.Id).FirstOrDefault();
         string objectId = await codeGenerator.GenerateFriendCodeAsync();
 
-        if (loggedInUser.Id == user.Id)
+        if (user is null)
         {
-            displayMessage = "You can't send a friend request to yourself.";
-            isSuccess = false;
+            errorMessage = "Oops... no user have been founded having this friend code.";
             return;
         }
 
-        if (user is null)
+        if (loggedInUser.Id == user.Id)
         {
-            displayMessage = "Oops... no user have been founded having this friend code.";
-            isSuccess = false;
+            errorMessage = "You can't send a friend request to yourself.";
             return;
         }
 
         if (loggedInUser.Friends.Contains(new BasicUserModel(user)))
         {
-            displayMessage = "You already have this person in your friend list.";
-            isSuccess = false;
+            errorMessage = "You already have this person in your friend list.";
             return;
         }
 
         if (friendRequest is not null)
         {
-            displayMessage = "You already have sended a friend request to this person.";
-            isSuccess = false;
+            errorMessage = "You already have sended a friend request to this person.";
             return;
         }
 
@@ -104,7 +105,7 @@ else
         await requestData.CreateFriendRequest(r);
         friendRequests.Add(r);
         request = new();
-        displayMessage = "The friend request have been sended";
+        errorMessage = "The friend request have been sended";
         isSuccess = true;
     }
 
@@ -113,13 +114,13 @@ else
         navManager.NavigateTo("/");
     }
 
-    private string GetAlertClass()
+    private string GetErrorMessageClass()
     {
         if (isSuccess)
         {
-            return "alert-success";
+            return "text-success";
         }
 
-        return "alert-danger";
+        return "text-danger";
     }
 }

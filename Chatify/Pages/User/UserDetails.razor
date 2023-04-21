@@ -104,9 +104,27 @@
                 @if (loggedInUser?.Id != user?.Id)
                 {
                     <div class="d-flex justify-content-between mb-4">
-                        <button class="btn btn-secondary" @onclick="(async() => await OpenPrivateConversation(user))">
-                            Launch Conversation
-                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary me-1" @onclick="(async() => await OpenPrivateConversation(user))">
+                                Launch Conversation
+                            </button>
+                            @if (IsUserFriends())
+                            {
+                                <button class="btn btn-primary" 
+                                        data-toggle="modal" 
+                                        data-target="#unfriendModal">
+                                    Unfriend
+                                </button>
+                            }
+                            else 
+                            {
+                                <button class="btn btn-primary" 
+                                        data-toggle="modal" 
+                                        data-target="#friendModal">
+                                    Send Friend Request
+                                </button>
+                            }
+                        </div>
                         <AuthorizeView Policy="Admin">
                             <button class="btn btn-outline-danger" @onclick="(() => OpenAdminBan(user))">Ban User</button>
                         </AuthorizeView>
@@ -152,8 +170,6 @@ else
     private UserModel loggedInUser;
     private UserModel user;
     private List<ConversationModel> conversations;
-    private List<FriendRequestModel> friendRequests;
-    private ConversationModel archivingConversation;
     private BanModel ban;
     private string errorMessage = "";
 
@@ -164,7 +180,6 @@ else
         if (loggedInUser is not null)
         {
             conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
-            friendRequests = await requestData.GetUserSendedFriendRequestsAsync(loggedInUser.Id);
             ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
     }
@@ -196,16 +211,10 @@ else
         }
     }
 
-    private async Task ArchiveConversation()
-    {
-        archivingConversation.Archived = true;
-        await conversationData.UpdateConversation(archivingConversation);
-        conversations.Remove(archivingConversation);
-        archivingConversation = null;
-    }
-
     private async Task SendFriendRequest()
     {
+        errorMessage = "";
+
         string objectId = await codeGenerator.GenerateFriendRequestIdentifierAsync();
 
         if (loggedInUser is null) return;
@@ -239,12 +248,13 @@ else
         };
 
         await requestData.CreateFriendRequest(newFriendRequest);
-        navManager.NavigateTo($"/userDetails/{Id}", true);
         await CloseModal("friendModal");
     }
 
     private async Task UnfriendUser()
     {
+        errorMessage = "";
+
         if (loggedInUser is null) return;
 
         var friendRequest = await requestData.GetSenderAndReceiverFriendRequestAsync(loggedInUser, user);
@@ -278,5 +288,17 @@ else
     private void OpenAdminBan(UserModel user)
     {
         navManager.NavigateTo($"/AdminBan/{user.Id}");
+    }
+
+    private bool IsUserFriends()
+    {
+        var loggedInUserFriend = loggedInUser.Friends.Where(u => u.Id == user.Id).FirstOrDefault();
+
+        if (loggedInUserFriend is null)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
