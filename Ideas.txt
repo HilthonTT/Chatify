@@ -2,6 +2,5 @@
 Features to add:
 
 	* Add AuditLogs for conversations and servers.
-	* Add roles in server
-	* Add search bar for Users in BanAppeals.razor and Bans.razor
 	* Add Server invitations
+	* Add role for channels, have some roles be able to speak in this channels (ex: Announcements)

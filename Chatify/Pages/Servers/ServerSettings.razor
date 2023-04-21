@@ -6,6 +6,7 @@
 @inject IChannelData channelData
 @inject IBanData banData
 @inject IRoleData roleData
+@inject IAuditLogData auditLogData
 @inject IConfiguration config
 @inject ICodeGenerator codeGenerator
 @inject NavigationManager navManager
@@ -1031,6 +1032,17 @@ else
 
         await roleData.CreateRole(r);
         role = new();
+
+        AuditLogModel a = new()
+        {
+            Name = "Role Creation",
+            Description = $"{loggedInUser.DisplayName} has created role {r.RoleName}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
+        await auditLogData.CreateAuditLog(a);
     }
 
     private async Task CreateChannel()
@@ -1051,6 +1063,16 @@ else
         await serverData.UpdateServer(server);
 
         channel = new();
+        AuditLogModel a = new()
+        {
+            Name = "Channel Creation",
+            Description = $"{loggedInUser.DisplayName} has created channel {c.ChannelName}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
+        await auditLogData.CreateAuditLog(a);
     }
 
     private async Task CloseModal(string id)
@@ -1061,6 +1083,9 @@ else
     private async Task UpdateChannel()
     {
         var c = await channelData.GetChannelAsync(selectedChannel.Id);
+        string oldChannelName = c.ChannelName;
+        string oldCHannelDescription = c.ChannelDescription;
+
         c.ChannelName = channel.ChannelName;
         c.ChannelDescription = channel.ChannelDescription;
 
@@ -1069,10 +1094,21 @@ else
         serverChannel.ChannelDescription = c.ChannelDescription;
         await serverData.UpdateServer(server);
 
+        AuditLogModel a = new()
+        {
+            Name = "Update Channel",
+            Description = $"{loggedInUser.DisplayName} has updated channel {oldChannelName} to {c.ChannelName}",
+            OldValues = $"Channel Name: {oldChannelName}, Channel Description: {oldChannelName}",
+            NewValues = $"Channel Name: {c.ChannelName}, Channel Description: {c.ChannelDescription}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
         await channelData.UpdateChannel(c);
+        await auditLogData.CreateAuditLog(a);
         selectedChannel = null;
         channel = new();
-
         await CloseModal("channelModal");
     }
 
@@ -1081,6 +1117,7 @@ else
         var user = await userData.GetUserAsync(selectedUser.Id);
 
         var currentUserRole = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
+
         if (currentUserRole is not null)
         {
             var userToRemove = currentUserRole.Users.Where(u => u.Id == user.Id).FirstOrDefault();
@@ -1089,8 +1126,21 @@ else
         }
 
         var newUserRole = roles.Where(r => r.Id == editingUserRole.RoleId).FirstOrDefault();
+
+        AuditLogModel a = new()
+        {
+            Name = "Change Role",
+            Description = $"{loggedInUser.DisplayName} has changed {user.DisplayName} - {user.Id}'s role to {newUserRole.RoleName}",
+            OldValues = $"Previous role was {currentUserRole.RoleName}",
+            NewValues = $"New role is {newUserRole.RoleName}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
         newUserRole.Users.Add(new BasicUserModel(user));
         await roleData.UpdateRole(newUserRole);
+        await auditLogData.CreateAuditLog(a);
 
         selectedRole = null;
         selectedUser = null;
@@ -1102,6 +1152,8 @@ else
     private async Task UpdateServer()
     {
         string relativePath = await CaptureFile();
+        string serverName = server.ServerName;
+        string serverDescription = server.ServerDescription;
         string pictureName = server.PictureName;
         string originalPictureName = server.OriginalPictureName;
         string pictureExtension = server.PictureExtension;
@@ -1121,7 +1173,27 @@ else
             server.PictureExtension = pictureExtension;
         }
 
+        AuditLogModel a = new()
+        {
+            Name = "Server Details Updated",
+            Description = $"{loggedInUser.DisplayName} has updated server {server.ServerName}'s details",
+            OldValues = 
+                $@"Server name: {serverName}  
+                Server Description: {serverDescription} 
+                Server Picture: {pictureName}
+                Original picture name: {originalPictureName}",
+            NewValues = 
+                $@"Server name: {server.ServerName} 
+                Server Description: {server.ServerDescription} 
+                Server Picture: {server.PictureName} 
+                Original picture name: {server.OriginalPictureName}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
         await serverData.UpdateServer(server);
+        await auditLogData.CreateAuditLog(a);
         await CloseModal("serverModal");
         editingServer = new();
         file = null;
@@ -1129,6 +1201,10 @@ else
 
     private async Task UpdateRole()
     {
+        var oldRole = await roleData.GetRoleAsync(selectedRole.Id);
+
+        if (oldRole is null) return;
+
         RoleModel r = new()
         {
             Id = selectedRole.Id,
@@ -1145,7 +1221,23 @@ else
             DateCreated = selectedRole.DateCreated,
         };
 
+        AuditLogModel a = new()
+        {
+            Name = "Server Details Updated",
+            Description = $"{loggedInUser.DisplayName} has updated {r.RoleName}'s details",
+            OldValues = 
+                $@"Role name: {oldRole.RoleName}  
+                Role Description: {oldRole.RoleDescription}",
+            NewValues = 
+                $@"Role name: {r.RoleName} 
+                Role Description: {r.RoleDescription}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
         await roleData.UpdateRole(r);
+        await auditLogData.CreateAuditLog(a);
         await CloseModal("roleModal");
         role = new();
         selectedRole = null;
