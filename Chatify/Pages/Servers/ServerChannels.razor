@@ -1,0 +1,361 @@
+﻿@page "/ServerSettings/Channels/{Id}"
+@attribute [Authorize]
+@inject IRoleData roleData
+@inject IChannelData channelData
+@inject IUserData userData
+@inject IServerData serverData
+@inject IBanData banData
+@inject IAuditLogData auditLogData
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+@inject ProtectedSessionStorage sessionStorage
+
+<div class="modal fade" id="channelModal" tabindex="-1" role="dialog" aria-labelledby="channelModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="channelModalLongTitle">
+                    Edit @selectedChannel?.ChannelName
+                </h5>
+                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="editingChannel" OnValidSubmit="(async() => await UpdateChannel())">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
+                                <div class="mt-1">Edit your channel's name</div>
+                                <ValidationMessage For="(() => editingChannel.ChannelName)"/>
+                                <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
+                                    @bind-Value="editingChannel.ChannelName"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
+                                <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
+                                <ValidationMessage For="(() => editingChannel.ChannelDescription)"/>
+                                <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
+                                    @bind-Value="editingChannel.ChannelDescription"/>
+                            </div>
+                            <div class="center-children">
+                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal" 
+                    @onclick="(() => selectedChannel = null)">
+                    Close
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+@if (ban is null)
+{
+    @if (HasAnyPermissions())
+    {
+        <h1 class="page-heading">@server?.ServerName's Channels</h1>
+
+        <div class="rounded rounded-3">
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-8 bg-dark p-4">
+                        <div class="row">
+                            <div class="col-11">
+                                <div class="row mb-4 mt-2">
+                                    <div class="col-12">
+                                        <div class="col-md-8 col-xl-12 btn-group">
+                                            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+                                                @onclick="(async() => await SortedByNew(true))">
+                                                New
+                                            </button>
+                                            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                                                @onclick="(async() => await SortedByNew(false))">
+                                                Old
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2 mt-4">
+                                        <div class="col-12">
+                                            <input type="text" placeholder="Search" 
+                                                aria-label="Search Box" class="form-control bg-dark text-light input-section"
+                                                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <Virtualize Items="channels" Context="c" OverscanCount="10">
+                                                <div class="card bg-dark border-white unclickable mb-4">
+                                                    <div class="row g-0">
+                                                        <div class="col-md-12">
+                                                            <div class="d-flex justify-content-between">
+                                                            <div class="card-body">
+                                                                <h5 class="card-title">@c.ChannelName</h5>
+                                                                <p class="card-text">
+                                                                    @c.ChannelDescription
+                                                                </p>
+                                                                <p class="card-text">
+                                                                    Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
+                                                                </p>
+                                                            </div>
+                                                            @if (CanCreateChannel())
+                                                            {
+                                                                <div class="btn-group" role="group">
+                                                                    <button id="btn-group-settings" type="button" 
+                                                                        class="btn btn-secondary dropdown-toggle" 
+                                                                        data-toggle="dropdown" 
+                                                                        aria-haspopup="true" 
+                                                                        aria-expanded="false">
+                                                                        <p><i class="fas fa-cog clickable"></i></p>
+                                                                    </button>
+                                                                    <div class="dropdown-menu dropdown-menu-dark" 
+                                                                            aria-labelledby="btn-group-settings">
+                                                                        <button class="dropdown-item text-success" 
+                                                                            data-toggle="modal" 
+                                                                            data-target="#channelModal"
+                                                                            @onclick="(() => LoadSelectedChannel(c))">
+                                                                            Edit
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>                          
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Virtualize>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-1">
+                                <div class="close-button-section">
+                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <Banned />
+}
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private CreateChannelModel editingChannel = new();
+
+    private ServerModel server;
+    private UserModel loggedInUser;
+    private BanModel ban;
+    private ChannelModel selectedChannel;
+    private RoleModel role;
+    private List<ChannelModel> channels;
+
+    private string searchText = "";
+    private bool isSortedByNew = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        server = await serverData.GetServerAsync(Id);
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (server is not null)
+        {
+            channels = await channelData.GetAllChannelsServerAsync(server);
+        }
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+        if (loggedInUser is not null && server is not null)
+        {
+            role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            if (server is not null)
+            {
+                await FilterChannels();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+    }
+
+    private async Task FilterChannels()
+    {
+        var output = await channelData.GetAllChannelsServerAsync(server);
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(
+                c => c.ChannelName.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                c.ChannelDescription.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(r => r.DateCreated).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(r => r.DateCreated).ToList();
+        }
+
+        channels = output;
+        await SaveFilterState();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterChannels();
+    }
+
+    private async Task SortedByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterChannels();
+    }
+
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", "channelModal");
+    }
+
+    private async Task UpdateChannel()
+    {
+        string oldChannelName = selectedChannel.ChannelName;
+        string oldCHannelDescription = selectedChannel.ChannelDescription;
+
+        selectedChannel.ChannelName = editingChannel.ChannelName;
+        selectedChannel.ChannelDescription = editingChannel.ChannelDescription;
+
+        var serverChannel = server.Channels.Where(c => c.Id == selectedChannel.Id).FirstOrDefault();
+        serverChannel.ChannelName = selectedChannel.ChannelName;
+        serverChannel.ChannelDescription = selectedChannel.ChannelDescription;
+        await serverData.UpdateServer(server);
+
+        AuditLogModel a = new()
+        {
+            Name = "Update Channel",
+            Description = $"{loggedInUser.DisplayName} has updated channel {oldChannelName} to {selectedChannel.ChannelName}",
+            OldValues = $"Channel Name: {oldChannelName}, Channel Description: {oldChannelName}",
+            NewValues = $"Channel Name: {selectedChannel.ChannelName}, Channel Description: {selectedChannel.ChannelDescription}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
+        await channelData.UpdateChannel(selectedChannel);
+        await auditLogData.CreateAuditLog(a);
+        selectedChannel = null;
+        editingChannel = new();
+        await CloseModal();
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo($"/ServerSettings/{server.Id}");
+    }
+
+    private void LoadSelectedChannel(ChannelModel model)
+    {
+        selectedChannel = model;
+        editingChannel.ChannelName = model.ChannelName;
+        editingChannel.ChannelDescription = model.ChannelDescription;
+    }
+
+    private string SortedByNewClass(bool isNew)
+    {
+        if (isSortedByNew == isNew)
+        {
+            return "btn-secondary";
+        }
+
+        return "btn-outline-secondary";
+    }
+
+    private bool IsUserOwner()
+    {
+        if (loggedInUser is null || server is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    private bool CanCreateChannel()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (role is not null && role.CanCreateChannel)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAnyPermissions()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (CanCreateChannel())
+        {
+            return true;
+        }
+
+        return false;
+    }
+}

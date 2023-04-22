@@ -314,6 +314,14 @@ a, .btn-link {
     margin: 0.5rem;
 }
 
+.in-allowed-roles {
+    border-color: green !important;
+}
+
+.in-disallowed-roles {
+    border-color: red !important;
+}
+
 .conversation-info {
   font-size: 1.2rem;
   font-weight: bold;

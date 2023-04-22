@@ -5,6 +5,7 @@
 @inject IChannelData channelData
 @inject IUserData userData
 @inject IBanData banData
+@inject IRoleData roleData
 @inject ICodeGenerator codeGenerator
 @inject IConfiguration config
 @inject NavigationManager navManager
@@ -163,7 +164,7 @@ else
 
             await serverData.CreateServer(s);
             var newServer = await serverData.GetServerObjectIdAsync(objectId);
-            
+
             string channelObjectId = await codeGenerator.GenerateChannelIdentifierAsync();
             ChannelModel c = new()
             {
@@ -173,6 +174,16 @@ else
                 ChannelDescription = "This is the default channel.",
             };
 
+            RoleModel r = new()
+            {
+                RoleName = "Member",
+                RoleDescription = "Default role, anyone who joins this server has this role.",
+                Server = newServer,
+            };
+
+            r.Users.Add(new BasicUserModel(loggedInUser));
+
+            await roleData.CreateRole(r);
             await channelData.CreateChannel(c);
             var newChannel = await channelData.GetChannelObjectIdAsync(channelObjectId);
             newServer.Channels.Add(newChannel);

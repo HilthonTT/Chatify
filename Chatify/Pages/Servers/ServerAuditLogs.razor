@@ -1,0 +1,428 @@
+﻿@page "/ServerSettings/AuditLogs/{Id}"
+@attribute [Authorize]
+@inject IUserData userData
+@inject IAuditLogData auditLogData
+@inject IServerData serverData
+@inject IRoleData roleData
+@inject IBanData banData
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+@inject ProtectedSessionStorage sessionStorage
+
+
+@if (ban is null)
+{
+    @if (HasAnyPermission())
+    {
+        <h1 class="page-heading">@server?.ServerName's Audit Logs</h1>
+
+        <div class="rounded rounded-3">
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-8 bg-dark p-4">
+                        <div class="row">
+                            <div class="col-11">
+                                <div class="row mb-4 mt-2">
+                                    <div class="col-12">
+                                        <div class="col-md-8 col-xl-12 btn-group">
+                                            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+                                                @onclick="(async() => await SortedByNew(true))">
+                                                New
+                                            </button>
+                                            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                                                @onclick="(async() => await SortedByNew(false))">
+                                                Old
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <input type="text" placeholder="Search" 
+                                            aria-label="Search Box" class="form-control bg-dark text-light input-section"
+                                            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <Virtualize Items="auditLogs" Context="a" OverscanCount="10">
+                                          <div class="card bg-dark border-white unclickable mb-4">
+                                              <div class="row g-0">
+                                                  <div class="col-md-12">
+                                                     <div class="d-flex justify-content-between">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title fw-bold">@a.Name</h5>
+                                                            <p class="card-text">
+                                                               @a.Description
+                                                            </p>
+                                                            @if (string.IsNullOrWhiteSpace(a.OldValues) is false)
+                                                            {
+                                                                <p class="card-text">
+                                                                   <span class="text-danger">Old values:</span>
+                                                                   @a.OldValues
+                                                                </p>     
+                                                            }
+                                                            @if (string.IsNullOrWhiteSpace(a.NewValues) is false)
+                                                            {
+                                                                <p class="card-text">
+                                                                    <span class="text-danger">New values:</span>
+                                                                    @a.NewValues
+                                                                </p>         
+                                                            }
+                                                            <p class="card-text">
+                                                                Date Modified: @a.DateModified.ToString("dd/MM/yyyy")
+                                                            </p>
+                                                        </div>
+                                                    </div>                          
+                                                  </div>
+                                              </div>
+                                          </div>
+                                        </Virtualize>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-1">
+                                <div class="close-button-section">
+                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <Banned />
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private ServerModel server;
+    private UserModel loggedInUser;
+    private BanModel ban;
+    private RoleModel role;
+    private List<AuditLogModel> auditLogs;
+
+    private string searchText = "";
+    private bool isSortedByNew = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        server = await serverData.GetServerAsync(Id);
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (server is not null)
+        {
+            auditLogs = await auditLogData.GetAllServerAuditLogsAsync(server);
+        }
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+        if (loggedInUser is not null && server is not null)
+        {
+            role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            if (server is not null)
+            {
+                await FilterAuditLogs();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
+        isSortedByNew = boolResults.Success ? boolResults.Value : true;
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+    }
+
+    private async Task FilterAuditLogs()
+    {
+        var output = await auditLogData.GetAllServerAuditLogsAsync(server);
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(
+                a => a.Name.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                a.Description.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(r => r.DateModified).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(r => r.DateModified).ToList();
+        }
+
+        auditLogs = output;
+        await SaveFilterState();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterAuditLogs();
+    }
+
+    private async Task SortedByNew(bool isNew)
+    {
+        isSortedByNew = isNew;
+        await FilterAuditLogs();
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo($"/ServerSettings/{server.Id}");
+    }
+
+    private string SortedByNewClass(bool isNew)
+    {
+        if (isSortedByNew == isNew)
+        {
+            return "btn-secondary";
+        }
+
+        return "btn-outline-secondary";
+    }
+
+    private bool IsUserRoleNull()
+    {
+        if (role is null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsUserOwner()
+    {
+        if (loggedInUser is null || server is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanBanMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanBanMember || IsUserOwner())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanKickMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanKickMember)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateChannel()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanCreateChannel)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanCreateRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanGiveRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanGiveRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanViewAuditLog()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanViewAuditLog)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanEditServer()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanEditServer)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAnyPermission()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (CanBanMember())
+        {
+            return true;
+        }
+
+        if (CanKickMember())
+        {
+            return true;
+        }
+
+        if (CanCreateChannel())
+        {
+            return true;
+        }
+
+        if (CanCreateRole())
+        {
+            return true;
+        }
+
+        if (CanGiveRole())
+        {
+            return true;
+        }
+
+        if (CanViewAuditLog())
+        {
+            return true;
+        }
+
+        if (CanEditServer())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        return false;
+    }
+}

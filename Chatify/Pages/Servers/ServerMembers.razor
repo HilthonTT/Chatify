@@ -1,0 +1,612 @@
+﻿@page "/ServerSettings/Members/{Id}"
+@attribute [Authorize]
+@inject IServerData serverData
+@inject IUserData userData
+@inject IRoleData roleData
+@inject IBanData banData
+@inject IAuditLogData auditLogData
+@inject IConfiguration config
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+@inject ProtectedSessionStorage sessionStorage
+
+<div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="editRoleModalLongTitle">
+                Edit @selectedUser?.DisplayName's role
+            </h5>
+            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <EditForm Model="editingUserRole" OnValidSubmit="(async() => await UpdateUserRole())">
+                    <DataAnnotationsValidator  />
+                    <div class="row">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase" for="role-name">@selectedUser?.DisplayName's role</label>
+                            <ValidationMessage For="(() => editingUserRole.RoleId)" />
+                            <div class="mt-1">Edit @selectedUser?.DisplayName's role</div>
+                            <InputRadioGroup id="role" @bind-Value="editingUserRole.RoleId">
+                                @if (roles is not null)
+                                {
+                                    <Virtualize Items="roles" Context="r" OverscanCount="10">
+                                        <div class="radio-item-group">
+                                            <InputRadio Value="@r.Id" id="@r.Id"/>
+                                            <label for="@r.Id">@r.RoleName - @r.RoleDescription</label>
+                                        </div>
+                                    </Virtualize>
+                                }
+                            </InputRadioGroup>
+                        </div>
+                        <div class="center-children">
+                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                Edit Role
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+            <button type="button" 
+                class="btn btn-secondary" 
+                data-dismiss="modal" 
+                @onclick="(() => selectedUser = null)">
+                Close
+            </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userModalCenter" tabindex="-1" role="dialog" aria-labelledby="userModalCenterCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="userModallLongTitle">
+                @GetModalTitleString()
+            </h5>
+            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                Are you sure you want to commit these actions?
+            </div>
+            <div class="modal-footer">
+            <button type="button" 
+                class="btn btn-secondary" 
+                data-dismiss="modal" 
+                @onclick="ClearSelectedUsers">
+                Close
+            </button>
+            @if (selectedUserToBan is not null)
+            {
+                <button type="button" 
+                    class="btn btn-primary" 
+                    data-dismiss="modal" 
+                    @onclick="(async() => await BanMember(selectedUserToBan))">
+                    Ban Member
+                </button> 
+            }
+            else if (selectedUserToKick is not null)
+            {
+                <button type="button" 
+                    class="btn btn-primary" 
+                    data-dismiss="modal" 
+                    @onclick="(async() => await BanMember(selectedUserToKick))">
+                    Kick Member
+                </button>
+            }
+            else
+            {
+                <button type="button" 
+                    class="btn btn-primary" 
+                    data-dismiss="modal" 
+                    @onclick="(async() => await UnbanMember(selectedUserToUnban))">
+                    Unban Member
+                </button>
+            }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (ban is null)
+{
+    @if (HasAnyPermissions())
+    {
+        <h1 class="page-heading mb-4">@server?.ServerName's Members</h1>
+
+        <div class="rounded rounded-3">
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-8 bg-dark p-4">
+                        <div class="row">
+                            <div class="col-11">
+                                <div class="row">
+                                    <div class="col-md-8 col-xl-12 btn-group mb-4">
+                                        <button class="btn text-uppercase fw-bold me-2 @PriorityBannedClass(false)" 
+                                            @onclick="(async() => await OnPriorityClick(false))">
+                                            PRIORITY - NOT BANNED
+                                        </button>
+                                        <button class="btn text-uppercase fw-bold @PriorityBannedClass(true)" 
+                                            @onclick="(async() => await OnPriorityClick(true))">
+                                            PRIORITY - BANNED
+                                        </button>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 col-xl-12">
+                                            <input type="text" placeholder="Search" 
+                                                aria-label="Search Box" class="form-control bg-dark text-light input-section"
+                                                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <Virtualize Items="users" Context="u" OverscanCount="10">
+                                                <div class="card bg-dark border-white mb-4">
+                                                    <div class="row g-0">
+                                                        <div class="col-1">
+                                                            <div class="p-1">
+                                                                @if (string.IsNullOrWhiteSpace(u.FileName) is false)
+                                                                {
+                                                                    <div class="text-center p-3">
+                                                                        <img src="@CreateWebPath(u.FileName)" 
+                                                                            class="card-img-top rounded-circle" 
+                                                                            alt="@u.FileName"
+                                                                            style="width: 100px; height: 100px;">
+                                                                    </div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="text-center p-3">
+                                                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                                            class="card-img-top rounded-circle" 
+                                                                            alt="Placeholder Image"
+                                                                            style="width: 100px; height: 100px;">
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-11 d-flex justify-content-between">
+                                                            <div class="card-body">
+                                                                <h5 class="card-title">@u.DisplayName</h5>
+                                                                @if (string.IsNullOrWhiteSpace(GetUserRoleName(u)) is false)
+                                                                {
+                                                                    <p class="card-text">
+                                                                        Role: @GetUserRoleName(u)
+                                                                    </p>    
+                                                                }
+                                                                <p class="card-text">
+                                                                    Status: @((IsUserBanned(u) ? "Banned" : "Active"))
+                                                                </p>
+                                                                <p class="card-text">
+                                                                    Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
+                                                                </p>
+                                                            </div>
+                                                            @if (u.Id != loggedInUser.Id)
+                                                            {
+                                                                <div class="btn-group" role="group">
+                                                                    <button id="btn-group-settings" type="button" class="btn btn-secondary dropdown-toggle" 
+                                                                        data-toggle="dropdown" 
+                                                                        aria-haspopup="true" 
+                                                                        aria-expanded="false">
+                                                                        <p><i class="fas fa-cog clickable"></i></p>
+                                                                    </button>
+                                                                    <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
+                                                                        @if (IsUserBanned(u) is false && (CanKickMember() || CanBanMember() || CanGiveRole()))
+                                                                        {
+                                                                            @if (CanGiveRole())
+                                                                            {
+                                                                                <button class="dropdown-item text-success" 
+                                                                                    data-toggle="modal" 
+                                                                                    data-target="#editRoleModal" 
+                                                                                    @onclick="(() => selectedUser = u)">
+                                                                                    Give Role
+                                                                                </button>         
+                                                                            }
+                                                                            @if (CanKickMember())
+                                                                            {
+                                                                                <button class="dropdown-item text-success" 
+                                                                                    data-toggle="modal" 
+                                                                                    data-target="#userModalCenter" 
+                                                                                    @onclick="(() => selectedUserToKick = u)">
+                                                                                    Kick Member
+                                                                                </button>            
+                                                                            }
+                                                                            @if (CanBanMember())
+                                                                            {
+                                                                                <button class="dropdown-item text-danger" 
+                                                                                    data-toggle="modal" 
+                                                                                    data-target="#userModalCenter" 
+                                                                                    @onclick="(() => selectedUserToBan = u)">
+                                                                                    Ban Member
+                                                                                </button>        
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
+                                                                                @onclick="(() => selectedUserToUnban = u)">
+                                                                                Unban Member
+                                                                            </button>
+                                                                        }
+                                                                    </div>
+                                                                </div>     
+                                                            }                    
+                                                        </div>
+                                                    </div>                 
+                                                </div>
+                                            </Virtualize>
+                                        </div>
+                                    </div>
+                                </div>            
+                            </div>
+                            <div class="col-1">
+                                <div class="close-button-section">
+                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <NotAuthorized />
+    }
+}
+else
+{
+    <Banned />
+}
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private EditingUserRoleModel editingUserRole = new();
+
+    private ServerModel server;
+    private UserModel loggedInUser;
+    private UserModel selectedUser;
+    private UserModel selectedUserToKick;
+    private UserModel selectedUserToBan;
+    private UserModel selectedUserToUnban;
+    private RoleModel role;
+    private BanModel ban;
+    private List<UserModel> users;
+    private List<RoleModel> roles;
+    private string searchText = "";
+    private bool priorityBannedUsers = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        server = await serverData.GetServerAsync(Id);
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (server is not null)
+        {
+            users = await userData.GetAllUsersServerAsync(server);
+            roles = await roleData.GetAllRolesServerAsync(server);
+        }
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+        if (loggedInUser is not null && server is not null)
+        {
+            role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadFilterState();
+            if (server is not null)
+            {
+                await FilterUsers();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFilterState()
+    {
+        var boolResults = await sessionStorage.GetAsync<bool>(nameof(priorityBannedUsers));
+        priorityBannedUsers = boolResults.Success ? boolResults.Value : true;
+        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
+        searchText = stringResults.Success ? stringResults.Value : "";
+    }
+
+    private async Task SaveFilterState()
+    {
+        await sessionStorage.SetAsync(nameof(priorityBannedUsers), priorityBannedUsers);
+        await sessionStorage.SetAsync(nameof(searchText), searchText);
+    }
+
+    private async Task FilterUsers()
+    {
+        var output = await userData.GetAllUsersServerAsync(server);
+        var bannedUsersId = server.BannedUsers.Select(b => b.Id).ToList();
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(u => u.DisplayName.Contains(
+                searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (priorityBannedUsers)
+        {
+            output = output.OrderByDescending(u => IsUserBanned(u)).ToList();
+        }
+        else
+        {
+            output = output.OrderByDescending(
+                u => !IsUserBanned(u)).ThenByDescending(
+                u => u.DateCreated).ToList();
+        }
+
+        users = output;
+        await SaveFilterState();
+    }
+
+    private async Task OnSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterUsers();
+    }
+
+    private async Task OnPriorityClick(bool isPriority)
+    {
+        priorityBannedUsers = isPriority;
+        await FilterUsers();
+    }
+
+    private void ClearSelectedUsers()
+    {
+        selectedUser = null;
+        selectedUserToKick = null;
+        selectedUserToBan = null;
+        selectedUserToUnban = null;
+    }
+
+    private async Task KickMember(UserModel user)
+    {
+        var userToRemove = server.Members.Where(u => u.Id == user.Id).FirstOrDefault();
+        server.Members.Remove(userToRemove);
+
+        await serverData.UpdateServer(server);
+        ClearSelectedUsers();
+    }
+
+    private async Task BanMember(UserModel user)
+    {
+        var userToBan = server.Members.Where(u => u.Id == user.Id).FirstOrDefault();
+        server.BannedUsers.Add(userToBan);
+
+        await serverData.UpdateServer(server);
+        ClearSelectedUsers();
+    }
+
+    private async Task UnbanMember(UserModel user)
+    {
+        var userToUnban = server.BannedUsers.Where(u => u.Id == user.Id).FirstOrDefault();
+        server.BannedUsers.Remove(userToUnban);
+
+        await serverData.UpdateServer(server);
+        ClearSelectedUsers();
+    }
+
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", "editRoleModal");
+    }
+
+    private async Task UpdateUserRole()
+    {
+        var user = await userData.GetUserAsync(selectedUser.Id);
+
+        var currentUserRole = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
+
+        if (currentUserRole is not null)
+        {
+            var userToRemove = currentUserRole.Users.Where(u => u.Id == user.Id).FirstOrDefault();
+            currentUserRole.Users.Remove(userToRemove);
+            await roleData.UpdateRole(currentUserRole);
+        }
+
+        var newUserRole = roles.Where(r => r.Id == editingUserRole.RoleId).FirstOrDefault();
+
+        AuditLogModel a = new()
+        {
+            Name = "Change Role",
+            Description = $"{loggedInUser.DisplayName} has changed {user.DisplayName} - {user.Id}'s role to {newUserRole.RoleName}",
+            OldValues = $"Previous role was {currentUserRole.RoleName}",
+            NewValues = $"New role is {newUserRole.RoleName}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
+        newUserRole.Users.Add(new BasicUserModel(user));
+        await roleData.UpdateRole(newUserRole);
+        await auditLogData.CreateAuditLog(a);
+
+        selectedUser = null;
+        editingUserRole = new();
+
+        await CloseModal();
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo($"/ServerSettings/{server.Id}");
+    }
+
+    private void OpenUserDetails(UserModel user)
+    {
+        if (user.Id == loggedInUser.Id)
+        {
+            navManager.NavigateTo("/Profile");
+            return;
+        }
+
+        navManager.NavigateTo($"/userDetails/{user.Id}");
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private string PriorityBannedClass(bool isPriority)
+    {
+        if (priorityBannedUsers == isPriority)
+        {
+            return "btn-secondary";
+        }
+
+        return "btn-outline-secondary";
+    }
+
+    private string GetUserRoleName(UserModel user)
+    {
+        var role = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
+
+        if (user.Id == server.Owner.Id)
+        {
+            return "Owner";
+        }
+
+        if (role is not null)
+        {
+            return role.RoleName;
+        }
+
+        return "";
+    }
+
+    private string GetModalTitleString()
+    {
+        if (selectedUserToBan is not null)
+        {
+            return $"Ban {selectedUserToBan.DisplayName}";
+        }
+
+        if (selectedUserToKick is not null)
+        {
+            return $"Kick {selectedUserToKick.DisplayName}";
+        }
+
+        return $"Unban {selectedUserToUnban?.DisplayName}";
+    }
+
+    private bool IsUserBanned(UserModel user)
+    {
+        if (server is not null)
+        {
+            bool IsUserInBannedList = server.BannedUsers.Any(b => b.Id == user.Id);
+
+            if (IsUserInBannedList)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        return false;
+    }
+
+    private bool IsUserOwner()
+    {
+        if (loggedInUser is null || server is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanBanMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (role is not null && role.CanBanMember || IsUserOwner())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanKickMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (role is not null && role.CanKickMember)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanGiveRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (role is not null && role.CanGiveRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAnyPermissions()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (CanKickMember())
+        {
+            return true;
+        }
+
+        if (CanBanMember())
+        {
+            return true;
+        }
+
+        if (CanGiveRole())
+        {
+            return true;
+        }
+
+        return false;
+    }
+}

@@ -126,7 +126,16 @@
 
     private async Task JoinServer(ServerModel server)
     {
-        server.Members.Add(new BasicUserModel(LoggedInUser));
+        var user = new BasicUserModel(LoggedInUser);
+        var role = await roleData.GetServerMemberRoleAsync(server);
+
+        role.Users.Add(user);
+        var serverRole = server.Roles.Where(r => r.Id == role.Id).FirstOrDefault();
+        serverRole.Users.Add(user);
+        await roleData.UpdateRole(role);
+        await roleData.UpdateRole(serverRole);
+
+        server.Members.Add(user);
         await serverData.UpdateServer(server);
         OpenDetails(server);
     }

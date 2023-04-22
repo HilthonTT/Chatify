@@ -24,109 +24,12 @@
   }
   else
   {
-    <div class="modal fade" id="userModalCenter" tabindex="-1" role="dialog" aria-labelledby="userModalCenterCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="userModallLongTitle">
-                    @GetModalTitleString()
-                </h5>
-                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to commit these actions?
-                </div>
-                <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal" 
-                    @onclick="ClearSelectedUsers">
-                    Close
-                </button>
-                @if (selectedUserToBan is not null)
-                {
-                    <button type="button" 
-                        class="btn btn-primary" 
-                        data-dismiss="modal" 
-                        @onclick="(async() => await BanMember(selectedUserToBan))">
-                        Ban Member
-                    </button> 
-                }
-                else if (selectedUserToKick is not null)
-                {
-                    <button type="button" 
-                        class="btn btn-primary" 
-                        data-dismiss="modal" 
-                        @onclick="(async() => await BanMember(selectedUserToKick))">
-                        Kick Member
-                    </button>
-                }
-                else
-                {
-                    <button type="button" 
-                        class="btn btn-primary" 
-                        data-dismiss="modal" 
-                        @onclick="(async() => await UnbanMember(selectedUserToUnban))">
-                        Unban Member
-                    </button>
-                }
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="channelModal" tabindex="-1" role="dialog" aria-labelledby="channelModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="channelModalLongTitle">
-                    Edit @selectedChannel?.ChannelName
-                </h5>
-                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                </div>
-                <div class="modal-body">
-                    <EditForm Model="channel" OnValidSubmit="(async() => await UpdateChannel())">
-                        <DataAnnotationsValidator />
-                        <div class="row">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
-                                <div class="mt-1">Edit your channel's name</div>
-                                <ValidationMessage For="(() => channel.ChannelName)"/>
-                                <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
-                                    @bind-Value="channel.ChannelName"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
-                                <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
-                                <ValidationMessage For="(() => channel.ChannelDescription)"/>
-                                <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
-                                    @bind-Value="channel.ChannelDescription"/>
-                            </div>
-                            <div class="center-children">
-                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                    Update
-                                </button>
-                            </div>
-                        </div>
-                    </EditForm>
-                </div>
-                <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal" 
-                    @onclick="(() => selectedChannel = null)">
-                    Close
-                </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="serverModal" tabindex="-1" role="dialog" aria-labelledby="serverModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
         <div class="modal-content bg-dark text-white"> 
             <div class="modal-header">
                 <h5 class="modal-title" id="serverModalLongTitle">
-                    Edit @selectedChannel?.ChannelName
+                    Edit @selectedServer?.ServerName
                 </h5>
                 <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
                 </div>
@@ -184,201 +87,7 @@
                 <button type="button" 
                     class="btn btn-secondary" 
                     data-dismiss="modal" 
-                    @onclick="(() => selectedChannel = null)">
-                    Close
-                </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="roleModal" tabindex="-1" role="dialog" aria-labelledby="roleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="roleModalLongTitle">
-                    Edit @selectedRole?.RoleName
-                </h5>
-                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                </div>
-                <div class="modal-body">
-                    <EditForm Model="role" OnValidSubmit="(async() => await UpdateRole())">
-                        <DataAnnotationsValidator />
-                        <div class="row">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-name">Role Name</label>
-                                <div class="mt-1">Name your role's name</div>
-                                <ValidationMessage For="(() => role.RoleName)"/>
-                                <InputText class="form-control bg-dark text-white input-section" id="role-name" 
-                                    @bind-Value="role.RoleName"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-description">Role Description</label>
-                                <div class="mt-1">Describe your role's purpose. What kind do they represent?</div>
-                                <ValidationMessage For="(() => role.RoleDescription)"/>
-                                <InputTextArea class="form-control bg-dark text-white input-section" id="role-description"
-                                    @bind-Value="role.RoleDescription"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-ban-member">Ability to ban members.</label>
-                                <div class="mt-1">Choose the role's ability to ban members.</div>
-                                <InputRadioGroup id="category" @bind-Value="role.CanBanMember">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-ban-member"/>
-                                        <label for="true-ban-member">Able to ban member</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-ban-member"/>
-                                        <label for="false-ban-member">Unable to ban member</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-kick-member">Ability to kick members.</label>
-                                <div class="mt-1">Choose the role's ability to kick members.</div>
-                                <InputRadioGroup id="category" @bind-Value="role.CanKickMember">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-kick-member"/>
-                                        <label for="true-kick-member">Able to kick member</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-kick-member"/>
-                                        <label for="false-kick-member">Unable to kick member</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-create-channels">Ability to create channels.</label>
-                                <div class="mt-1">Choose the role's ability to create channels.</div>
-                                <InputRadioGroup id="category" @bind-Value="role.CanCreateChannel">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-create-channel"/>
-                                        <label for="true-create-channel">Able to create channels</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-create-channel"/>
-                                        <label for="false-create-channel">Unable to create channels</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-create-roles">Ability to create roles.</label>
-                                <div class="mt-1">Choose the role's ability to create roles.</div>
-                                <InputRadioGroup id="category" @bind-Value="role.CanCreateRole">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-create-role"/>
-                                        <label for="true-create-role">Able to create roles</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-create-role"/>
-                                        <label for="false-create-role">Unable to create roles</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-give-roles">Ability to give roles.</label>
-                                <div class="mt-1">Choose the role's ability to give roles.</div>
-                                <InputRadioGroup id="category" @bind-Value="role.CanGiveRole">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-give-roles"/>
-                                        <label for="true-give-roles">Able to give roles</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-give-roles"/>
-                                        <label for="false-give-roles">Unable to give roles</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-view-audit-logs">Ability to view audit logs.</label>
-                                <div class="mt-1">Choose the role's ability to view the audit logs.</div>
-                                <InputRadioGroup id="category" @bind-Value="role.CanViewAuditLog">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-view-audit-logs"/>
-                                        <label for="true-view-audit-logs">Able to view the audit logs</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-view-audit-logs"/>
-                                        <label for="false-view-audit-logs">Unable to view the audit logs</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-edit-server">Ability to edit the server's details.</label>
-                                <div class="mt-1">Choose the role's ability to edit the server's details.</div>
-                                <InputRadioGroup id="category" @bind-Value="role.CanEditServer">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-edit-server"/>
-                                        <label for="true-edit-server">Able to edit the server's details</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-edit-server"/>
-                                        <label for="false-edit-server">Unable to edit the server's details</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="center-children">
-                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                    Update Role
-                                </button>
-                            </div>
-                        </div>
-                    </EditForm>
-                </div>
-                <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal" 
-                    @onclick="(() => selectedRole = null)">
-                    Close
-                </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="editRoleModalLongTitle">
-                    Edit @selectedUser?.DisplayName's role
-                </h5>
-                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                </div>
-                <div class="modal-body">
-                    <EditForm Model="editingUserRole" OnValidSubmit="(async() => await UpdateUserRole())">
-                        <DataAnnotationsValidator  />
-                        <div class="row">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-name">@selectedUser?.DisplayName's role</label>
-                                <ValidationMessage For="(() => editingUserRole.RoleId)" />
-                                <div class="mt-1">Edit @selectedUser?.DisplayName's role</div>
-                                <InputRadioGroup id="role" @bind-Value="editingUserRole.RoleId">
-                                    @if (roles is not null)
-                                    {
-                                        <Virtualize Items="roles" Context="r" OverscanCount="10">
-                                            <div class="radio-item-group">
-                                                <InputRadio Value="@r.Id" id="@r.Id"/>
-                                                <label for="@r.Id">@r.RoleName - @r.RoleDescription</label>
-                                            </div>
-                                        </Virtualize>
-                                    }
-                                </InputRadioGroup>
-                            </div>
-                            <div class="center-children">
-                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                    Edit Role
-                                </button>
-                            </div>
-                        </div>
-                    </EditForm>
-                </div>
-                <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal" 
-                    @onclick="(() => selectedUser = null)">
+                    @onclick="(() => selectedServer = null)">
                     Close
                 </button>
                 </div>
@@ -395,32 +104,30 @@
                 <div class="row">
                   <div class="col-11">
                     <div class="btn-group center-children mb-4">
+                        <div class="dropdown">
+                          <button class="btn btn-secondary dropdown-toggle me-1" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Open details
+                          </button>
+                          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" @onclick="OpenMembersPage">Members</a>
+                            <a class="dropdown-item" @onclick="OpenChannelsPage">Channels</a>
+                            <a class="dropdown-item" @onclick="OpenAuditLogsPage">Audit Logs</a>
+                          </div>
+                        </div>
                         @if (CanEditServer())
                         {
                             <button class="btn me-1 @GetOpenDetailsPageClass(true)" 
                                 @onclick="(async() => await ShowDetailsClick(true))">
                                 Show Server Details
                             </button>           
-                        }
-                        <button class="btn me-1 @GetMembersPageClass(true)" 
-                            @onclick="(async() => await ShowMembersPage(true))">
-                            Show Members
-                        </button>        
-                        <button class="btn me-1 @GetChannelsPageClass(true)" 
-                            @onclick="(async() => await ShowChannelsPage(true))">
-                            Show Channels
-                        </button> 
+                        }   
                         @if (CanCreateChannel())
                         {
-                            <button class="btn @GetCreateChannelPageClass(true)"
+                            <button class="btn me-1 @GetCreateChannelPageClass(true)"
                                 @onclick="(async() => await ShowCreateChannelPage(true))">
                                 Create Channel
                             </button>
                         }
-                        <button class="btn @GetRolesPageClass(true)"
-                            @onclick="(async() => await ShowRolesPage(true))">
-                            Show Roles
-                        </button>
                         @if (CanCreateRole())
                         {
                         <button class="btn @GetCreateRolePageClass(true)"
@@ -459,202 +166,6 @@
                       </div>
                       <hr />
                       }
-                      else if (showServerMembersPage && users is not null)
-                      {
-                        <div class="row">
-                          <div class="col-12">
-                            <div class="row mb-4 mt-2">
-                              <div class="col-12">
-                                  <div class="col-md-8 col-xl-12 btn-group">
-                                    <button class="btn text-uppercase fw-bold me-2 @SortedByPriorityClass(false)" 
-                                        @onclick="(async() => await PriorityBannedUsers(false))">
-                                        Priority - Not Banned
-                                    </button>
-                                    <button class="btn text-uppercase fw-bold @SortedByPriorityClass(true)" 
-                                        @onclick="(async() => await PriorityBannedUsers(true))">
-                                        Priority - Banned
-                                    </button>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="row mb-2">
-                              <div class="col-12">
-                                <input type="text" placeholder="Search" 
-                                    aria-label="Search Box" class="form-control bg-dark text-light input-section"
-                                    @oninput="(async(txt) => await OnSearchInputUser((string)txt.Value))"/>
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-12">
-                                <Virtualize Items="users" Context="u" OverscanCount="10">
-                                    <div class="card bg-dark border-white mb-4">
-                                        <div class="row g-0">
-                                            <div class="col-1">
-                                                <div class="p-1">
-                                                    @if (string.IsNullOrWhiteSpace(u.FileName) is false)
-                                                    {
-                                                        <div class="text-center p-3">
-                                                            <img src="@CreateWebPath(u.FileName)" 
-                                                                class="card-img-top rounded-circle" 
-                                                                alt="@u.FileName"
-                                                                style="width: 100px; height: 100px;">
-                                                        </div>
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="text-center p-3">
-                                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                                class="card-img-top rounded-circle" 
-                                                                alt="Placeholder Image"
-                                                                style="width: 100px; height: 100px;">
-                                                        </div>
-                                                    }
-                                                </div>
-                                            </div>
-                                            <div class="col-11 d-flex justify-content-between">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@u.DisplayName</h5>
-                                                    @if (string.IsNullOrWhiteSpace(GetUserRoleName(u)) is false)
-                                                    {
-                                                        <p class="card-text">
-                                                            Role: @GetUserRoleName(u)
-                                                        </p>    
-                                                    }
-                                                    <p class="card-text">
-                                                        Status: @((IsUserBanned(u) ? "Banned" : "Active"))
-                                                    </p>
-                                                    <p class="card-text">
-                                                        Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
-                                                    </p>
-                                                </div>
-                                                @if (u.Id != loggedInUser.Id)
-                                                {
-                                                    <div class="btn-group" role="group">
-                                                        <button id="btn-group-settings" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                            <p><i class="fas fa-cog clickable"></i></p>
-                                                        </button>
-                                                        <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
-                                                            @if (IsUserBanned(u) is false && (CanKickMember() || CanBanMember() || CanGiveRole()))
-                                                            {
-                                                                @if (CanGiveRole())
-                                                                {
-                                                                    <button class="dropdown-item text-success" 
-                                                                        data-toggle="modal" 
-                                                                        data-target="#editRoleModal" 
-                                                                        @onclick="(() => selectedUser = u)">
-                                                                        Give Role
-                                                                    </button>         
-                                                                }
-                                                                @if (CanKickMember())
-                                                                {
-                                                                    <button class="dropdown-item text-success" 
-                                                                        data-toggle="modal" 
-                                                                        data-target="#userModalCenter" 
-                                                                        @onclick="(() => selectedUserToKick = u)">
-                                                                        Kick Member
-                                                                    </button>            
-                                                                }
-                                                                @if (CanBanMember())
-                                                                {
-                                                                    <button class="dropdown-item text-danger" 
-                                                                        data-toggle="modal" 
-                                                                        data-target="#userModalCenter" 
-                                                                        @onclick="(() => selectedUserToBan = u)">
-                                                                        Ban Member
-                                                                    </button>        
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
-                                                                    @onclick="(() => selectedUserToUnban = u)">
-                                                                    Unban Member
-                                                                </button>
-                                                            }
-                                                        </div>
-                                                    </div>     
-                                                }                    
-                                            </div>
-                                        </div>                 
-                                    </div>
-                                </Virtualize>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                      else if (showChannelsPage && channels is not null)
-                      {
-                        <div class="row">
-                          <div class="col-12">
-                            <div class="row mb-4 mt-2">
-                              <div class="col-12">
-                                  <div class="col-md-8 col-xl-12 btn-group">
-                                    <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
-                                        @onclick="(async() => await SortedByNew(true))">
-                                        New
-                                    </button>
-                                    <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
-                                        @onclick="(async() => await SortedByNew(false))">
-                                        Old
-                                    </button>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="row mb-2">
-                              <div class="col-12">
-                                <input type="text" placeholder="Search" 
-                                    aria-label="Search Box" class="form-control bg-dark text-light input-section"
-                                    @oninput="(async(txt) => await OnSearchInputChannel((string)txt.Value))"/>
-                              </div>
-                            </div>
-                            <div class="row mt-2">
-                              <div class="col-12">
-                                <Virtualize Items="channels" Context="c" OverscanCount="10">
-                                  <div class="card bg-dark border-white unclickable mb-4">
-                                      <div class="row g-0">
-                                          <div class="col-md-12">
-                                             <div class="d-flex justify-content-between">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@c.ChannelName</h5>
-                                                    <p class="card-text">
-                                                        @c.ChannelDescription
-                                                    </p>
-                                                    <p class="card-text">
-                                                        Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
-                                                    </p>
-                                                </div>
-                                                @if (CanCreateChannel())
-                                                {
-                                                    <div class="btn-group" role="group">
-                                                        <button id="btn-group-settings" type="button" 
-                                                            class="btn btn-secondary dropdown-toggle" 
-                                                            data-toggle="dropdown" 
-                                                            aria-haspopup="true" 
-                                                            aria-expanded="false">
-                                                            <p><i class="fas fa-cog clickable"></i></p>
-                                                        </button>
-                                                        <div class="dropdown-menu dropdown-menu-dark" 
-                                                             aria-labelledby="btn-group-settings">
-                                                            <button class="dropdown-item text-success" 
-                                                                data-toggle="modal" 
-                                                                data-target="#channelModal"
-                                                                @onclick="(() => LoadSelectedChannel(c))">
-                                                                Edit
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                }
-                                            </div>                          
-                                          </div>
-                                      </div>
-                                  </div>
-                                </Virtualize>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      }
                       else if (showCreateChannelPage)
                       {
                         <div class="row">
@@ -684,92 +195,6 @@
                                     </div>
                                 </EditForm>
                             </div>
-                        </div>
-                      }
-                      else if (showRolesPage && roles is not null) 
-                      {
-                        <div class="row">
-                          <div class="col-12">
-                            <div class="row mb-4 mt-2">
-                              <div class="col-12">
-                                  <div class="col-md-8 col-xl-12 btn-group">
-                                    <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
-                                        @onclick="(async() => await SortedByNew(true))">
-                                        New
-                                    </button>
-                                    <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
-                                        @onclick="(async() => await SortedByNew(false))">
-                                        Old
-                                    </button>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="row mb-2">
-                              <div class="col-12">
-                                <input type="text" placeholder="Search" 
-                                    aria-label="Search Box" class="form-control bg-dark text-light input-section"
-                                    @oninput="(async(txt) => await OnSearchInputRole((string)txt.Value))"/>
-                              </div>
-                            </div>
-                            <div class="row mt-2">
-                              <div class="col-12">
-                                <Virtualize Items="roles" Context="r" OverscanCount="10">
-                                  <div class="card bg-dark border-white unclickable mb-4">
-                                      <div class="row g-0">
-                                          <div class="col-md-12">
-                                             <div class="d-flex justify-content-between">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@r.RoleName</h5>
-                                                    <p class="card-text">
-                                                       @r.RoleDescription
-                                                    </p>
-                                                    <p class="card-text">
-                                                        Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
-                                                    </p>
-                                                </div>
-                                                @if (CanGiveRole())
-                                                {
-                                                    <div class="btn-group" role="group">
-                                                        <button id="btn-group-settings" type="button" 
-                                                            class="btn btn-secondary dropdown-toggle" 
-                                                            data-toggle="dropdown" 
-                                                            aria-haspopup="true" 
-                                                            aria-expanded="false">
-                                                            <p><i class="fas fa-cog clickable"></i></p>
-                                                        </button>
-                                                        <div class="dropdown-menu dropdown-menu-dark" 
-                                                             aria-labelledby="btn-group-settings">
-                                                            <button class="dropdown-item text-success" 
-                                                                data-toggle="modal" 
-                                                                data-target="#roleModal"
-                                                                @onclick="(() => LoadSelectedRole(r))">
-                                                                Edit
-                                                            </button>
-                                                            @if (HasUserGotRole(loggedInUser, r) is false)
-                                                            {
-                                                                <button class="dropdown-item text-success"
-                                                                @onclick="(() => GiveRole(loggedInUser, r))">
-                                                                    Give Role
-                                                                </button>
-                                                            }
-                                                            else
-                                                            {
-                                                                <button class="dropdown-item text-success"
-                                                                @onclick="(() => RemoveRole(loggedInUser, r))">
-                                                                    Remove Role
-                                                                </button>
-                                                            }
-                                                        </div>
-                                                    </div>            
-                                                }
-                                            </div>                          
-                                          </div>
-                                      </div>
-                                  </div>
-                                </Virtualize>
-                              </div>
-                            </div>
-                          </div>
                         </div>
                       }
                       else if (showCreateRolePage) 
@@ -924,41 +349,25 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    private CreateChannelModel channel = new();
     private CreateRoleModel role = new();
     private CreateServerModel editingServer = new();
-    private EditingUserRoleModel editingUserRole = new();
-
+    private CreateChannelModel channel = new();
     private ServerModel server;
     private ServerModel selectedServer;
-
     private UserModel loggedInUser;
     private UserModel selectedUser;
-    private UserModel selectedUserToKick;
-    private UserModel selectedUserToBan;
-    private UserModel selectedUserToUnban;
-
-    private ChannelModel selectedChannel;
-    private RoleModel selectedRole;
     private BanModel ban;
     private RoleModel loggedInUserRole;
-
     private List<CategoryModel> categories;
-    private List<UserModel> users;
-    private List<ChannelModel> channels;
     private List<RoleModel> roles;
 
+    private List<RoleModel> allowedChannelRoles = new();
+    private List<RoleModel> disallowedChannelRoles = new();
+
     private string searchText = "";
-    private string searchChannelText = "";
-    private string searchRoleText = "";
     private bool showServerDetailsPage = true;
-    private bool showServerMembersPage = false;
     private bool showCreateChannelPage = false;
     private bool showCreateRolePage = false;
-    private bool showChannelsPage = false;
-    private bool showRolesPage = false;
-    private bool priorityBannedUsers = false;
-    private bool isSortedByNew = true;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
     private IBrowserFile? file;
@@ -977,8 +386,6 @@ else
         }
         if (server is not null)
         {
-            users = await userData.GetAllUsersServerAsync(server);
-            channels = await channelData.GetAllChannelsServerAsync(server);
             roles = await roleData.GetAllRolesServerAsync(server);
         }
     }
@@ -988,31 +395,8 @@ else
         if (firstRender)
         {
             await LoadFilterState();
-            if (server is not null)
-            {
-                await FilterUsers();
-                await FilterChannels();
-                await FilterRoles();
-            }
             StateHasChanged();
         }
-    }
-
-    private string GetUserRoleName(UserModel user)
-    {
-        var role = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
-
-        if (user.Id == server.Owner.Id)
-        {
-            return "Owner";
-        }
-
-        if (role is not null)
-        {
-            return role.RoleName;
-        }
-
-        return "";
     }
 
     private async Task CreateRole()
@@ -1055,6 +439,8 @@ else
             ChannelName = channel.ChannelName,
             ChannelDescription = channel.ChannelDescription,
             Server = server,
+            AllowedRoles = allowedChannelRoles,
+            DisallowedRoles = disallowedChannelRoles,
         };
 
         await channelData.CreateChannel(c);
@@ -1073,80 +459,13 @@ else
         };
 
         await auditLogData.CreateAuditLog(a);
+        allowedChannelRoles.Clear();
+        disallowedChannelRoles.Clear();
     }
 
-    private async Task CloseModal(string id)
+    private async Task CloseModal()
     {
-        await JSRuntime.InvokeVoidAsync("closeModal", id);
-    }
-
-    private async Task UpdateChannel()
-    {
-        var c = await channelData.GetChannelAsync(selectedChannel.Id);
-        string oldChannelName = c.ChannelName;
-        string oldCHannelDescription = c.ChannelDescription;
-
-        c.ChannelName = channel.ChannelName;
-        c.ChannelDescription = channel.ChannelDescription;
-
-        var serverChannel = server.Channels.Where(c => c.Id == selectedChannel.Id).FirstOrDefault();
-        serverChannel.ChannelName = c.ChannelName;
-        serverChannel.ChannelDescription = c.ChannelDescription;
-        await serverData.UpdateServer(server);
-
-        AuditLogModel a = new()
-        {
-            Name = "Update Channel",
-            Description = $"{loggedInUser.DisplayName} has updated channel {oldChannelName} to {c.ChannelName}",
-            OldValues = $"Channel Name: {oldChannelName}, Channel Description: {oldChannelName}",
-            NewValues = $"Channel Name: {c.ChannelName}, Channel Description: {c.ChannelDescription}",
-            User = new BasicUserModel(loggedInUser),
-            Server = server,
-            DateModified = DateTime.UtcNow,
-        };
-
-        await channelData.UpdateChannel(c);
-        await auditLogData.CreateAuditLog(a);
-        selectedChannel = null;
-        channel = new();
-        await CloseModal("channelModal");
-    }
-
-    private async Task UpdateUserRole()
-    {
-        var user = await userData.GetUserAsync(selectedUser.Id);
-
-        var currentUserRole = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
-
-        if (currentUserRole is not null)
-        {
-            var userToRemove = currentUserRole.Users.Where(u => u.Id == user.Id).FirstOrDefault();
-            currentUserRole.Users.Remove(userToRemove);
-            await roleData.UpdateRole(currentUserRole);
-        }
-
-        var newUserRole = roles.Where(r => r.Id == editingUserRole.RoleId).FirstOrDefault();
-
-        AuditLogModel a = new()
-        {
-            Name = "Change Role",
-            Description = $"{loggedInUser.DisplayName} has changed {user.DisplayName} - {user.Id}'s role to {newUserRole.RoleName}",
-            OldValues = $"Previous role was {currentUserRole.RoleName}",
-            NewValues = $"New role is {newUserRole.RoleName}",
-            User = new BasicUserModel(loggedInUser),
-            Server = server,
-            DateModified = DateTime.UtcNow,
-        };
-
-        newUserRole.Users.Add(new BasicUserModel(user));
-        await roleData.UpdateRole(newUserRole);
-        await auditLogData.CreateAuditLog(a);
-
-        selectedRole = null;
-        selectedUser = null;
-        editingUserRole = new();
-
-        await CloseModal("editRoleModal");
+        await JSRuntime.InvokeVoidAsync("closeModal", "serverModal");
     }
 
     private async Task UpdateServer()
@@ -1194,222 +513,29 @@ else
 
         await serverData.UpdateServer(server);
         await auditLogData.CreateAuditLog(a);
-        await CloseModal("serverModal");
+        await CloseModal();
         editingServer = new();
         file = null;
-    }
-
-    private async Task UpdateRole()
-    {
-        var oldRole = await roleData.GetRoleAsync(selectedRole.Id);
-
-        if (oldRole is null) return;
-
-        RoleModel r = new()
-        {
-            Id = selectedRole.Id,
-            Server = selectedRole.Server,
-            Users = selectedRole.Users,
-            RoleDescription = role.RoleDescription,
-            CanBanMember = role.CanBanMember,
-            CanKickMember = role.CanKickMember,
-            CanCreateChannel = role.CanCreateChannel,
-            CanCreateRole = role.CanCreateRole,
-            CanGiveRole = role.CanGiveRole,
-            CanViewAuditLog = role.CanViewAuditLog,
-            CanEditServer = role.CanEditServer,
-            DateCreated = selectedRole.DateCreated,
-        };
-
-        AuditLogModel a = new()
-        {
-            Name = "Server Details Updated",
-            Description = $"{loggedInUser.DisplayName} has updated {r.RoleName}'s details",
-            OldValues = 
-                $@"Role name: {oldRole.RoleName}  
-                Role Description: {oldRole.RoleDescription}",
-            NewValues = 
-                $@"Role name: {r.RoleName} 
-                Role Description: {r.RoleDescription}",
-            User = new BasicUserModel(loggedInUser),
-            Server = server,
-            DateModified = DateTime.UtcNow,
-        };
-
-        await roleData.UpdateRole(r);
-        await auditLogData.CreateAuditLog(a);
-        await CloseModal("roleModal");
-        role = new();
-        selectedRole = null;
     }
 
     private async Task LoadFilterState()
     {
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(showServerDetailsPage));
         showServerDetailsPage = boolResults.Success ? boolResults.Value : true;
-        boolResults = await sessionStorage.GetAsync<bool>(nameof(showServerMembersPage));
-        showServerMembersPage = boolResults.Success ? boolResults.Value : false;
         boolResults = await sessionStorage.GetAsync<bool>(nameof(showCreateChannelPage));
         showCreateChannelPage = boolResults.Success ? boolResults.Value : false;
         boolResults = await sessionStorage.GetAsync<bool>(nameof(showCreateRolePage));
         showCreateRolePage = boolResults.Success ? boolResults.Value : false;
-        boolResults = await sessionStorage.GetAsync<bool>(nameof(showRolesPage));
-        showRolesPage = boolResults.Success ? boolResults.Value : false;
-        boolResults = await sessionStorage.GetAsync<bool>(nameof(priorityBannedUsers));
-        priorityBannedUsers = boolResults.Success ? boolResults.Value : false;
-        boolResults = await sessionStorage.GetAsync<bool>(nameof(showChannelsPage));
-        showChannelsPage = boolResults.Success ? boolResults.Value : false;
         var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
         searchText = stringResults.Success ? stringResults.Value : "";
-        stringResults = await sessionStorage.GetAsync<string>(nameof(searchChannelText));
-        searchChannelText = stringResults.Success ? stringResults.Value : "";
     }
 
     private async Task SaveFilterState()
     {
         await sessionStorage.SetAsync(nameof(showServerDetailsPage), showServerDetailsPage);
-        await sessionStorage.SetAsync(nameof(showServerMembersPage), showServerMembersPage);
         await sessionStorage.SetAsync(nameof(showCreateChannelPage), showCreateChannelPage);
         await sessionStorage.SetAsync(nameof(showCreateRolePage), showCreateRolePage);
-        await sessionStorage.SetAsync(nameof(showChannelsPage), showChannelsPage);
-        await sessionStorage.SetAsync(nameof(priorityBannedUsers), priorityBannedUsers);
         await sessionStorage.SetAsync(nameof(searchText), searchText);
-        await sessionStorage.SetAsync(nameof(searchChannelText), searchChannelText);
-        await sessionStorage.SetAsync(nameof(searchRoleText), searchRoleText);
-        await sessionStorage.SetAsync(nameof(showRolesPage), showRolesPage);
-    }
-
-    private async Task FilterUsers()
-    {
-        var output = await userData.GetAllUsersServerAsync(server);
-        var bannedUsersId = server.BannedUsers.Select(b => b.Id).ToList();
-
-        if (string.IsNullOrWhiteSpace(searchText) is false)
-        {
-            output = output.Where(u => u.DisplayName.Contains(
-                searchText, StringComparison.InvariantCultureIgnoreCase))
-                .ToList();
-        }
-
-        if (priorityBannedUsers)
-        {
-            output = output.OrderByDescending(u => IsUserBanned(u)).ToList();
-        }
-        else
-        {
-            output = output.OrderByDescending(
-                u => !IsUserBanned(u)).ThenByDescending(
-                u => u.DateCreated).ToList();
-        }
-
-        users = output;
-        await SaveFilterState();
-    }
-
-    private async Task FilterChannels()
-    {
-        var output = await channelData.GetAllChannelsServerAsync(server);
-
-        if (string.IsNullOrWhiteSpace(searchChannelText) is false)
-        {
-            output = output.Where(
-                c => c.ChannelName.Contains(
-                    searchChannelText, StringComparison.InvariantCultureIgnoreCase) ||
-                c.ChannelDescription.Contains(
-                    searchChannelText, StringComparison.InvariantCultureIgnoreCase))
-                .ToList();
-        }
-
-        if (isSortedByNew)
-        {
-            output = output.OrderByDescending(c => c.DateCreated).ToList();
-        }
-        else
-        {
-            output = output.OrderBy(c => c.DateCreated).ToList();
-        }
-
-        channels = output;
-        await SaveFilterState();
-    }
-
-    private async Task FilterRoles()
-    {
-        var output = await roleData.GetAllRolesServerAsync(server);
-
-        if (string.IsNullOrWhiteSpace(searchRoleText) is false)
-        {
-            output = output.Where(
-                r => r.RoleName.Contains(
-                    searchRoleText, StringComparison.InvariantCultureIgnoreCase) ||
-                r.RoleDescription.Contains(
-                    searchRoleText, StringComparison.InvariantCultureIgnoreCase))
-                .ToList();
-        }
-
-        if (isSortedByNew)
-        {
-            output = output.OrderByDescending(r => r.DateCreated).ToList();
-        }
-        else
-        {
-            output = output.OrderBy(r => r.DateCreated).ToList();
-        }
-
-        roles = output;
-        await SaveFilterState();
-    }
-
-    private async Task SortedByNew(bool isNew)
-    {
-        isSortedByNew = isNew;
-        await FilterChannels();
-        await FilterRoles();
-    }
-
-    private async Task OnSearchInputChannel(string searchInput)
-    {
-        searchChannelText = searchInput;
-        await FilterChannels();
-    }
-
-    private async Task OnSearchInputUser(string searchInput)
-    {
-        searchText = searchInput;
-        await FilterUsers();
-    }
-
-    private async Task OnSearchInputRole(string searchInput)
-    {
-        searchRoleText = searchInput;
-        await FilterRoles();
-    }
-
-    private async Task PriorityBannedUsers(bool isPriority)
-    {
-        priorityBannedUsers = isPriority;
-        await FilterUsers();
-    } 
-
-    private void LoadSelectedChannel(ChannelModel model)
-    {
-        selectedChannel = model;
-        channel.ChannelName = model.ChannelName;
-        channel.ChannelDescription = model.ChannelDescription;
-    }
-
-    private void LoadSelectedRole(RoleModel model)
-    {
-        selectedRole = model;
-        role.RoleName = model.RoleName;
-        role.RoleDescription = model.RoleDescription;
-        role.CanBanMember = model.CanBanMember;
-        role.CanKickMember = model.CanKickMember;
-        role.CanCreateChannel = model.CanCreateChannel;
-        role.CanCreateRole = model.CanCreateRole;
-        role.CanGiveRole = model.CanGiveRole;
-        role.CanViewAuditLog = model.CanViewAuditLog;
-        role.CanEditServer = model.CanEditServer;
     }
 
     private void LoadSelectedServer(ServerModel model)
@@ -1424,24 +550,14 @@ else
     private void ClearAllPages()
     {
         showServerDetailsPage = false;
-        showServerMembersPage = false;
         showCreateChannelPage = false;
         showCreateRolePage = false;
-        showChannelsPage = false;
-        showRolesPage = false;
     }
 
     private async Task ShowDetailsClick(bool isShowing)
     {
         ClearAllPages();
         showServerDetailsPage = isShowing;
-        await SaveFilterState();
-    }
-
-    private async Task ShowMembersPage(bool isShowing)
-    {
-        ClearAllPages();
-        showServerMembersPage = isShowing;
         await SaveFilterState();
     }
 
@@ -1452,13 +568,6 @@ else
         await SaveFilterState();
     }
 
-    private async Task ShowChannelsPage(bool isShowing)
-    {
-        ClearAllPages();
-        showChannelsPage = isShowing;
-        await SaveFilterState();
-    }
-
     private async Task ShowCreateRolePage(bool isShowing)
     {
         ClearAllPages();
@@ -1466,65 +575,24 @@ else
         await SaveFilterState();
     }
 
-    private async Task ShowRolesPage(bool isShowing)
-    {
-        ClearAllPages();
-        showRolesPage = isShowing;
-        await SaveFilterState();
-    }
-
-    private void ClearSelectedUsers()
-    {
-        selectedUserToBan = null;
-        selectedUserToKick = null;
-        selectedUserToUnban = null;
-    }
-
-    private async Task KickMember(UserModel user)
-    {
-        var userToRemove = server.Members.Where(u => u.Id == user.Id).FirstOrDefault();
-        server.Members.Remove(userToRemove);
-
-        await serverData.UpdateServer(server);
-        ClearSelectedUsers();
-    }
-
-    private async Task BanMember(UserModel user)
-    {
-        var userToBan = server.Members.Where(u => u.Id == user.Id).FirstOrDefault();
-        server.BannedUsers.Add(userToBan);
-
-        await serverData.UpdateServer(server);
-        ClearSelectedUsers();
-    }
-
-    private async Task UnbanMember(UserModel user)
-    {
-        var userToUnban = server.BannedUsers.Where(u => u.Id == user.Id).FirstOrDefault();
-        server.BannedUsers.Remove(userToUnban);
-
-        await serverData.UpdateServer(server);
-        ClearSelectedUsers();
-    }
-
-    private async Task GiveRole(UserModel user, RoleModel role)
-    {
-        role.Users.Add(new BasicUserModel(user));
-
-        await roleData.UpdateRole(role);
-    }
-
-    private async Task RemoveRole(UserModel user, RoleModel role)
-    {
-        var userToRemove = role.Users.Where(u => u.Id == user.Id).FirstOrDefault();
-        role.Users.Remove(userToRemove);
-
-        await roleData.UpdateRole(role);
-    }
-
     private void ClosePage()
     {
         navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private void OpenMembersPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/Members/{server.Id}");
+    }
+
+    private void OpenChannelsPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/Channels/{server.Id}");
+    }
+
+    private void OpenAuditLogsPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/AuditLogs/{server.Id}");
     }
 
     private void OpenUserDetails(UserModel user)
@@ -1588,29 +656,9 @@ else
         }
     }
 
-    private string SortedByPriorityClass(bool isPriority)
-    {
-        if (isPriority == priorityBannedUsers)
-        {
-            return "btn-secondary";
-        }
-
-        return "btn-outline-secondary";
-    }
-
     private string GetOpenDetailsPageClass(bool isShowing)
     {
         if (showServerDetailsPage == isShowing)
-        {
-            return "btn-secondary";
-        }
-
-        return "btn-outline-secondary";
-    }
-
-    private string GetMembersPageClass(bool isShowing)
-    {
-        if (showServerMembersPage == isShowing)
         {
             return "btn-secondary";
         }
@@ -1636,78 +684,6 @@ else
         }
 
         return "btn-outline-secondary";
-    }
-
-    private string GetRolesPageClass(bool isShowing)
-    {
-        if (showRolesPage == isShowing)
-        {
-            return "btn-secondary";
-        }
-
-        return "btn-outline-secondary";
-    }
-
-    private string GetChannelsPageClass(bool isShowing)
-    {
-        if (showChannelsPage == isShowing)
-        {
-            return "btn-secondary";
-        }
-
-        return "btn-outline-secondary";
-    }
-
-    private string SortedByNewClass(bool isNew)
-    {
-        if (isSortedByNew == isNew)
-        {
-            return "btn-secondary";
-        }
-
-        return "btn-outline-secondary";
-    }
-
-    private string GetModalTitleString()
-    {
-        if (selectedUserToBan is not null)
-        {
-            return $"Ban {selectedUserToBan.DisplayName}";
-        }
-
-        if (selectedUserToKick is not null)
-        {
-            return $"Kick {selectedUserToKick.DisplayName}";
-        }
-
-        return $"Unban {selectedUserToUnban?.DisplayName}";
-    }
-
-    private bool IsUserBanned(UserModel user)
-    {
-        if (server is not null)
-        {
-            bool IsUserInBannedList = server.BannedUsers.Any(b => b.Id == user.Id);
-
-            if (IsUserInBannedList)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        return false;
-    }
-
-    private bool HasUserGotRole(UserModel user, RoleModel role)
-    {
-        if (role.Users.Where(u => u.Id == user.Id).FirstOrDefault() is not null)
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private bool IsUserRoleNull()

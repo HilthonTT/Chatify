@@ -66,6 +66,12 @@ public class MongoRoleData : IRoleData
         return await results.FirstOrDefaultAsync();
     }
 
+    public async Task<RoleModel> GetServerMemberRoleAsync(ServerModel server)
+    {
+        var results = await _roles.FindAsync(r => r.Server.Id == server.Id && r.RoleName == "Member");
+        return await results.FirstOrDefaultAsync();
+    }
+
     public Task CreateRole(RoleModel role)
     {
         string cachingString = _helper.RoleCachingString(role.Server.Id);
