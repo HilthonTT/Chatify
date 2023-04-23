@@ -74,6 +74,12 @@ public class MongoServerData : IServerData
         return _servers.InsertOneAsync(server);
     }
 
+    public async Task<ServerModel> CreateServerAndReturn(ServerModel server)
+    {
+        await _servers.InsertOneAsync(server);
+        return server;
+    }
+
     public Task UpdateServer(ServerModel server)
     {
         var filter = Builders<ServerModel>.Filter.Eq("Id", server.Id);

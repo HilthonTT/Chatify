@@ -10,7 +10,6 @@ public class ServerModel
     public List<BasicUserModel> Members { get; set; } = new();
     public List<ChannelModel> Channels { get; set; } = new();
     public List<BasicUserModel> BannedUsers { get; set; } = new();
-    public List<RoleModel> Roles { get; set; } = new();
     public CategoryModel Category { get; set; }
     public string ServerName { get; set; }
     public string ServerDescription { get; set; }

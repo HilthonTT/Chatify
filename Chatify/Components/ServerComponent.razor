@@ -130,7 +130,7 @@
         var role = await roleData.GetServerMemberRoleAsync(server);
 
         role.Users.Add(user);
-        var serverRole = server.Roles.Where(r => r.Id == role.Id).FirstOrDefault();
+        var serverRole = await roleData.GetServerMemberRoleAsync(server);
         serverRole.Users.Add(user);
         await roleData.UpdateRole(role);
         await roleData.UpdateRole(serverRole);

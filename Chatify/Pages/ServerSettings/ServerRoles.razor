@@ -216,12 +216,15 @@
                                                                 </button>
                                                                 <div class="dropdown-menu dropdown-menu-dark" 
                                                                         aria-labelledby="btn-group-settings">
-                                                                    <button class="dropdown-item text-success" 
-                                                                        data-toggle="modal" 
-                                                                        data-target="#roleModal"
-                                                                        @onclick="(() => LoadSelectedRole(r))">
-                                                                        Edit
-                                                                    </button>
+                                                                    @if (r.RoleName != "Member")
+                                                                    {
+                                                                        <button class="dropdown-item text-success" 
+                                                                            data-toggle="modal" 
+                                                                            data-target="#roleModal"
+                                                                            @onclick="(() => LoadSelectedRole(r))">
+                                                                            Edit
+                                                                        </button>
+                                                                    }
                                                                     @if (HasUserGotRole(loggedInUser, r) is false)
                                                                     {
                                                                         <button class="dropdown-item text-success"
@@ -231,7 +234,7 @@
                                                                     }
                                                                     else
                                                                     {
-                                                                        @if ((r.RoleName == "Member") is false)
+                                                                        @if (r.RoleName != "Member")
                                                                         {
                                                                             <button class="dropdown-item text-success"
                                                                                 @onclick="(() => RemoveRole(loggedInUser, r))">

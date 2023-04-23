@@ -15,24 +15,6 @@
 {
     <h1 class="text-center text-uppercase fw-bold mb-4">Make A Server</h1>
 
-    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-    {
-        <div class="row justify-content-center">
-            <div class="col-lg-12 col-md-10">
-                <div class="row alert bg-warning text-black" role="alert">
-                    <div class="close-button-section">
-                        <button class="btn btn-close" @onclick="(() => errorMessage = string.Empty)" />
-                    </div>
-                    <div class="col-12">
-                        <h4 class="alert-heading">Error!</h4>
-                        <p>@errorMessage</p>
-                        <hr />
-                        <p class="mb-0">If you think this is a bug, please contact the administrator.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
     <div class="row">
         <div class="col-xl-12 col-lg-10 p-5 bg-dark create-form-layout">
             <EditForm Model="server" OnValidSubmit="(async() => await Create())">
@@ -132,74 +114,65 @@ else
 
     private async Task Create()
     {
-        try
+        string relativePath = await CaptureFile();
+        string invitationCode = await codeGenerator.GenerateServerInvationCodeAsync();
+        string objectId = await codeGenerator.GenerateServerIdentifierAsync();
+
+        ServerModel s = new()
         {
-            errorMessage = "";
+            ObjectIdentifier = objectId,
+            Owner = new BasicUserModel(loggedInUser),
+            Category = categories.Where(c => c.Id == server.CategoryId).FirstOrDefault(),
+            ServerName = server.ServerName,
+            ServerDescription = server.ServerDescription,
+            PictureName = relativePath,
+            OriginalPictureName = fileName,
+            PictureExtension = fileExtension,
+            InvitationCode = invitationCode,
+            Archived = false,
+        };
 
-            string relativePath = await CaptureFile();
-            string invitationCode = await codeGenerator.GenerateServerInvationCodeAsync();
-            string objectId = await codeGenerator.GenerateServerIdentifierAsync();
+        s.Members.Add(new BasicUserModel(loggedInUser));
 
-            ServerModel s = new()
-            {
-                ObjectIdentifier = objectId,
-                Owner = new BasicUserModel(loggedInUser),
-                Category = categories.Where(c => c.Id == server.CategoryId).FirstOrDefault(),
-                ServerName = server.ServerName,
-                ServerDescription = server.ServerDescription,
-                PictureName = relativePath,
-                OriginalPictureName = fileName,
-                PictureExtension = fileExtension,
-                InvitationCode = invitationCode,
-                Archived = false,
-            };
-
-            s.Members.Add(new BasicUserModel(loggedInUser));
-
-            if (s.Category is null)
-            {
-                server.CategoryId = "";
-                return;
-            }
-
-            await serverData.CreateServer(s);
-            var newServer = await serverData.GetServerObjectIdAsync(objectId);
-
-            string channelObjectId = await codeGenerator.GenerateChannelIdentifierAsync();
-            ChannelModel c = new()
-            {
-                ObjectIdentifier = channelObjectId,
-                Server = newServer,
-                ChannelName = "Default Channel",
-                ChannelDescription = "This is the default channel.",
-            };
-
-            RoleModel r = new()
-            {
-                RoleName = "Member",
-                RoleDescription = "Default role, anyone who joins this server has this role.",
-                Server = newServer,
-            };
-
-            r.Users.Add(new BasicUserModel(loggedInUser));
-
-            await roleData.CreateRole(r);
-            await channelData.CreateChannel(c);
-            var newChannel = await channelData.GetChannelObjectIdAsync(channelObjectId);
-            newServer.Channels.Add(newChannel);
-
-            file = null;
-            fileName = string.Empty;
-            fileExtension = string.Empty;
-
-            await serverData.UpdateServer(newServer);
-            server = new();
-            OpenServerDetails(newServer);
-        }
-        catch (Exception ex)
+        if (s.Category is null)
         {
-            errorMessage = ex.Message;
+            server.CategoryId = "";
+            return;
         }
+
+        var newServer = await serverData.CreateServerAndReturn(s);
+        var sss = await serverData.GetServerObjectIdAsync(objectId);
+
+        RoleModel r = new()
+        {
+            RoleName = "Member",
+            RoleDescription = "Default role, anyone who joins this server has this role.",
+            Server = newServer,
+        };
+        r.Users.Add(new BasicUserModel(loggedInUser));    
+
+        var newRole = await roleData.CreateRoleAndReturn(r);
+
+        string channelObjectid = await codeGenerator.GenerateChannelIdentifierAsync();
+        ChannelModel c = new()
+        {
+            ObjectIdentifier = channelObjectid,
+            ChannelName = "Default Channel",
+            ChannelDescription = "This is the default channel.",
+            Server = newServer,
+        };
+        c.AllowedRoles.Add(newRole);
+
+        await channelData.CreateChannel(c);
+        var newChannel = await channelData.GetChannelObjectIdAsync(channelObjectid);
+        newServer.Channels.Add(newChannel);
+        await serverData.UpdateServer(newServer);
+        
+        file = null;
+        fileName = "";
+        fileExtension = "";
+        server = new();
+        OpenServerDetails(newServer);
     }
 
     private string CreateWebPath(string relativePath)

@@ -71,6 +71,15 @@ public class MongoChannelData : IChannelData
         return _channels.InsertOneAsync(channel);
     }
 
+    public async Task<ChannelModel> CreateChannelAndReturn(ChannelModel channel)
+    {
+        string cachingString = _helper.ChannelCachingString(channel.Server.Id);
+
+        _cache.Remove(cachingString);
+        await _channels.InsertOneAsync(channel);
+        return channel;
+    }
+
     public Task UpdateChannel(ChannelModel channel)
     {
         var filter = Builders<ChannelModel>.Filter.Eq("Id", channel.Id);

@@ -3,6 +3,7 @@
 public interface IServerData
 {
     Task CreateServer(ServerModel server);
+    Task<ServerModel> CreateServerAndReturn(ServerModel server);
     Task<List<ServerModel>> GetAllServersAsync();
     Task<ServerModel> GetServerAsync(string id);
     Task<ServerModel> GetServerByInvitationCodeAsync(string invitationCode);

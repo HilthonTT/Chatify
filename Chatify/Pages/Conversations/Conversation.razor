@@ -108,7 +108,7 @@
                           <div class="row">
                             <ValidationMessage For="(() => model.Text)"/>
                             <div class="col-8">
-                                <InputText placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
+                                <InputTextArea placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
                                 class="form-control bg-dark text-light input-section" @bind-Value="model.Text" />  
                             </div>
                             <div class="col-2">
@@ -183,6 +183,10 @@ else
 
     private void OnReceiveMessage(MessageModel message)
     {
+        file = null;
+        fileName = "";
+        fileExtension = "";
+        model = new();
         messages.Add(message);
         InvokeAsync(StateHasChanged);
     }
@@ -265,11 +269,6 @@ else
             {
                 await hubConnection.InvokeAsync("SendMessage", m, conversation);
             }
-
-            file = null;
-            fileName = string.Empty;
-            fileExtension = string.Empty;
-            model = new();
         }
         catch (Exception ex)
         {

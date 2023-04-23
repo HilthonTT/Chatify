@@ -80,6 +80,15 @@ public class MongoRoleData : IRoleData
         return _roles.InsertOneAsync(role);
     }
 
+    public async Task<RoleModel> CreateRoleAndReturn(RoleModel role)
+    {
+        string cachingString = _helper.RoleCachingString(role.Server.Id);
+        _cache.Remove(cachingString);
+
+        await _roles.InsertOneAsync(role);
+        return role;
+    }
+
     public Task UpdateRole(RoleModel role)
     {
         string cachingString = _helper.RoleCachingString(role.Server.Id);

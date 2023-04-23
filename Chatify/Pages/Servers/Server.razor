@@ -15,84 +15,11 @@
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
 
-<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="messageModalLongTitle">
-                    Edit @selectedMessage?.Text
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                <EditForm Model="model" OnValidSubmit="(async() => await UpdateMessage(selectedMessage))">
-                    <DataAnnotationsValidator />
-                    <div class="row">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="message-text">Message Text</label>
-                            <div class="mt-1">Edit your message</div>
-                            <ValidationMessage For="(() => model.Text)"/>
-                            <InputText class="form-control bg-dark text-white input-section" id="message-text" 
-                                @bind-Value="model.Text"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="message-file">Insert your message file</label>
-                            <div class="mt-1 mb-2">
-                                <div>Select a file you want to associate with the message.</div>
-                                <div class="text-danger">Leave blank to leave previous file.</div>
-                            </div>
-                            <ValidationMessage For="(() => model)"/>
-                            <InputFile OnChange="LoadFiles"
-                                class="form-control bg-dark text-white input-section " 
-                                id="message-file"
-                                accept=".png,.jpg,.jpeg,.txt,.pdf"/>
-                        </div>
-                        <div class="center-children">
-                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                Update
-                            </button>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal" 
-                    @onclick="(() => selectedMessage = null)">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @if (ban is null)
 {
     <h1 class="page-heading">@selectedChannel?.ChannelName</h1>
 
     <p class="text-uppercase text-center">@selectedChannel?.ChannelDescription</p>
-
-    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-    {
-        <div class="row justify-content-center">
-            <div class="col-lg-10 col-md-8">
-                <div class="row alert bg-warning text-black" role="alert">
-                    <div class="col-11">
-                        <h4 class="alert-heading">Error!</h4>
-                        <p>@errorMessage</p>
-                        <hr>
-                        <p class="mb-0">You can wait to send another message later if you think this is a mistake.</p>
-                    </div>
-                    <div class="col-1">
-                        <div class="close-button-section">
-                            <button class="btn btn-close btn-close" @onclick="(() => errorMessage = string.Empty)" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
 
     @if (loggedInUser is not null && selectedChannel is not null)
     {
@@ -124,54 +51,7 @@
                   @if (messages is not null)
                   {
                     <Virtualize Items="messages" Context="m" OverscanCount="10">
-                      <div class="message bg-dark @((m.Sender.Id == loggedInUser?.Id) ? "self" : "")">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <div class="message-sender">@m.Sender.DisplayName</div>
-                                <div class="message-text text-break">@m.Text</div>
-                                <div class="message-timestamp mb-1">Sent at: @m.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                                @if (m.Timestamp.ToString("dd-MM-yyyy HH:mm") != m.LastEdited.ToString("dd-MM-yyyy HH:mm"))
-                                {
-                                    <div class="message-timestamp mb-1">Edited on: @m.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
-                                }
-                            </div>
-                            @if (m.Sender.Id == loggedInUser?.Id)
-                            {
-                                <div class="btn-group" role="group">
-                                    <button id="btn-group-settings" 
-                                        type="button" class="btn btn-secondary dropdown-toggle" 
-                                        data-toggle="dropdown" 
-                                        aria-haspopup="true" 
-                                        aria-expanded="false">
-                                        <p><i class="fas fa-cog clickable"></i></p>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
-                                        <button class="dropdown-item text-success" data-toggle="modal" data-target="#messageModal"
-                                            @onclick="(() => LoadSelectedMessage(m))">
-                                            Edit
-                                        </button>
-                                    </div>
-                                </div>       
-                            }
-                        </div>
-                        @if (string.IsNullOrWhiteSpace(m.FileName) is false)
-                        {
-                            @if (m.FileExtension == ".png" || m.FileExtension == ".jpg" || m.FileExtension == ".jpeg")
-                            {
-                                <div class="d-flex justify-content-start">
-                                    <img class="img-fluid w-25 h-25" src="@CreateWebPath(m.FileName)" alt="@m.OriginalFileName" />
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="message-text">
-                                    <a class="link-warning" href="@CreateWebPath(m.FileName)" download="@m.OriginalFileName">
-                                        @m.OriginalFileName
-                                    </a>
-                                </div>
-                            }
-                        }
-                      </div>
+                      <MessageComponent @key="m.Id" Message="m" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                     <div class="messages-mb" />
                   }
@@ -187,14 +67,14 @@
                         </div>
                     }
                     <div class="participants-list p-2">
-                        <h3 class="fw-bold text-uppercase">Participants</h3>
+                        <h3 class="fw-bold text-uppercase">Members</h3>
                         <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => InviteFriendPage(server))">Invite</button>
                         <ul class="list-group">
-                            <Virtualize Items="server?.Members" Context="p" OverscanCount="10">
+                            <Virtualize Items="server?.Members" Context="m" OverscanCount="10">
                                 <li class="list-group-item bg-secondary text-white mb-2">
                                     <span class="oi oi-person me-1"></span>
-                                    <span class="clickable" @onclick="(() => UserDetailsPage(p))">
-                                        @p.DisplayName - @((IsUserBanned(p)) ? "Banned" : "Not Banned")
+                                    <span class="clickable @GetMemberClass(m)" @onclick="(() => UserDetailsPage(m))">
+                                        @m.DisplayName - @GetUserRole(m)
                                     </span>
                                 </li>
                             </Virtualize>
@@ -202,31 +82,34 @@
                     </div>
                 </div>
               </div>
-              <div class="row fixed-bottom mb-4 mx-2">
-                <EditForm Model="model" OnValidSubmit="SendMessage">
-                    <ValidationSummary />
-                    <div class="col-xl-12 col-lg-12">
-                      <div class="row">
-                        <ValidationMessage For="(() => model.Text)"/>
-                        <div class="col-8">
-                          <InputText placeholder="@($"Message {selectedChannel?.ChannelName}")" aria-label="Message Box"
-                            class="form-control bg-dark text-light input-section" @bind-Value="model.Text" />  
-                        </div>
-                        <div class="col-2">
-                          <InputFile OnChange="LoadFiles" 
-                            class="form-control bg-dark text-light input-section"
-                            accept=".png,.jpg,.jpeg,.txt,.pdf"/>
-                        </div>
-                        <div class="col-2">
-                          <button type="submit" class="btn btn-outline-secondary form-control" 
-                            disabled="@(IsConnected is false)">
-                            Send
-                        </button>
+              @if (IsUserAllowedToChat(selectedChannel))
+              {
+                <div class="row fixed-bottom mb-4 mx-2">
+                  <EditForm Model="model" OnValidSubmit="SendMessage">
+                      <ValidationSummary />
+                      <div class="col-xl-12 col-lg-12">
+                        <div class="row">
+                          <ValidationMessage For="(() => model.Text)"/>
+                          <div class="col-8">
+                            <InputTextArea placeholder="@($"Message {selectedChannel?.ChannelName}")" aria-label="Message Box"
+                              class="form-control bg-dark text-light input-section" @bind-Value="model.Text" />  
+                          </div>
+                          <div class="col-2">
+                            <InputFile OnChange="LoadFiles" 
+                              class="form-control bg-dark text-light input-section"
+                              accept=".png,.jpg,.jpeg,.txt,.pdf"/>
+                          </div>
+                          <div class="col-2">
+                            <button type="submit" class="btn btn-outline-secondary form-control" 
+                              disabled="@(IsConnected is false)">
+                              Send
+                          </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                </EditForm>
-              </div>
+                  </EditForm>
+                </div>
+              }
             </div>
         }
     }
@@ -243,16 +126,14 @@ else
     private CreateMessageModel model = new();
     private HubConnection? hubConnection;
 
-    private string editingMessageText = "";
-    private string searchText = "";
     private bool isSortedByNew = true;
     private ServerModel server;
     private ChannelModel selectedChannel;
     private List<MessageModel> messages;
     private List<ChannelModel> channels;
+    private List<RoleModel> roles;
     private UserModel loggedInUser;
-    private RoleModel loggedInUserRole;
-    private MessageModel selectedMessage;
+    private RoleModel role;
     private BanModel ban;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
@@ -269,6 +150,7 @@ else
             channels = await channelData.GetAllChannelsServerAsync(server);
             selectedChannel = channels.FirstOrDefault();
             messages = await messageData.GetChannelMessagesAsync(selectedChannel);
+            roles = await roleData.GetAllRolesServerAsync(server);
         }
 
         loggedInUser = await authProvider.GetUserFromAuth(userData);
@@ -276,7 +158,7 @@ else
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
             if (server is not null) 
-                loggedInUserRole = await roleData.GetUserServerRoleAsync(loggedInUser, server);
+                role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
         }
 
         if (selectedChannel is not null)
@@ -295,6 +177,10 @@ else
 
     private void OnReceiveMessage(MessageModel message)
     {
+        file = null;
+        fileName = "";
+        fileExtension = "";
+        model = new();
         messages.Add(message);
         InvokeAsync(StateHasChanged);
     }
@@ -306,7 +192,10 @@ else
 
     private async Task LoadSelectedChannel(ChannelModel channel)
     {
-        await DisposeHubConnection();
+        if (hubConnection is not null)
+        {
+            await DisposeHubConnection();
+        }
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(navManager.ToAbsoluteUri("/channelhub"))
@@ -317,8 +206,11 @@ else
         messages = await messageData.GetChannelMessagesAsync(selectedChannel);
         hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
 
-        await hubConnection.StartAsync();
-        await hubConnection.InvokeAsync("JoinConversation", selectedChannel);
+        if (hubConnection.State == HubConnectionState.Disconnected)
+        {
+            await hubConnection.StartAsync();
+            await hubConnection.InvokeAsync("JoinConversation", selectedChannel);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -336,28 +228,18 @@ else
 
     private async Task LoadFilterState()
     {
-        var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
-        searchText = stringResults.Success ? stringResults.Value : "";
         var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
         isSortedByNew = boolResults.Success ? boolResults.Value : true;
     }
 
     private async Task SaveFilterState()
     {
-        await sessionStorage.SetAsync(nameof(searchText), searchText);
         await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
     }
 
     private async Task FilterMessages()
     {
         var output = await messageData.GetServerMessagesAsync(server);;
-
-        if (string.IsNullOrWhiteSpace(searchText) is false)
-        {
-            output = output.Where(m => m.Text.Contains(
-                searchText, StringComparison.InvariantCultureIgnoreCase))
-                .ToList();
-        }
 
         if (isSortedByNew)
         {
@@ -379,6 +261,7 @@ else
             errorMessage = "";
 
             string relativePath = await CaptureFile();
+
             string objectIdentifier = await codeGenerator.GenerateMessageIdentifierAsync();
 
             MessageModel m = new()
@@ -394,21 +277,17 @@ else
                 Archived = false,
             };
 
+            if (hubConnection is not null)
+            {
+                await hubConnection.InvokeAsync("SendMessage", m, selectedChannel);
+            }
+
             await messageData.CreateMessage(m);
 
             var newMessage = await messageData.GetMessageObjectIdentifierAsync(m);
             selectedChannel.Messages.Add(newMessage);
 
             await channelData.UpdateChannel(selectedChannel);
-
-            if (hubConnection is not null)
-            {
-                await hubConnection.InvokeAsync("SendMessage", m, selectedChannel);
-            }
-
-            file = null;
-            fileName = string.Empty;
-            fileExtension = string.Empty;
         }
         catch (Exception ex)
         {
@@ -416,66 +295,15 @@ else
         }
     }
 
-    private void LoadSelectedMessage(MessageModel message)
+    private string GetUserRole(BasicUserModel user)
     {
-        selectedMessage = message;
-        model.Text = selectedMessage.Text;
-    }
-
-    private async Task UpdateMessage(MessageModel message)
-    {
-        string relativePath = await CaptureFile();
-        string oldFileName = message.FileName;
-        string oldOriginalFile = message.OriginalFileName;
-        string oldExtension = message.FileExtension;
-
-        message.Text = model.Text;
-        message.LastEdited = DateTime.UtcNow;
-        if (file is not null)
+        if (user.Id == server?.Owner.Id)
         {
-            message.FileName = relativePath;
-            message.OriginalFileName = fileName;
-            message.FileExtension = fileExtension;
-        }
-        else
-        {
-            message.FileName = oldFileName;
-            message.OriginalFileName = oldOriginalFile;
-            message.FileExtension = oldExtension;
+            return "Owner";
         }
 
-        await messageData.UpdateMessageAsync(message);
-        model = new();
-        selectedMessage = null;
-        file = null;
-
-        await CloseModal();
-    }
-
-    private async Task ArchiveMessage()
-    {
-        messages.Remove(selectedMessage);
-        selectedMessage.Archived = true;
-        await messageData.UpdateMessageAsync(selectedMessage);
-        selectedMessage = null;
-    }
-
-    private async Task OrderByNew(bool isNew)
-    {
-        isSortedByNew = isNew;
-        await FilterMessages();
-    }
-
-    private async Task OnSearchInput(string searchInput)
-    {
-        searchText = searchInput;
-        await FilterMessages();
-    }
-
-    private void OnMessageClick(MessageModel message)
-    {
-        selectedMessage = message;
-        editingMessageText = message.Text;
+        var role = roles?.FirstOrDefault(r => r.Users.Any(u => u.Id == user.Id));
+        return role?.RoleName;
     }
 
     private void ClosePage()
@@ -567,6 +395,16 @@ else
         return "bg-dark";
     }
 
+    private string GetMemberClass(BasicUserModel user)
+    {
+        if (user.Id == server?.Owner.Id)
+        {
+            return "text-warning";
+        }
+
+        return "";
+    }
+
     private bool IsUserAuthorized()
     {
         if (server is not null && loggedInUser is not null)
@@ -612,7 +450,7 @@ else
             // If no user is logged in, they do not have permission to access the server
             return false;
         }
-    
+
         // Check if the logged-in user is the owner of the server
         if (loggedInUser.Id == server.Owner.Id)
         {
@@ -621,16 +459,16 @@ else
         }
 
         // If the logged-in user is not the owner, check if they have a role with the necessary permissions
-        if (loggedInUserRole is not null)
+        if (role is not null)
         { 
             // Check if the user has any of the following role-based permissions: ban member, kick member, create channel, create role, give role, view audit log, or edit server
-            if (loggedInUserRole.CanBanMember || 
-                loggedInUserRole.CanKickMember || 
-                loggedInUserRole.CanCreateChannel || 
-                loggedInUserRole.CanCreateRole || 
-                loggedInUserRole.CanGiveRole || 
-                loggedInUserRole.CanViewAuditLog || 
-                loggedInUserRole.CanEditServer)
+            if (role.CanBanMember || 
+                role.CanKickMember || 
+                role.CanCreateChannel || 
+                role.CanCreateRole || 
+                role.CanGiveRole || 
+                role.CanViewAuditLog || 
+                role.CanEditServer)
             {
                 // If so, the user has permission to access the server
                 return true;
@@ -638,6 +476,27 @@ else
         }
 
         // If the user does not have any of the necessary permissions, they do not have permission to access the server
+        return false;
+    }
+
+    private bool IsUserAllowedToChat(ChannelModel channel)
+    {
+        if (loggedInUser is null || server is null || selectedChannel is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        // Checks if the user's role is in the allowed roles of the channel
+        if (selectedChannel.AllowedRoles.Where(r => r.Id == role.Id).FirstOrDefault() is not null)
+        {
+            return true;
+        }
+
         return false;
     }
 
