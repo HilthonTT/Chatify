@@ -15,7 +15,7 @@
 {
     @if (HasAnyPermission())
     {
-        <h1 class="page-heading">@server?.ServerName's Audit Logs</h1>
+        <h1 class="page-heading mb-4">@server?.ServerName's Audit Logs</h1>
 
         <div class="rounded rounded-3">
             <div class="card-body">
@@ -92,6 +92,10 @@
                 </div>
             </div>
         </div>
+    }
+    else
+    {
+        <NotAuthorized />
     }
 }
 else

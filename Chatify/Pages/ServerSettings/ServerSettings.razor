@@ -1,0 +1,588 @@
+﻿@page "/ServerSettings/{Id}"
+@attribute [Authorize]
+@inject IServerData serverData
+@inject IUserData userData
+@inject ICategoryData categoryData
+@inject IChannelData channelData
+@inject IBanData banData
+@inject IRoleData roleData
+@inject IAuditLogData auditLogData
+@inject IConfiguration config
+@inject ICodeGenerator codeGenerator
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+@inject ProtectedSessionStorage sessionStorage
+@inject IJSRuntime JSRuntime
+
+@if (ban is null)
+{
+  <h1 class="page-heading mb-4">@server?.ServerName Settings</h1>
+
+  @if (HasAnyPermission() is false)
+  {
+    <NotAuthorized />
+  }
+  else
+  {
+    <div class="modal fade" id="serverModal" tabindex="-1" role="dialog" aria-labelledby="serverModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title" id="serverModalLongTitle">
+                    Edit @server?.ServerName
+                </h5>
+                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="editingServer" OnValidSubmit="(async() => await UpdateServer())">
+                        <DataAnnotationsValidator  />
+                        <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
+                                <div class="mt-1">Edit your server's name</div>
+                                <ValidationMessage For="(() => editingServer.ServerName)"/>
+                                <InputText class="form-control bg-dark text-white input-section" id="server-name" 
+                                    @bind-Value="editingServer.ServerName"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="server-icon">Server Icon</label>
+                                <div class="mt-1">Select an image for your server. This is not required.</div>
+                                <ValidationMessage For="(() => editingServer.PictureName)"/>
+                                <InputFile OnChange="LoadFiles"
+                                    class="form-control bg-dark text-light input-section"
+                                    accept=".png,.jpg,.jpeg"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="category">Category</label>
+                                <ValidationMessage For="(() => editingServer.CategoryId)" />
+                                <div class="mt-1">Choose a category that suits your server's brand.</div>
+                                <InputRadioGroup id="category" @bind-Value="editingServer.CategoryId">
+                                    @if (categories is not null)
+                                    {
+                                        <Virtualize Items="categories" Context="c" OverscanCount="10">
+                                            <div class="radio-item-group">
+                                                <InputRadio Value="@c.Id" id="@c.Id"/>
+                                                <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
+                                            </div>
+                                        </Virtualize>
+                                    }
+                                </InputRadioGroup>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-uppercase" for="server-description">Server Description</label>
+                                <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
+                                <ValidationMessage For="(() => editingServer.ServerDescription)"/>
+                                <InputTextArea class="form-control bg-dark text-white input-section" id="server-description"
+                                    @bind-Value="editingServer.ServerDescription"/>
+                            </div>
+                            <div class="center-children">
+                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                <button type="button" 
+                    class="btn btn-secondary" 
+                    data-dismiss="modal">
+                    Close
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+      @if (server is not null)
+      {
+        <div class="rounded rounded-3">
+          <div class="card-body">
+            <div class="row justify-content-center">
+              <div class="col-lg-10 col-md-8 bg-dark p-4">
+                <div class="row">
+                  <div class="col-11">
+                    <div class="btn-group center-children mb-4">
+                        <div class="dropdown w-50 me-2">
+                          <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="open-details-dropdown"
+                              data-toggle="dropdown" 
+                              aria-haspopup="true" 
+                              aria-expanded="false">
+                            Open details
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="open-details-dropdown">
+                            <a class="dropdown-item" @onclick="OpenMembersPage">Members</a>
+                            <a class="dropdown-item" @onclick="OpenChannelsPage">Channels</a>
+                            <a class="dropdown-item" @onclick="OpenRolesPage">Roles</a>
+                            <a class="dropdown-item" @onclick="OpenAuditLogsPage">Audit Logs</a>
+                          </div>
+                        </div>
+                        @if (CanCreateChannel() || CanCreateRole())
+                        {
+                            <div class="dropdown w-50">
+                              <button class="btn btn-secondary dropdown-toggle dropdown-menu-end w-100" type="button" 
+                                  id="create-details-dropdown" 
+                                  data-toggle="dropdown" 
+                                  aria-haspopup="true" 
+                                  aria-expanded="false">
+                                Create Details
+                              </button>
+                              <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="create-details-dropdown">
+                                  @if (CanCreateChannel())
+                                  {
+                                    <a class="dropdown-item" @onclick="OpenCreateChannelPage">Create Channel</a>
+                                  }
+                                  @if (CanCreateRole())
+                                  {
+                                    <a class="dropdown-item" @onclick="OpenCreateRolePage">Create Role</a>
+                                  }
+                              </div>
+                            </div>          
+                        }
+                    </div>
+                    <div>
+                        <div class="center-children mt-2">
+                            @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
+                            {
+                                <img src="@CreateWebPath(server.PictureName)"
+                                class="img-fluidborder rounded-circle" 
+                                alt="@server.OriginalPictureName"
+                                style="width: 300px; height: 300px;">
+                            }
+                            else
+                            {
+                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                class="img-fluid rounded-circle" 
+                                alt="Placeholder Image"
+                                style="width: 300px; height: 300px;">
+                            }
+                        </div>
+                        <h2 class="fw-bold text-uppercase text-center">@server.ServerName</h2>
+                        <p class="text-break  text-center">@server.ServerDescription</p>
+                        <p class="text-break  text-center">@server.Category.CategoryName</p>
+                        <p class="text-center">@server.DateCreated.ToString("dd/MM/yyyy")</p>
+                        <button class="btn btn-secondary w-100" data-toggle="modal" data-target="#serverModal">
+                            Edit Server
+                        </button>
+                    </div>
+                  </div>
+                  <div class="col-1">
+                    <div class="close-button-section">
+                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+  }
+}
+else
+{
+    <Banned />
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private CreateServerModel editingServer = new();
+    private ServerModel server;
+    private UserModel loggedInUser;
+    private BanModel ban;
+    private RoleModel role;
+    private List<CategoryModel> categories;
+
+    private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
+    private IBrowserFile? file;
+    private string fileName = "";
+    private string fileExtension = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryData.GetAllCategoriesAsync();
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        server = await serverData.GetServerAsync(Id);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+            role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
+        }
+
+        editingServer.ServerName = server.ServerName;
+        editingServer.ServerDescription = server.ServerDescription;
+        editingServer.PictureName = server.PictureName;
+        if (server is not null)
+        {
+            editingServer.CategoryId = categories.Where(c => c.Id == server.Category.Id).FirstOrDefault().Id;
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("closeModal", "serverModal");
+    }
+
+    private async Task UpdateServer()
+    {
+        string relativePath = await CaptureFile();
+        string serverName = server.ServerName;
+        string serverDescription = server.ServerDescription;
+        string pictureName = server.PictureName;
+        string originalPictureName = server.OriginalPictureName;
+        string pictureExtension = server.PictureExtension;
+
+        server.ServerName = editingServer.ServerName;
+        server.ServerDescription = editingServer.ServerDescription;
+        server.Category = categories.Where(c => c.Id == editingServer.CategoryId).FirstOrDefault();
+        if (file is not null)
+        {
+            server.PictureName = relativePath;
+            server.OriginalPictureName = fileName;
+            server.PictureExtension = fileExtension;
+        }
+        else
+        {
+            server.PictureName = pictureName;
+            server.OriginalPictureName = originalPictureName;
+            server.PictureExtension = pictureExtension;
+        }
+
+        AuditLogModel a = new()
+        {
+            Name = "Server Details Updated",
+            Description = $"{loggedInUser.DisplayName} has updated server {server.ServerName}'s details",
+            OldValues = 
+                $@"Server name: {serverName}  
+                Server Description: {serverDescription} 
+                Server Picture: {pictureName}
+                Original picture name: {originalPictureName}",
+            NewValues = 
+                $@"Server name: {server.ServerName} 
+                Server Description: {server.ServerDescription} 
+                Server Picture: {server.PictureName} 
+                Original picture name: {server.OriginalPictureName}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
+        await serverData.UpdateServer(server);
+        await auditLogData.CreateAuditLog(a);
+        await CloseModal();
+        file = null;
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private void OpenMembersPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/Members/{server.Id}");
+    }
+
+    private void OpenChannelsPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/Channels/{server.Id}");
+    }
+
+    private void OpenAuditLogsPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/AuditLogs/{server.Id}");
+    }
+
+    private void OpenRolesPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/Roles/{server.Id}");
+    }
+
+    private void OpenCreateRolePage()
+    {
+        navManager.NavigateTo($"/ServerSettings/CreateRole/{server.Id}");
+    }
+
+    private void OpenCreateChannelPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/CreateChannel/{server.Id}");
+    }
+
+    private void OpenUserDetails(UserModel user)
+    {
+        if (user.Id == loggedInUser.Id)
+        {
+            navManager.NavigateTo("/Profile");
+            return;
+        }
+
+        navManager.NavigateTo($"/userDetails/{user.Id}");
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void GetFileExtensionAndFileName()
+    {
+        fileName = file.Name;
+        fileExtension = Path.GetExtension(file.Name);
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        GetFileExtensionAndFileName();
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        if (file is null || loggedInUser is null) return "";
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage"), 
+                loggedInUser.Email, 
+                newFileName);
+
+            string relativePath = Path.Combine(loggedInUser.Email, newFileName);
+
+            Directory.CreateDirectory(
+                Path.Combine(
+                    config.GetValue<string>("FileStorage"), 
+                    loggedInUser.Email));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
+    private bool IsUserRoleNull()
+    {
+        if (role is null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsUserOwner()
+    {
+        if (loggedInUser is null || server is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanBanMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanBanMember || IsUserOwner())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanKickMember()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanKickMember)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateChannel()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanCreateChannel)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanCreateRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanGiveRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanGiveRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanViewAuditLog()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanViewAuditLog)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanEditServer()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        if (role.CanEditServer)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAnyPermission()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (CanBanMember())
+        {
+            return true;
+        }
+
+        if (CanKickMember())
+        {
+            return true;
+        }
+
+        if (CanCreateChannel())
+        {
+            return true;
+        }
+
+        if (CanCreateRole())
+        {
+            return true;
+        }
+
+        if (CanGiveRole())
+        {
+            return true;
+        }
+
+        if (CanViewAuditLog())
+        {
+            return true;
+        }
+
+        if (CanEditServer())
+        {
+            return true;
+        }
+
+        if (IsUserRoleNull())
+        {
+            return false;
+        }
+
+        return false;
+    }
+}

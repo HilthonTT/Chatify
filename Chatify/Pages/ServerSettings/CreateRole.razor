@@ -1,0 +1,270 @@
+﻿@page "/ServerSettings/CreateRole/{Id}"
+@attribute [Authorize]
+@inject IServerData serverData
+@inject IUserData userData
+@inject IRoleData roleData
+@inject IBanData banData
+@inject IAuditLogData auditLogData
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authProvider
+
+@if (ban is null)
+{
+    @if (HasAnyPermissions())
+    {
+        <h1 class="page-heading mb-4">Create A Role For @server?.ServerName</h1>
+
+        <div class="rounded rounded-3">
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-8 bg-dark p-4">
+                        <div class="row">
+                            <div class="col-11">
+                                <EditForm Model="creatingRole" OnValidSubmit="Create">
+                                    <DataAnnotationsValidator />
+                                    <div class="row">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="role-name">Role Name</label>
+                                            <div class="mt-1">Name your role's name</div>
+                                            <ValidationMessage For="(() => creatingRole.RoleName)"/>
+                                            <InputText class="form-control bg-dark text-white input-section" id="role-name" 
+                                                @bind-Value="creatingRole.RoleName"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="role-description">Role Description</label>
+                                            <div class="mt-1">Describe your role's purpose. What kind do they represent?</div>
+                                            <ValidationMessage For="(() => creatingRole.RoleDescription)"/>
+                                            <InputTextArea class="form-control bg-dark text-white input-section" id="role-description"
+                                                @bind-Value="creatingRole.RoleDescription"/>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-ban-member">Ability to ban members.</label>
+                                            <div class="mt-1">Choose the role's ability to ban members.</div>
+                                            <InputRadioGroup id="category" @bind-Value="creatingRole.CanBanMember">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-ban-member"/>
+                                                    <label for="true-ban-member">Able to ban member</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-ban-member"/>
+                                                    <label for="false-ban-member">Unable to ban member</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-kick-member">Ability to kick members.</label>
+                                            <div class="mt-1">Choose the role's ability to kick members.</div>
+                                            <InputRadioGroup id="category" @bind-Value="creatingRole.CanKickMember">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-kick-member"/>
+                                                    <label for="true-kick-member">Able to kick member</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-kick-member"/>
+                                                    <label for="false-kick-member">Unable to kick member</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-create-channels">Ability to create channels.</label>
+                                            <div class="mt-1">Choose the role's ability to create channels.</div>
+                                            <InputRadioGroup id="category" @bind-Value="creatingRole.CanCreateChannel">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-create-channel"/>
+                                                    <label for="true-create-channel">Able to create channels</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-create-channel"/>
+                                                    <label for="false-create-channel">Unable to create channels</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-create-roles">Ability to create roles.</label>
+                                            <div class="mt-1">Choose the role's ability to create roles.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanCreateRole">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-create-role"/>
+                                                    <label for="true-create-role">Able to create roles</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-create-role"/>
+                                                    <label for="false-create-role">Unable to create roles</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-give-roles">Ability to give roles.</label>
+                                            <div class="mt-1">Choose the role's ability to give roles.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanGiveRole">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-give-roles"/>
+                                                    <label for="true-give-roles">Able to give roles</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-give-roles"/>
+                                                    <label for="false-give-roles">Unable to give roles</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-view-audit-logs">Ability to view audit logs.</label>
+                                            <div class="mt-1">Choose the role's ability to view the audit logs.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanViewAuditLog">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-view-audit-logs"/>
+                                                    <label for="true-view-audit-logs">Able to view the audit logs</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-view-audit-logs"/>
+                                                    <label for="false-view-audit-logs">Unable to view the audit logs</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="mb-3">
+                                           <label class="form-label fw-bold text-uppercase" for="role-can-edit-server">Ability to edit the server's details.</label>
+                                            <div class="mt-1">Choose the role's ability to edit the server's details.</div>
+                                            <InputRadioGroup id="category" @bind-Value="role.CanEditServer">
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="true" id="true-edit-server"/>
+                                                    <label for="true-edit-server">Able to edit the server's details</label>
+                                                </div>
+                                                <div class="radio-item-group">
+                                                    <InputRadio Value="false" id="false-edit-server"/>
+                                                    <label for="false-edit-server">Unable to edit the server's details</label>
+                                                </div>
+                                            </InputRadioGroup>
+                                        </div>
+                                        <div class="center-children">
+                                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                                Create Role
+                                            </button>
+                                        </div>
+                                    </div>
+                                </EditForm>
+                            </div>
+                            <div class="col-1">
+                                <div class="close-button-section">
+                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <NotAuthorized />
+    }
+}
+else
+{
+    <Banned />
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private CreateRoleModel creatingRole = new();
+    private ServerModel server;
+    private RoleModel role;
+    private UserModel loggedInUser;
+    private BanModel ban;
+
+    protected override async Task OnInitializedAsync()
+    {
+        server = await serverData.GetServerAsync(Id);
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+        if (server is not null && loggedInUser is not null)
+        {
+            role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
+        }
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo($"/ServerSettings/{server.Id}");
+    }
+
+    private async Task Create()
+    {
+        RoleModel r = new()
+        {
+            RoleName = creatingRole.RoleName,
+            RoleDescription = creatingRole.RoleDescription,
+            Server = server,
+            CanBanMember = creatingRole.CanBanMember,
+            CanKickMember = creatingRole.CanKickMember,
+            CanCreateChannel = creatingRole.CanCreateChannel,
+            CanGiveRole = creatingRole.CanGiveRole,
+            CanViewAuditLog = creatingRole.CanViewAuditLog,
+            CanEditServer = creatingRole.CanEditServer,
+        };
+
+        await roleData.CreateRole(r);
+        creatingRole = new();
+
+        AuditLogModel a = new()
+        {
+            Name = "Role Creation",
+            Description = $"{loggedInUser.DisplayName} has created role {r.RoleName}",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
+        await auditLogData.CreateAuditLog(a);
+    }
+
+    private bool IsUserOwner()
+    {
+        if (loggedInUser is null || server is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateRole()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (role is not null && role.CanCreateRole)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAnyPermissions()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (CanCreateRole())
+        {
+            return true;
+        }
+
+        return false;
+    }
+}
