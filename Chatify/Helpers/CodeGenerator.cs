@@ -12,7 +12,6 @@ public class CodeGenerator : ICodeGenerator
     private readonly IPrivateConversationData _privateConversationData;
     private readonly IPrivateMessageData _privateMessageData;
     private readonly IFriendRequestData _requestData;
-    private readonly IServerInvitationData _invitationData;
 
     public CodeGenerator(IUserData userData,
                          IServerData serverData,
@@ -21,8 +20,7 @@ public class CodeGenerator : ICodeGenerator
                          IChannelData channelData,
                          IPrivateConversationData privateConversationData,
                          IPrivateMessageData privateMessageData,
-                         IFriendRequestData requestData,
-                         IServerInvitationData invitationData)
+                         IFriendRequestData requestData)
     {
         _userData = userData;
         _serverData = serverData;
@@ -32,7 +30,6 @@ public class CodeGenerator : ICodeGenerator
         _privateConversationData = privateConversationData;
         _privateMessageData = privateMessageData;
         _requestData = requestData;
-        _invitationData = invitationData;
     }
     private static string GenerateRandomString()
     {
@@ -70,11 +67,6 @@ public class CodeGenerator : ICodeGenerator
         return await GenerateCodeAsync(u => u.FriendCode, _userData.GetAllUsersAsync);
     }
 
-    public async Task<string> GenerateServerInvationCodeAsync()
-    {
-        return await GenerateCodeAsync(s => s.InvitationCode, _serverData.GetAllServersAsync);
-    }
-
     public async Task<string> GenerateServerIdentifierAsync()
     {
         return await GenerateCodeAsync(s => s.ObjectIdentifier, _serverData.GetAllServersAsync);
@@ -108,10 +100,5 @@ public class CodeGenerator : ICodeGenerator
     public async Task<string> GenerateFriendRequestIdentifierAsync()
     {
         return await GenerateCodeAsync(r => r.ObjectIdentifier, _requestData.GetAllFriendRequestAsync);
-    }
-
-    public async Task<string> GenerateServerInvitationIdentifierAsync()
-    {
-        return await GenerateCodeAsync(i => i.ObjectIdentifier, _invitationData.GetAllInvitationsAsync);
     }
 }

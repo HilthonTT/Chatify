@@ -64,22 +64,6 @@ public class MongoServerInvitationData : IServerInvitationData
         return output;
     }
 
-    public async Task<ServerInvitationModel> GetServerInvitationByServer(ServerModel server)
-    {
-        string cachingString = _helper.ServerInvitationCachingString(server.Id);
-
-        var output = _cache.Get<ServerInvitationModel>(cachingString);
-        if (output is null)
-        {
-            var results = await _invitations.FindAsync(i => i.InvitationCode == server.InvitationCode);
-            output = await results.FirstOrDefaultAsync();
-
-            _cache.Set(cachingString, output, TimeSpan.FromDays(1));
-        }
-
-        return output;
-    }
-
     public Task CreateInvitation(ServerInvitationModel invitation)
     {
         return _invitations.InsertOneAsync(invitation);

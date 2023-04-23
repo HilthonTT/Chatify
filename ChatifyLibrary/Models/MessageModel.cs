@@ -16,5 +16,6 @@ public class MessageModel
     public ConversationModel Conversation { get; set; }
     public ServerModel Server { get; set; }
     public ChannelModel Channel { get; set; }
+    public ServerModel ServerInvitation { get; set; }
     public bool Archived { get; set; }
 }

@@ -1,6 +1,9 @@
 ﻿@inject IJSRuntime JSRuntime
 @inject IConfiguration config
 @inject IMessageData messageData
+@inject IRoleData roleData
+@inject IServerData serverData
+@inject NavigationManager navManager
 
 <div class="modal fade" id="messageModal-@Message.Id" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
@@ -64,8 +67,71 @@
             {
                 <div class="message-timestamp mb-1">Edited on: @Message.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
             }
+            @if (Message.ServerInvitation is not null)
+            {
+                <div class="card bg-dark clickable border-white">
+                    <div class="row g-0">
+                        <div class="col-lg-1">
+                            <div class="p-1">
+                                @if (string.IsNullOrWhiteSpace(Message.ServerInvitation.PictureName) is false)
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="@CreateWebPath(Message.ServerInvitation.PictureName)" 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="@Message.ServerInvitation.OriginalPictureName"
+                                            style="width: 100px; height: 100px;">
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="Placeholder Image"
+                                            style="width: 100px; height: 100px;">
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-lg-11">
+                            <div class="card-body">
+                                <h5 class="card-title text-end">@Message.ServerInvitation.ServerName</h5>
+                                <p class="card-text text-end">
+                                    @Message.ServerInvitation.ServerDescription
+                                </p>
+                                <p class="card-text text-end">
+                                    Date Created: @Message.ServerInvitation.DateCreated.ToString("dd/MM/yyyy")
+                                </p>
+                            </div>
+                        </div>
+                        <div class="p-2">
+                            @if (IsUserBanned(Message.ServerInvitation) is false)
+                            {
+                                @if (IsUserInServer(Message.ServerInvitation) is false)
+                                {
+                                    <button class="btn btn-outline-secondary w-100" 
+                                        @onclick="(async() => await JoinServer(Message.ServerInvitation))">
+                                        Join Server
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-secondary w-100 mb-2" 
+                                        @onclick="(() => OpenDetails(Message.ServerInvitation))">
+                                        Check out
+                                    </button>
+                                }
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-danger w-100" disabled>You are currently Banned</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
-        @if (Message.Sender.Id == LoggedInUser.Id)
+        @if (Message.Sender.Id == LoggedInUser.Id && Message.ServerInvitation is null)
         {
             <div class="btn-group" role="group">
                 <button id="btn-group-settings" 
@@ -214,5 +280,48 @@
         file = null;
 
         await CloseModal(Message);
+    }
+
+    private async Task JoinServer(ServerModel server)
+    {
+        var user = new BasicUserModel(LoggedInUser);
+        var role = await roleData.GetServerMemberRoleAsync(server);
+
+        role.Users.Add(user);
+        var serverRole = await roleData.GetServerMemberRoleAsync(server);
+        serverRole.Users.Add(user);
+        await roleData.UpdateRole(role);
+        await roleData.UpdateRole(serverRole);
+
+        server.Members.Add(user);
+        await serverData.UpdateServer(server);
+        OpenDetails(server);
+    }
+
+    private void OpenDetails(ServerModel server)
+    {
+        navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private bool IsUserBanned(ServerModel server)
+    {
+        bool IsUserInBannedList = server.BannedUsers.Any(b => b.Id == LoggedInUser?.Id);
+
+        if (IsUserInBannedList)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsUserInServer(ServerModel server)
+    {
+        if (server.Owner.Id == LoggedInUser?.Id || server.Members.Any(m => m.Id == LoggedInUser?.Id))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -4,7 +4,7 @@ namespace Chatify.Models;
 
 public class CreateMessageModel
 {
-    [Required]
+    [Required(ErrorMessage = "You must enter text.")]
     [MaxLength(256)]
     public string Text { get; set; }
 }

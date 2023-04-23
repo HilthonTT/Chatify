@@ -11,60 +11,60 @@
 @inject AuthenticationStateProvider authProvider
 
 <div class="modal fade" id="roleModal" tabindex="-1" role="dialog" aria-labelledby="roleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="roleModalLongTitle">
-                    Select which roles are allowed to talk in your channel.
-                </h5>
-                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                </div>
-                <div class="modal-body">
-                    <input type="text" placeholder="Search"
-                            aria-label="Search Box" class="form-control bg-dark text-light input-section mb-4"
-                            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
-                    @if (roles?.Count > 0)
-                    {
-                        <Virtualize Items="roles" Context="r" OverscanCount="10">
-                            <div class="card bg-dark @GetRoleClass(r) clickable mb-4" 
-                                @onclick="(() => AddOrRemoveSelectedRole(r))">
-                                <div class="row g-0">
-                                    <div class="col-md-12">
-                                        <div class="d-flex justify-content-between">
-                                            <div class="card-body">
-                                                <h5 class="card-title">@r.RoleName</h5>
-                                                <p class="card-text">
-                                                    @r.RoleDescription
-                                                </p>
-                                                <p class="card-text">
-                                                    Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
-                                                </p>
-                                            </div>
-                                        </div>                          
-                                    </div>
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="roleModalLongTitle">
+                Select which roles are allowed to talk in your channel.
+            </h5>
+            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <input type="text" placeholder="Search"
+                        aria-label="Search Box" class="form-control bg-dark text-light input-section mb-4"
+                        @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                @if (roles?.Count > 0)
+                {
+                    <Virtualize Items="roles" Context="r" OverscanCount="10">
+                        <div class="card bg-dark @GetRoleClass(r) clickable mb-4" 
+                            @onclick="(() => AddOrRemoveSelectedRole(r))">
+                            <div class="row g-0">
+                                <div class="col-md-12">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="card-body">
+                                            <h5 class="card-title">@r.RoleName</h5>
+                                            <p class="card-text">
+                                                @r.RoleDescription
+                                            </p>
+                                            <p class="card-text">
+                                                Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
+                                            </p>
+                                        </div>
+                                    </div>                          
                                 </div>
                             </div>
-                    </Virtualize>
-                    }
-                    else
-                    {
-                        <div class="center-children">
-                            <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
-                              <span class="visually-hidden">Loading...</span>
-                            </div>
                         </div>
-                    }
-                </div>
-                <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal">
-                    Close
-                </button>
-                </div>
+                </Virtualize>
+                }
+                else
+                {
+                    <div class="center-children">
+                        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+            <button type="button" 
+                class="btn btn-secondary" 
+                data-dismiss="modal">
+                Close
+            </button>
             </div>
         </div>
     </div>
+</div>
 
 @if (ban is null)
 {
@@ -147,7 +147,6 @@ else
     private List<RoleModel> roles;
     private List<RoleModel> allowedChannelRoles = new();
     private List<RoleModel> disallowedChannelRoles = new();
-    private bool showRoles = false;
     private string searchText = "";
 
     protected override async Task OnInitializedAsync()

@@ -412,3 +412,8 @@ a, .btn-link {
 .in-disallowed-roles {
     border-color: red !important;
 }
+
+.message-input-controls {
+    display: flex;
+    align-items: center;
+}

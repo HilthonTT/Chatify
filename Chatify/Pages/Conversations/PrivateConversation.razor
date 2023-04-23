@@ -5,6 +5,7 @@
 @inject IUserData userData
 @inject IPrivateMessageData privateMessageData
 @inject IBanData banData
+@inject IServerData serverData
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
@@ -13,53 +14,87 @@
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
 
-<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle" aria-hidden="true">
+<div class="modal fade" id="invitationModal" tabindex="-1" role="dialog" aria-labelledby="invitationModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="messageModalLongTitle">
-                    Edit @selectedMessage?.Text
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close" />
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="invitationModalLongTitle">
+                Select the server which you want to invite people.
+            </h5>
+            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
             </div>
             <div class="modal-body">
-                <EditForm Model="model" OnValidSubmit="(async() => await UpdateMessage(selectedMessage))">
-                    <DataAnnotationsValidator />
-                    <div class="row">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="message-text">Message Text</label>
-                            <div class="mt-1">Edit your message</div>
-                            <ValidationMessage For="(() => model.Text)"/>
-                            <InputText class="form-control bg-dark text-white input-section border-warning" id="message-text" 
-                                @bind-Value="model.Text"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="message-file">Insert your message file</label>
-                            <div class="mt-1 mb-2">
-                                <div>Select a file you want to associate with the message.</div>
-                                <div class="text-danger">Leave blank to leave previous file.</div>
+                @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+                {
+                    <div class="text-danger">@errorMessage</div>
+                }
+                <input type="text" placeholder="Search"
+                aria-label="Search Box" class="form-control bg-dark text-light input-section mb-3"
+                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                 <div class="center-children mb-3">
+                    <button class="btn btn-secondary btn-lg text-uppercase"
+                        @onclick="SendInvite">
+                        Send Invite
+                    </button>
+                </div>
+                @if (servers?.Count > 0)
+                {
+                    <Virtualize Items="servers" Context="s" OverscanCount="10">
+                        <div class="card bg-dark clickable @GetServerClass(s) mb-4" 
+                            @onclick="(() => selectedServer = s)">
+                            <div class="row g-0">
+                                <div class="col-md-1">
+                                    <div class="p-1">
+                                        @if (string.IsNullOrWhiteSpace(s.PictureName) is false)
+                                        {
+                                            <div class="text-center p-3">
+                                                <img src="@CreateWebPath(s.PictureName)" 
+                                                    class="card-img-top rounded-circle clickable" 
+                                                    alt="@s.OriginalPictureName"
+                                                    style="width: 100px; height: 100px;">
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-center p-3">
+                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                    class="card-img-top rounded-circle clickable" 
+                                                    alt="Placeholder Image"
+                                                    style="width: 100px; height: 100px;">
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-md-11 ">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-end">@s.ServerName</h5>
+                                        <p class="card-text text-end">
+                                            @s.ServerDescription
+                                        </p>
+                                        <p class="card-text text-end">
+                                            Date Created: @s.DateCreated.ToString("dd/MM/yyyy")
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <ValidationMessage For="(() => model)"/>
-                            <InputFile OnChange="LoadFiles"
-                                class="form-control bg-dark text-white input-section border-warning" 
-                                id="message-file"
-                                accept=".png,.jpg,.jpeg,.txt,.pdf"/>
                         </div>
-                        <div class="center-children">
-                            <button class="btn btn-outline-warning btn-lg text-uppercase mt-4" type="submit">
-                                Update
-                            </button>
+                    </Virtualize>
+                }
+                else
+                {
+                    <div class="center-children">
+                        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
-                </EditForm>
+                }
             </div>
             <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal" 
-                    @onclick="(() => selectedMessage = null)">
-                    Close
-                </button>
+            <button type="button" 
+                class="btn btn-secondary" 
+                data-dismiss="modal">
+                Close
+            </button>
             </div>
         </div>
     </div>
@@ -109,20 +144,29 @@
               <div class="row fixed-bottom mb-4 mx-2">
                 <EditForm Model="model" OnValidSubmit="SendMessage">
                     <DataAnnotationsValidator />
+                    <ValidationMessage For="(() => model.Text)"/>
                     <div class="col-xl-12 col-lg-12">
                       <div class="row">
-                        <ValidationMessage For="(() => model.Text)"/>
-                        <div class="col-8">
+                        <div class="col-1 message-input-controls">                      
+                            <button type="button" 
+                                class="btn btn-outline-secondary form-control"
+                                data-toggle="modal"
+                                data-target="#invitationModal">
+                                Send Server Invite
+                            </button>
+                        </div>
+                        <div class="col-7">
                           <InputTextArea placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
                             class="form-control bg-dark text-light input-section" @bind-Value="model.Text" />
                         </div>
-                        <div class="col-2">
+                        <div class="col-2 message-input-controls">
                             <InputFile OnChange="LoadFiles" 
                                 class="form-control bg-dark text-light input-section"
                                 accept=".png,.jpg,.jpeg,.txt,.pdf" />
                         </div>
-                        <div class="col-2">
-                          <button type="submit" class="btn btn-outline-secondary form-control" 
+                        <div class="col-2 message-input-controls">
+                          <button type="submit" 
+                              class="btn btn-outline-secondary form-control" 
                               disabled="@(IsConnected is false)">
                               Send
                           </button>
@@ -151,8 +195,9 @@ else
     private bool isSortedByNew = true;
     private PrivateConversationModel conversation;
     private List<PrivateMessageModel> messages;
+    private List<ServerModel> servers;
+    private ServerModel selectedServer;
     private UserModel loggedInUser;
-    private PrivateMessageModel selectedMessage;
     private BanModel ban;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
@@ -173,6 +218,7 @@ else
         if (loggedInUser is not null)
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
+            servers = await serverData.GetUserServersAsync(loggedInUser.Id);
         }
 
         hubConnection = new HubConnectionBuilder()
@@ -247,6 +293,33 @@ else
         await SaveFilterState();
     }
 
+    private async Task FilterServers()
+    {
+        var output = await serverData.GetUserServersAsync(loggedInUser.Id);
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
+        {
+            output = output.Where(
+                s => s.ServerName.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                s.ServerDescription.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+        }
+
+        if (isSortedByNew)
+        {
+            output = output.OrderByDescending(s => s.DateCreated).ToList();
+        }
+        else
+        {
+            output = output.OrderBy(s => s.DateCreated).ToList();
+        }
+
+        servers = output;
+        await SaveFilterState();
+    }
+
     private async Task SendMessage()
     {
         try
@@ -280,10 +353,34 @@ else
         }
     }
 
-    private void LoadSelectedMessage(PrivateMessageModel message)
+    private async Task SendInvite()
     {
-        selectedMessage = message;
-        model.Text = message.Text;
+        errorMessage = "";
+
+        if (selectedServer is null)
+        {
+            errorMessage = "You must select a server.";
+            return;
+        }
+
+        string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
+
+        PrivateMessageModel m = new()
+        {
+            ObjectIdentifier = objectId,
+            Sender = new BasicUserModel(loggedInUser),
+            Text = $"I've just invited you in {selectedServer.ServerName}",
+            ServerInvitation = selectedServer,
+            Conversation = conversation,
+            Archived = false,
+        };
+
+        await privateMessageData.CreateMessage(m);
+
+        if (hubConnection is not null)
+        {
+            await hubConnection.InvokeAsync("SendMessage", m, conversation);
+        }
     }
 
     private string CreateWebPath(string relativePath)
@@ -320,18 +417,9 @@ else
 
         await privateMessageData.UpdateMessageAsync(message);
         model = new();
-        selectedMessage = null;
         file = null;
 
         await CloseModal();
-    }
-
-    private async Task ArchiveMessage(PrivateMessageModel message)
-    {
-        messages.Remove(selectedMessage);
-        selectedMessage.Archived = true;
-        await privateMessageData.UpdateMessageAsync(selectedMessage);
-        selectedMessage = null;
     }
 
     private async Task OrderByNew(bool isNew)
@@ -344,22 +432,12 @@ else
     {
         searchText = searchInput;
         await FilterMessages();
+        await FilterServers();
     }
 
     private void ClosePage()
     {
         navManager.NavigateTo("/");
-    }
-
-    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
-
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection is not null)
-        {
-            await hubConnection.StopAsync();
-            await hubConnection.DisposeAsync();
-        }
     }
 
     private void UserDetailsPage(BasicUserModel user)
@@ -412,6 +490,27 @@ else
         {
             errorMessage = $"File: {file.Name} Error: {ex.Message}";
             throw;
+        }
+    }
+
+    private string GetServerClass(ServerModel server)
+    {
+        if (selectedServer?.Id == server.Id)
+        {
+            return "in-allowed-roles";
+        }
+
+        return "in-disallowed-roles";
+    }
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.StopAsync();
+            await hubConnection.DisposeAsync();
         }
     }
 }
