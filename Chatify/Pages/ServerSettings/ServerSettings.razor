@@ -253,7 +253,7 @@ else
         AuditLogModel a = new()
         {
             Name = "Server Details Updated",
-            Description = $"{loggedInUser.DisplayName} has updated server {server.ServerName}'s details",
+            Description = $"{loggedInUser.DisplayName} has updated server of ID {server.Id}'s details",
             OldValues = 
                 $@"Server name: {serverName}  
                 Server Description: {serverDescription} 

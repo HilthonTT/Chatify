@@ -9,6 +9,7 @@ public class AuditLogModel
     public string Description { get; set; }
     public BasicUserModel User { get; set; }
     public ServerModel Server { get; set; }
+    public ConversationModel Conversation { get; set; }
     public string OldValues { get; set; }
     public string NewValues { get; set; }
     public DateTime DateModified { get; set; } = DateTime.UtcNow;

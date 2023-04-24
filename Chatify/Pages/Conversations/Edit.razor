@@ -5,9 +5,10 @@
 @inject IUserData userData
 @inject IBanData banData
 @inject IConfiguration config
-@inject IJSRuntime JSRuntime
+@inject IAuditLogData auditLogData
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
+@inject IJSRuntime JSRuntime
 
 @if (ban is null)
 {
@@ -24,7 +25,7 @@
             <div class="modal-content bg-dark text-white"> 
                 <div class="modal-header">
                     <h5 class="modal-title" id="conversationModalLongTitle">
-                        Edit @selectedConversation?.GroupName
+                        Edit @conversation?.GroupName
                     </h5>
                     <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
                     </div>
@@ -59,8 +60,7 @@
                     <div class="modal-footer">
                     <button type="button" 
                         class="btn btn-secondary" 
-                        data-dismiss="modal" 
-                        @onclick="(() => selectedConversation = null)">
+                        data-dismiss="modal">
                         Close
                     </button>
                     </div>
@@ -94,7 +94,7 @@
                                         <h2 class="conversation-title text-center">@conversation.GroupName</h2>
                                         <p class="conversation-info text-center">The Owner: @conversation.Owner.DisplayName</p>
                                         <p class="conversation-info text-center">This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")</p>
-                                        <button class="btn btn-secondary w-100" @onclick="LoadSelectedConversation"
+                                        <button class="btn btn-secondary w-100"
                                             data-toggle="modal" data-target="#conversationModal">
                                                 Edit Conversation
                                         </button>
@@ -125,7 +125,6 @@ else
     private CreateConversationModel editingConversation = new();
 
     private ConversationModel conversation;
-    private ConversationModel selectedConversation;
     private List<CategoryModel> categories;
     private UserModel loggedInUser;
     private BanModel ban;
@@ -144,14 +143,12 @@ else
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
-    }
-
-    private void LoadSelectedConversation()
-    {
-        selectedConversation = conversation;
-        editingConversation.GroupName = selectedConversation.GroupName;
-        editingConversation.CategoryId = selectedConversation.Category.Id;
-        editingConversation.PictureName = selectedConversation.PictureName;
+        if (conversation is not null)
+        {
+            editingConversation.GroupName = conversation.GroupName;
+            editingConversation.CategoryId = conversation.Category.Id;
+            editingConversation.PictureName = conversation.PictureName;
+        }
     }
 
     private async Task CloseModal()
@@ -162,6 +159,7 @@ else
     private async Task UpdateConversation()
     {
         string relativePath = await CaptureFile();
+        string groupName = conversation.GroupName;
         string pictureName = conversation.PictureName;
         string originalPictureName = conversation.OriginalPictureName;
         string pictureExtension = conversation.PictureExtension;
@@ -181,10 +179,26 @@ else
             conversation.PictureExtension = pictureExtension;
         }
 
-        await conversationData.UpdateConversation(conversation);
-        editingConversation = new();
-        file = null;
+        AuditLogModel a = new()
+        {
+            Name = "Conversation Details Updated",
+            Description = $"{loggedInUser.DisplayName} has updated conversation of ID {conversation.Id}'s details",
+            OldValues = 
+                $@"Conversation name: {conversation.GroupName} 
+                Conversation Picture: {conversation.PictureName}
+                Original picture name: {conversation.OriginalPictureName}",
+            NewValues = 
+                $@"Conversation name: {groupName} 
+                Conversation Picture: {pictureName} 
+                Original picture name: {originalPictureName}",
+            User = new BasicUserModel(loggedInUser),
+            Conversation = conversation,
+            DateModified = DateTime.UtcNow,
+        };
 
+        await conversationData.UpdateConversation(conversation);
+        await auditLogData.CreateAuditLog(a);
+        file = null;
         await CloseModal();
     }
 
