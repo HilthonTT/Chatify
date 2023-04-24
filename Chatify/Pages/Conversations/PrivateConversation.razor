@@ -106,7 +106,7 @@
 
     @if (loggedInUser is not null && conversation is not null)
     {
-        if (conversation.FirstParticipant.Id != loggedInUser.Id && conversation.LastParticipant.Id != loggedInUser.Id)
+        if (IsInConversation() is false || IsBlocked())
         {
             <NotAuthorized />
         }
@@ -501,6 +501,33 @@ else
         }
 
         return "in-disallowed-roles";
+    }
+
+    private bool IsInConversation()
+    {
+        if (conversation.FirstParticipant.Id != loggedInUser.Id && 
+            conversation.LastParticipant.Id != loggedInUser.Id)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsBlocked()
+    {
+        var blockedUser = loggedInUser?.BlockedUsers.FirstOrDefault(
+            u => ((u.Id == conversation.FirstParticipant.Id && u.Id != conversation.LastParticipant.Id)
+                || (u.Id == conversation.LastParticipant.Id && u.Id != conversation.FirstParticipant.Id))
+            && u.Id != loggedInUser?.Id);
+
+
+        if (blockedUser is not null)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null

@@ -84,11 +84,48 @@
     </div>
 </div>
 
+<div class="modal fade" id="blockModal" tabindex="-1" role="dialog" aria-labelledby="blockModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-content bg-dark text-white"> 
+        <div class="modal-header">
+            <h5 class="modal-title" id="blockModalLongTitle">
+                @BlockButtonText() @user?.DisplayName
+            </h5>
+                <button type="button" 
+                    class="btn-close btn-close-white text-white" 
+                    data-dismiss="modal" 
+                    aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+                    {
+                        <div class="text-danger">@errorMessage</div>
+                    }
+                    <div class="mt-1">Are you sure you want to @((LoggedInUserHasBlockedUser()) ? "Unblock" : "Block") @user?.DisplayName?</div>
+                    <div class="center-children">
+                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="ToggleBlockUser">
+                            @BlockButtonText() @user?.DisplayName
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" 
+                class="btn btn-secondary"
+                data-dismiss="modal">
+                Close
+            </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @if (ban is null)
 {
     <h1 class="page-heading mb-4">@user?.DisplayName's Profile</h1>
 
-    <div class="rounded rounded-3 shadow">
+    <div class="rounded rounded-3 ">
       <div class="card-body">
         <div class="row justify-content-center">
           <div class="col-lg-10 col-md-8 card bg-dark p-4">
@@ -108,26 +145,37 @@
                             <button class="btn btn-secondary me-1" @onclick="(async() => await OpenPrivateConversation(user))">
                                 Launch Conversation
                             </button>
-                            @if (IsUserFriends())
+                            @if (IsUserFriends() && HasAnyoneBlockedAnyone() is false)
                             {
-                                <button class="btn btn-primary" 
+                                <button class="btn btn-outline-secondary" 
                                         data-toggle="modal" 
                                         data-target="#unfriendModal">
                                     Unfriend
                                 </button>
                             }
-                            else 
+                            else if (IsUserFriends() is false && HasAnyoneBlockedAnyone() is false)
                             {
-                                <button class="btn btn-primary" 
+                                <button class="btn btn-outline-secondary" 
                                         data-toggle="modal" 
                                         data-target="#friendModal">
                                     Send Friend Request
                                 </button>
                             }
                         </div>
+
                         <AuthorizeView Policy="Admin">
                             <button class="btn btn-outline-danger" @onclick="(() => OpenAdminBan(user))">Ban User</button>
                         </AuthorizeView>
+                    </div>
+                    <div>
+                        @if (LoggedInUserHasBlockedUser() is false)
+                        {
+                            <button class="btn btn-danger"
+                                    data-toggle="modal"
+                                    data-target="#blockModal">
+                                @BlockButtonText() @user?.DisplayName
+                            </button>       
+                        }
                     </div>
                 }
                 @if (user?.Friends.Count > 0)
@@ -259,25 +307,46 @@ else
 
         var friendRequest = await requestData.GetSenderAndReceiverFriendRequestAsync(loggedInUser, user);
 
-        var friendToRemove = user.Friends.FirstOrDefault(f => f.Id == new BasicUserModel(loggedInUser).Id);
+        var friendToRemove = user.Friends.FirstOrDefault(f => f.Id == loggedInUser.Id);
         if (friendToRemove is not null)
         {
             user.Friends.Remove(friendToRemove);
         }
 
-        var loggedInUserFriendToRemove = loggedInUser.Friends.FirstOrDefault(f => f.Id == new BasicUserModel(user).Id);
+        var loggedInUserFriendToRemove = loggedInUser.Friends.FirstOrDefault(f => f.Id == user.Id);
         if (loggedInUserFriendToRemove is not null)
         {
             loggedInUser.Friends.Remove(loggedInUserFriendToRemove);
         }
 
-        await requestData.DeleteFriendRequestAsync(friendRequest);
+        if (friendRequest is not null)
+        {
+            await requestData.DeleteFriendRequestAsync(friendRequest);
+        }
 
         await userData.UpdateUser(user);
         await userData.UpdateUser(loggedInUser);
-        navManager.NavigateTo($"/userDetails/{Id}", true);
 
         await CloseModal("unfriendModal");
+    }
+
+    private async Task ToggleBlockUser()
+    {
+        var userToBlock = loggedInUser.BlockedUsers.FirstOrDefault(u => u.Id == user.Id);
+        if (userToBlock is not null)
+        {
+            // User is already blocked, so unblock them
+            loggedInUser.BlockedUsers.Remove(userToBlock);
+            await UnfriendUser();
+        }
+        else
+        {
+            // User is not blocked, so block them
+            await UnfriendUser();
+            loggedInUser.BlockedUsers.Add(new BasicUserModel(user));
+        }
+        await userData.UpdateUser(loggedInUser);
+        await CloseModal("blockModal");
     }
 
     private void ClosePage()
@@ -290,9 +359,20 @@ else
         navManager.NavigateTo($"/AdminBan/{user.Id}");
     }
 
+    private string BlockButtonText()
+    {
+        var userToBlock = loggedInUser?.BlockedUsers.FirstOrDefault(u => u.Id == user.Id);
+        if (userToBlock is not null)
+        {
+            return "Unblock";
+        }
+
+        return "Block";
+    }
+
     private bool IsUserFriends()
     {
-        var loggedInUserFriend = loggedInUser.Friends.Where(u => u.Id == user.Id).FirstOrDefault();
+        var loggedInUserFriend = loggedInUser.Friends.FirstOrDefault(u => u.Id == user.Id);
 
         if (loggedInUserFriend is null)
         {
@@ -300,5 +380,39 @@ else
         }
 
         return true;
+    }
+
+    private bool UserHasBlockedLoggedInUser()
+    {
+        var blockedLoggedInUser = user?.BlockedUsers.FirstOrDefault(
+            u => u.Id == loggedInUser?.Id);
+
+        if (blockedLoggedInUser is null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool LoggedInUserHasBlockedUser()
+    {
+        var userBlockedInLoggedInUser = loggedInUser?.BlockedUsers.FirstOrDefault(
+            u => u.Id == loggedInUser?.Id);
+
+        if (userBlockedInLoggedInUser is null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool HasAnyoneBlockedAnyone()
+    {
+        var userBlockedLoggedInUser = UserHasBlockedLoggedInUser();
+        var loggedInUserBlockedUser = LoggedInUserHasBlockedUser();
+
+        return userBlockedLoggedInUser || loggedInUserBlockedUser;
     }
 }

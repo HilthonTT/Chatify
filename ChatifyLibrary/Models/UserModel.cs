@@ -13,6 +13,7 @@ public class UserModel
     public string DisplayName { get; set; }
     public string Email { get; set; }
     public List<BasicUserModel> Friends { get; set; } = new();
+    public List<BasicUserModel> BlockedUsers { get; set; } = new();
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
     public string FullName
