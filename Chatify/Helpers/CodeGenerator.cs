@@ -10,7 +10,6 @@ public class CodeGenerator : ICodeGenerator
     private readonly IConversationData _conversationData;
     private readonly IChannelData _channelData;
     private readonly IPrivateConversationData _privateConversationData;
-    private readonly IPrivateMessageData _privateMessageData;
     private readonly IFriendRequestData _requestData;
 
     public CodeGenerator(IUserData userData,
@@ -19,7 +18,6 @@ public class CodeGenerator : ICodeGenerator
                          IConversationData conversationData,
                          IChannelData channelData,
                          IPrivateConversationData privateConversationData,
-                         IPrivateMessageData privateMessageData,
                          IFriendRequestData requestData)
     {
         _userData = userData;
@@ -28,7 +26,6 @@ public class CodeGenerator : ICodeGenerator
         _conversationData = conversationData;
         _channelData = channelData;
         _privateConversationData = privateConversationData;
-        _privateMessageData = privateMessageData;
         _requestData = requestData;
     }
     private static string GenerateRandomString()
@@ -85,11 +82,6 @@ public class CodeGenerator : ICodeGenerator
     public async Task<string> GenerateChannelIdentifierAsync()
     {
         return await GenerateCodeAsync(c=> c.ObjectIdentifier, _channelData.GetAllChannelsAsync);
-    }
-
-    public async Task<string> GeneratePrivateMessageIdentifierAsync()
-    {
-        return await GenerateCodeAsync(m => m.ObjectIdentifier, _privateMessageData.GetAllMessagesAsync);
     }
 
     public async Task<string> GeneratePrivateConversationIdentifierAsync()

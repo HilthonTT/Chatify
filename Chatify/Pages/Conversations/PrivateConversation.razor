@@ -3,15 +3,15 @@
 @using Microsoft.AspNetCore.SignalR.Client;
 @inject IPrivateConversationData privateConversationData
 @inject IUserData userData
-@inject IPrivateMessageData privateMessageData
+@inject IMessageData messageData
 @inject IBanData banData
 @inject IServerData serverData
-@inject NavigationManager navManager
-@inject ProtectedSessionStorage sessionStorage
-@inject AuthenticationStateProvider authProvider
 @inject IConfiguration config
 @inject ICodeGenerator codeGenerator
 @inject IJSRuntime JSRuntime
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+@inject AuthenticationStateProvider authProvider
 @implements IAsyncDisposable
 
 <div class="modal fade" id="invitationModal" tabindex="-1" role="dialog" aria-labelledby="invitationModalCenterTitle" aria-hidden="true">
@@ -118,7 +118,7 @@
                   @if (messages is not null)
                   {
                     <Virtualize Items="messages" Context="m" OverscanCount="10">
-                      <PrivateMessage @key="m.Id" Message="m" LoggedInUser="loggedInUser"/>
+                      <MessageComponent @key="m.Id" Message="m" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                     <div class="messages-mb" />
                   }
@@ -194,7 +194,7 @@ else
     private string searchText = "";
     private bool isSortedByNew = true;
     private PrivateConversationModel conversation;
-    private List<PrivateMessageModel> messages;
+    private List<MessageModel> messages;
     private List<ServerModel> servers;
     private ServerModel selectedServer;
     private UserModel loggedInUser;
@@ -211,7 +211,7 @@ else
         conversation = await privateConversationData.GetConversationAsync(Id);
         if (conversation is not null)
         {
-            messages = await privateMessageData.GetConversationMessagesAsync(conversation);
+            messages = await messageData.GetPrivateConversationMessagesAsync(conversation);
         }
 
         loggedInUser = await authProvider.GetUserFromAuth(userData);
@@ -222,17 +222,17 @@ else
         }
 
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(navManager.ToAbsoluteUri("/privateconversationhub"))
+            .WithUrl(navManager.ToAbsoluteUri("/conversationhub"))
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<PrivateMessageModel>("ReceiveMessage", OnReceiveMessage);
+        hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
 
         await hubConnection.StartAsync();
         await hubConnection.InvokeAsync("JoinConversation", conversation);
     }
 
-    private void OnReceiveMessage(PrivateMessageModel message)
+    private void OnReceiveMessage(MessageModel message)
     {
         file = null;
         fileName = "";
@@ -271,7 +271,7 @@ else
 
     private async Task FilterMessages()
     {
-        var output = await privateMessageData.GetConversationMessagesAsync(conversation);
+        var output = await messageData.GetPrivateConversationMessagesAsync(conversation);
 
         if (string.IsNullOrWhiteSpace(searchText) is false)
         {
@@ -329,7 +329,7 @@ else
             string relativePath = await CaptureFile();
             string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
 
-            PrivateMessageModel m = new()
+            MessageModel m = new()
             {
                 ObjectIdentifier = objectId,
                 Sender = new BasicUserModel(loggedInUser),
@@ -337,10 +337,10 @@ else
                 FileName = relativePath,
                 OriginalFileName = fileName,
                 FileExtension = fileExtension,
-                Conversation = conversation,
+                PrivateConversation = conversation,
             };
 
-            await privateMessageData.CreateMessage(m);
+            await messageData.CreateMessage(m);
 
             if (hubConnection is not null)
             {
@@ -365,17 +365,17 @@ else
 
         string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
 
-        PrivateMessageModel m = new()
+        MessageModel m = new()
         {
             ObjectIdentifier = objectId,
             Sender = new BasicUserModel(loggedInUser),
             Text = $"I've just invited you in {selectedServer.ServerName}",
             ServerInvitation = selectedServer,
-            Conversation = conversation,
+            PrivateConversation = conversation,
             Archived = false,
         };
 
-        await privateMessageData.CreateMessage(m);
+        await messageData.CreateMessage(m);
 
         if (hubConnection is not null)
         {
@@ -393,7 +393,7 @@ else
         await JSRuntime.InvokeVoidAsync("closeModal", "messageModal");
     }
 
-    private async Task UpdateMessage(PrivateMessageModel message)
+    private async Task UpdateMessage(MessageModel message)
     {
         string relativePath = await CaptureFile();
         string oldFileName = message.FileName;
@@ -415,7 +415,7 @@ else
             message.FileExtension = oldExtension;
         }
 
-        await privateMessageData.UpdateMessageAsync(message);
+        await messageData.UpdateMessageAsync(message);
         model = new();
         file = null;
 

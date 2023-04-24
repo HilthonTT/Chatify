@@ -42,7 +42,6 @@ app.UseRewriter(new RewriteOptions().Add(
 app.MapControllers();
 app.MapBlazorHub();
 app.MapHub<ConversationHub>("/conversationhub");
-app.MapHub<PrivateConversationHub>("/privateconversationhub");
 app.MapHub<ChannelHub>("/channelhub");
 
 app.MapFallbackToPage("/_Host");

@@ -15,11 +15,9 @@ public class DbConnection : IDbConnection
     public string CategoryCollectionName { get; private set; } = "categories";
     public string FriendRequestCollectionName { get; private set; } = "friend-requests";
     public string PrivateConversationCollectionName { get; private set; } = "private-conversations";
-    public string PrivateMessageCollectionName { get; private set; } = "private-messages";
     public string BanCollectionName { get; private set; } = "bans";
     public string BanAppealCollectionName { get; private set; } = "ban-appeals";
     public string ServerCollectionName { get; private set; } = "servers";
-    public string ServerInvitationCollectionName { get; private set; } = "server-invitations";
     public string ChannelCollectionName { get; private set; } = "channels";
     public string RoleCollectionName { get; private set; } = "roles";
     public string AuditLogCollectionName { get; private set; } = "audit-logs";
@@ -31,11 +29,9 @@ public class DbConnection : IDbConnection
     public IMongoCollection<CategoryModel> CategoryCollection { get; private set; }
     public IMongoCollection<FriendRequestModel> FriendRequestCollection { get; private set; }
     public IMongoCollection<PrivateConversationModel> PrivateConversationCollection { get; private set; }
-    public IMongoCollection<PrivateMessageModel> PrivateMessageCollection { get; private set; }
     public IMongoCollection<BanModel> BanCollection { get; private set; }
     public IMongoCollection<BanAppealModel> BanAppealCollection { get; private set; }
     public IMongoCollection<ServerModel> ServerCollection { get; private set; }
-    public IMongoCollection<ServerInvitationModel> ServerInvitationCollection { get; private set; }
     public IMongoCollection<ChannelModel> ChannelCollection { get; private set; }
     public IMongoCollection<RoleModel> RoleCollection { get; private set; }
     public IMongoCollection<AuditLogModel> AuditLogCollection { get; private set; }
@@ -53,11 +49,9 @@ public class DbConnection : IDbConnection
         CategoryCollection = _db.GetCollection<CategoryModel>(CategoryCollectionName);
         FriendRequestCollection = _db.GetCollection<FriendRequestModel>(FriendRequestCollectionName);
         PrivateConversationCollection = _db.GetCollection<PrivateConversationModel>(PrivateConversationCollectionName);
-        PrivateMessageCollection = _db.GetCollection<PrivateMessageModel>(PrivateMessageCollectionName);
         BanCollection = _db.GetCollection<BanModel>(BanCollectionName);
         BanAppealCollection = _db.GetCollection<BanAppealModel>(BanAppealCollectionName);
         ServerCollection = _db.GetCollection<ServerModel>(ServerCollectionName);
-        ServerInvitationCollection = _db.GetCollection<ServerInvitationModel>(ServerInvitationCollectionName);
         ChannelCollection = _db.GetCollection<ChannelModel>(ChannelCollectionName);
         RoleCollection = _db.GetCollection<RoleModel>(RoleCollectionName);
         AuditLogCollection = _db.GetCollection<AuditLogModel>(AuditLogCollectionName);

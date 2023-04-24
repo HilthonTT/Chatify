@@ -7,7 +7,6 @@ public interface ICodeGenerator
     Task<string> GenerateMessageIdentifierAsync();
     Task<string> GenerateServerIdentifierAsync();
     Task<string> GenerateChannelIdentifierAsync();
-    Task<string> GeneratePrivateMessageIdentifierAsync();
     Task<string> GeneratePrivateConversationIdentifierAsync();
     Task<string> GenerateFriendRequestIdentifierAsync();
 }

@@ -48,12 +48,10 @@ public static class RegisterServices
         builder.Services.AddSingleton<ICategoryData, MongoCategoryData>();
         builder.Services.AddSingleton<IFriendRequestData, MongoFriendRequestData>();
         builder.Services.AddSingleton<IPrivateConversationData, MongoPrivateConversationData>();
-        builder.Services.AddSingleton<IPrivateMessageData, MongoPrivateMessageData>();
         builder.Services.AddSingleton<IBanData, MongoBanData>();
         builder.Services.AddSingleton<IBanAppealData, MongoBanAppealData>();
         builder.Services.AddSingleton<ICachingHelper, CachingHelper>();
         builder.Services.AddSingleton<IServerData, MongoServerData>();
-        builder.Services.AddSingleton<IServerInvitationData, MongoServerInvitationData>();
         builder.Services.AddSingleton<IChannelData, MongoChannelData>();
         builder.Services.AddSingleton<IRoleData, MongoRoleData>();
         builder.Services.AddSingleton<IAuditLogData, MongoAuditLogData>();

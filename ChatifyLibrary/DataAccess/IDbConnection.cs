@@ -16,8 +16,6 @@ public interface IDbConnection
     string UserCollectionName { get; }
     string PrivateConversationCollectionName { get; }
     IMongoCollection<PrivateConversationModel> PrivateConversationCollection { get; }
-    string PrivateMessageCollectionName { get; }
-    IMongoCollection<PrivateMessageModel> PrivateMessageCollection { get; }
     IMongoCollection<BanModel> BanCollection { get; }
     string BanCollectionName { get; }
     string BanAppealCollectionName { get; }
@@ -26,8 +24,6 @@ public interface IDbConnection
     IMongoCollection<ServerModel> ServerCollection { get; }
     string ServerCollectionName { get; }
     string ChannelCollectionName { get; }
-    string ServerInvitationCollectionName { get; }
-    IMongoCollection<ServerInvitationModel> ServerInvitationCollection { get; }
     string RoleCollectionName { get; }
     string AuditLogCollectionName { get; }
     IMongoCollection<RoleModel> RoleCollection { get; }
