@@ -1,4 +1,4 @@
-﻿namespace ChatifyLibrary.DataAccess.ServerCategoryData;
+﻿namespace ChatifyLibrary.DataAccess.ChannelCategoryData;
 
 public interface IChannelCategoryData
 {

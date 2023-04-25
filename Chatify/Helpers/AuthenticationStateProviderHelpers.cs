@@ -1,4 +1,4 @@
-﻿using ChatifyLibrary.DataAccess;
+﻿using ChatifyLibrary.DataAccess.UserData;
 using ChatifyLibrary.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 

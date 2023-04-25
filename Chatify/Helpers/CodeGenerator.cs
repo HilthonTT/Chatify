@@ -1,11 +1,11 @@
-﻿using ChatifyLibrary.DataAccess;
-using ChatifyLibrary.DataAccess.ChannelData;
+﻿using ChatifyLibrary.DataAccess.ChannelData;
 using ChatifyLibrary.DataAccess.ConversationData;
 using ChatifyLibrary.DataAccess.FriendRequestData;
 using ChatifyLibrary.DataAccess.MessageData;
 using ChatifyLibrary.DataAccess.PrivateConversationData;
-using ChatifyLibrary.DataAccess.ServerCategoryData;
+using ChatifyLibrary.DataAccess.ChannelCategoryData;
 using ChatifyLibrary.DataAccess.ServerData;
+using ChatifyLibrary.DataAccess.UserData;
 
 namespace Chatify.Helpers;
 

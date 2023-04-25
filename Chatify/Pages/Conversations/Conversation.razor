@@ -1,7 +1,6 @@
 ﻿@page "/conversation/{Id}"
 @attribute [Authorize]
-@    using Microsoft.AspNetCore.SignalR.Client;
-    using ChatifyLibrary.DataAccess.BanData;
+@using Microsoft.AspNetCore.SignalR.Client;
 @inject IConversationData conversationData
 @inject IUserData userData
 @inject IMessageData messageData
@@ -182,8 +181,10 @@
                                 </button>
                             </div>
                             <div class="col-7">        
-                                <InputTextArea placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
-                                    class="form-control bg-dark text-light input-section" @bind-Value="model.Text" /> 
+                                <div class="input-group">
+                                    <InputTextArea placeholder="@($"Message {conversation?.GroupName}")" aria-label="Message Box"
+                                        class="form-control bg-dark text-light input-section" @bind-Value="model.Text" /> 
+                                </div>
                             </div>
                             <div class="col-2 message-input-controls">
                                 <InputFile OnChange="LoadFiles" 

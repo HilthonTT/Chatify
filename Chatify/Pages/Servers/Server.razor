@@ -1,7 +1,6 @@
 ﻿@page "/Server/{Id}"
 @attribute [Authorize]
-@    using Microsoft.AspNetCore.SignalR.Client;
-    using ChatifyLibrary.DataAccess.BanData;
+@using Microsoft.AspNetCore.SignalR.Client;
 @inject IUserData userData
 @inject IServerData serverData
 @inject IChannelData channelData
