@@ -1,4 +1,11 @@
 ﻿using ChatifyLibrary.DataAccess;
+using ChatifyLibrary.DataAccess.ChannelData;
+using ChatifyLibrary.DataAccess.ConversationData;
+using ChatifyLibrary.DataAccess.FriendRequestData;
+using ChatifyLibrary.DataAccess.MessageData;
+using ChatifyLibrary.DataAccess.PrivateConversationData;
+using ChatifyLibrary.DataAccess.ServerCategoryData;
+using ChatifyLibrary.DataAccess.ServerData;
 
 namespace Chatify.Helpers;
 
@@ -11,6 +18,7 @@ public class CodeGenerator : ICodeGenerator
     private readonly IChannelData _channelData;
     private readonly IPrivateConversationData _privateConversationData;
     private readonly IFriendRequestData _requestData;
+    private readonly IChannelCategoryData _channelCategoryData;
 
     public CodeGenerator(IUserData userData,
                          IServerData serverData,
@@ -18,7 +26,8 @@ public class CodeGenerator : ICodeGenerator
                          IConversationData conversationData,
                          IChannelData channelData,
                          IPrivateConversationData privateConversationData,
-                         IFriendRequestData requestData)
+                         IFriendRequestData requestData,
+                         IChannelCategoryData channelCategoryData)
     {
         _userData = userData;
         _serverData = serverData;
@@ -27,6 +36,7 @@ public class CodeGenerator : ICodeGenerator
         _channelData = channelData;
         _privateConversationData = privateConversationData;
         _requestData = requestData;
+        _channelCategoryData = channelCategoryData;
     }
     private static string GenerateRandomString()
     {
@@ -92,5 +102,10 @@ public class CodeGenerator : ICodeGenerator
     public async Task<string> GenerateFriendRequestIdentifierAsync()
     {
         return await GenerateCodeAsync(r => r.ObjectIdentifier, _requestData.GetAllFriendRequestAsync);
+    }
+
+    public async Task<string> GenerateChannelCategoryIdentifierAsync()
+    {
+        return await GenerateCodeAsync(c => c.ObjectIdentifier, _channelCategoryData.GetAllCategoriesAsync);
     }
 }

@@ -1,6 +1,7 @@
-﻿using ChatifyLibrary.Helper;
+﻿using ChatifyLibrary.DataAccess.BanAppealData;
+using ChatifyLibrary.Helper;
 
-namespace ChatifyLibrary.DataAccess;
+namespace ChatifyLibrary.DataAccess.CategoryData;
 
 public class MongoBanAppealData : IBanAppealData
 {

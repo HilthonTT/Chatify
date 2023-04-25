@@ -19,6 +19,7 @@ public class DbConnection : IDbConnection
     public string BanAppealCollectionName { get; private set; } = "ban-appeals";
     public string ServerCollectionName { get; private set; } = "servers";
     public string ChannelCollectionName { get; private set; } = "channels";
+    public string ChannelCategoryCollectionName { get; private set; } = "channel-categories";
     public string RoleCollectionName { get; private set; } = "roles";
     public string AuditLogCollectionName { get; private set; } = "audit-logs";
 
@@ -33,6 +34,7 @@ public class DbConnection : IDbConnection
     public IMongoCollection<BanAppealModel> BanAppealCollection { get; private set; }
     public IMongoCollection<ServerModel> ServerCollection { get; private set; }
     public IMongoCollection<ChannelModel> ChannelCollection { get; private set; }
+    public IMongoCollection<ChannelCategoryModel> ChannelCategoryCollection { get; private set; }
     public IMongoCollection<RoleModel> RoleCollection { get; private set; }
     public IMongoCollection<AuditLogModel> AuditLogCollection { get; private set; }
 
@@ -53,6 +55,7 @@ public class DbConnection : IDbConnection
         BanAppealCollection = _db.GetCollection<BanAppealModel>(BanAppealCollectionName);
         ServerCollection = _db.GetCollection<ServerModel>(ServerCollectionName);
         ChannelCollection = _db.GetCollection<ChannelModel>(ChannelCollectionName);
+        ChannelCategoryCollection = _db.GetCollection<ChannelCategoryModel>(ChannelCategoryCollectionName);
         RoleCollection = _db.GetCollection<RoleModel>(RoleCollectionName);
         AuditLogCollection = _db.GetCollection<AuditLogModel>(AuditLogCollectionName);
     }

@@ -9,4 +9,5 @@ public interface ICodeGenerator
     Task<string> GenerateChannelIdentifierAsync();
     Task<string> GeneratePrivateConversationIdentifierAsync();
     Task<string> GenerateFriendRequestIdentifierAsync();
+    Task<string> GenerateChannelCategoryIdentifierAsync();
 }

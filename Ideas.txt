@@ -1,6 +1,6 @@
 
 Features to add:
 
-	* Add AuditLogs for conversations and servers.
-	* Add Server invitations
-	* Add role for channels, have some roles be able to speak in this channels (ex: Announcements)
+	* Add Categories for Server Channels
+	* Add Pings for unread messages
+	* Modification in navbar, add more buttons, show profile picture...

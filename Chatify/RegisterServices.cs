@@ -1,6 +1,17 @@
 ﻿using Chatify.Helpers;
 using ChatifyLibrary.DataAccess;
 using ChatifyLibrary.DataAccess.AuditLogData;
+using ChatifyLibrary.DataAccess.BanAppealData;
+using ChatifyLibrary.DataAccess.BanData;
+using ChatifyLibrary.DataAccess.CategoryData;
+using ChatifyLibrary.DataAccess.ChannelData;
+using ChatifyLibrary.DataAccess.ConversationData;
+using ChatifyLibrary.DataAccess.FriendRequestData;
+using ChatifyLibrary.DataAccess.MessageData;
+using ChatifyLibrary.DataAccess.PrivateConversationData;
+using ChatifyLibrary.DataAccess.RoleData;
+using ChatifyLibrary.DataAccess.ServerCategoryData;
+using ChatifyLibrary.DataAccess.ServerData;
 using ChatifyLibrary.Helper;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -55,6 +66,7 @@ public static class RegisterServices
         builder.Services.AddSingleton<IChannelData, MongoChannelData>();
         builder.Services.AddSingleton<IRoleData, MongoRoleData>();
         builder.Services.AddSingleton<IAuditLogData, MongoAuditLogData>();
+        builder.Services.AddSingleton<IChannelCategoryData, MongoChannelCategoryData>();
 
         builder.Services.AddSingleton<ICodeGenerator, CodeGenerator>();
     }

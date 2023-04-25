@@ -28,4 +28,6 @@ public interface IDbConnection
     string AuditLogCollectionName { get; }
     IMongoCollection<RoleModel> RoleCollection { get; }
     IMongoCollection<AuditLogModel> AuditLogCollection { get; }
+    string ChannelCategoryCollectionName { get; }
+    IMongoCollection<ChannelCategoryModel> ChannelCategoryCollection { get; }
 }

@@ -1,6 +1,6 @@
 ﻿using ChatifyLibrary.Helper;
 
-namespace ChatifyLibrary.DataAccess;
+namespace ChatifyLibrary.DataAccess.ConversationData;
 
 public class MongoConversationData : IConversationData
 {

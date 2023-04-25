@@ -52,6 +52,11 @@ public class CachingHelper : ICachingHelper
         return $"ChannelData-{id}";
     }
 
+    public string ChannelCategoryCachingString(string id)
+    {
+        return $"ChannelCategoryData-{id}";
+    }
+
     public string ServerCachingString(string id)
     {
         return $"ServerData-{id}";

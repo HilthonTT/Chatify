@@ -1,6 +1,7 @@
 ﻿@page "/PrivateConversation/{Id}"
 @attribute [Authorize]
-@using Microsoft.AspNetCore.SignalR.Client;
+@    using Microsoft.AspNetCore.SignalR.Client;
+    using ChatifyLibrary.DataAccess.BanData;
 @inject IPrivateConversationData privateConversationData
 @inject IUserData userData
 @inject IMessageData messageData

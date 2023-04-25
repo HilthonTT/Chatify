@@ -7,6 +7,7 @@ public class ServerModel
     public string Id { get; set; }
     public string ObjectIdentifier { get; set; }
     public BasicUserModel Owner { get; set; }
+    public List<ChannelCategoryModel> Categories { get; set; } = new();
     public List<BasicUserModel> Members { get; set; } = new();
     public List<ChannelModel> Channels { get; set; } = new();
     public List<BasicUserModel> BannedUsers { get; set; } = new();

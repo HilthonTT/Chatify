@@ -1,4 +1,4 @@
-﻿namespace ChatifyLibrary.DataAccess;
+﻿namespace ChatifyLibrary.DataAccess.PrivateConversationData;
 
 public interface IPrivateConversationData
 {

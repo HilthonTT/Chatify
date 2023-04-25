@@ -16,4 +16,5 @@ public interface ICachingHelper
     string UserCachingString(string id);
     string RoleCachingString(string id);
     string AuditLogCachingString(string id);
+    string ChannelCategoryCachingString(string id);
 }

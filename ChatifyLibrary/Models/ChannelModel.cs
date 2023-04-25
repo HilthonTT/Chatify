@@ -8,6 +8,7 @@ public class ChannelModel
     public string ObjectIdentifier { get; set; }
     public string ChannelName { get; set; }
     public string ChannelDescription { get; set; }
+    public ChannelCategoryModel Category { get; set; }
     public List<MessageModel> Messages { get; set; } = new();
     public List<RoleModel> AllowedRoles { get; set; } = new();
     public List<RoleModel> DisallowedRoles { get; set; } = new();

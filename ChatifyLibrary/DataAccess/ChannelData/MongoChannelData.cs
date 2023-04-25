@@ -1,6 +1,6 @@
 ﻿using ChatifyLibrary.Helper;
 
-namespace ChatifyLibrary.DataAccess;
+namespace ChatifyLibrary.DataAccess.ChannelData;
 
 public class MongoChannelData : IChannelData
 {
@@ -41,6 +41,25 @@ public class MongoChannelData : IChannelData
         {
             var filter = Builders<ChannelModel>.Filter.And(
                 Builders<ChannelModel>.Filter.Eq(c => c.Server.Id, server.Id),
+                Builders<ChannelModel>.Filter.Eq(c => c.Archived, false));
+
+            output = await _channels.Find(filter).ToListAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(10));
+        }
+
+        return output;
+    }
+
+    public async Task<List<ChannelModel>> GetAllChannelsCategoryAsync(ChannelCategoryModel category)
+    {
+        string cachingString = _helper.ChannelCachingString(category.Id);
+
+        var output = _cache.Get<List<ChannelModel>>(cachingString);
+        if (output is null)
+        {
+            var filter = Builders<ChannelModel>.Filter.And(
+                Builders<ChannelModel>.Filter.Eq(c => c.Category.Id, category.Id),
                 Builders<ChannelModel>.Filter.Eq(c => c.Archived, false));
 
             output = await _channels.Find(filter).ToListAsync();
