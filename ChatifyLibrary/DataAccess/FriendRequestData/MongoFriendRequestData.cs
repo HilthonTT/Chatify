@@ -1,6 +1,4 @@
-﻿using ChatifyLibrary.Helper;
-
-namespace ChatifyLibrary.DataAccess.FriendRequestData;
+﻿namespace ChatifyLibrary.DataAccess.FriendRequestData;
 
 public class MongoFriendRequestData : IFriendRequestData
 {

@@ -1,6 +1,4 @@
-﻿using ChatifyLibrary.Helper;
-
-namespace ChatifyLibrary.DataAccess.ChannelData;
+﻿namespace ChatifyLibrary.DataAccess.ChannelData;
 
 public class MongoChannelData : IChannelData
 {

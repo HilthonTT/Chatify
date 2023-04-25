@@ -1,6 +1,5 @@
-﻿using ChatifyLibrary.Helper;
+﻿namespace ChatifyLibrary.DataAccess.ServerCategoryData;
 
-namespace ChatifyLibrary.DataAccess.ServerCategoryData;
 public class MongoChannelCategoryData : IChannelCategoryData
 {
     private readonly IMongoCollection<ChannelCategoryModel> _channelCategories;

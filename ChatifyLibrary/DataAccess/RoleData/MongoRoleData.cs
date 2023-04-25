@@ -1,6 +1,4 @@
-﻿using ChatifyLibrary.Helper;
-
-namespace ChatifyLibrary.DataAccess.RoleData;
+﻿namespace ChatifyLibrary.DataAccess.RoleData;
 
 public class MongoRoleData : IRoleData
 {

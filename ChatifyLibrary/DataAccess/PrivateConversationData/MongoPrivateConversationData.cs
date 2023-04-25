@@ -1,6 +1,4 @@
-﻿using ChatifyLibrary.Helper;
-
-namespace ChatifyLibrary.DataAccess.PrivateConversationData;
+﻿namespace ChatifyLibrary.DataAccess.PrivateConversationData;
 
 public class MongoPrivateConversationData : IPrivateConversationData
 {

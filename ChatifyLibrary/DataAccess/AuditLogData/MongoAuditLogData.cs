@@ -1,6 +1,4 @@
-﻿using ChatifyLibrary.Helper;
-
-namespace ChatifyLibrary.DataAccess.AuditLogData;
+﻿namespace ChatifyLibrary.DataAccess.AuditLogData;
 
 public class MongoAuditLogData : IAuditLogData
 {

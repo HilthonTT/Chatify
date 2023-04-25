@@ -1,6 +1,4 @@
-﻿using ChatifyLibrary.Helper;
-
-namespace ChatifyLibrary.DataAccess.BanData;
+﻿namespace ChatifyLibrary.DataAccess.BanData;
 
 public class MongoBanData : IBanData
 {
