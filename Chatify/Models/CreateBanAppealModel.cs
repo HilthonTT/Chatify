@@ -6,5 +6,6 @@ public class CreateBanAppealModel
 {
     [Required]
     [Display(Name = "Appeal Reason")]
+    [MaxLength(255)]
     public string AppealReason { get; set; }
 }

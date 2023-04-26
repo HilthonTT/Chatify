@@ -4,7 +4,7 @@
 @inject IUserData userData
 @inject ICategoryData categoryData
 @inject IPrivateConversationData privateConversationData
-@inject ICodeGenerator codeGenerator
+@inject IOidGenerator oidGenerator
 @inject IBanData banData
 @inject IConfiguration config
 @inject NavigationManager navManager
@@ -246,7 +246,7 @@ else
             {
                 if (string.IsNullOrWhiteSpace(loggedInUser.Id))
                 {
-                    loggedInUser.FriendCode = await codeGenerator.GenerateFriendCodeAsync();
+                    loggedInUser.FriendCode = await oidGenerator.GenerateOidAsync();
                     await userData.CreateUser(loggedInUser);
                 }
                 else
@@ -345,7 +345,7 @@ else
 
         if (conversation is null)
         {
-            string objectId = await codeGenerator.GeneratePrivateConversationIdentifierAsync();
+            string objectId = await oidGenerator.GenerateOidAsync();
 
             PrivateConversationModel c = new()
             {

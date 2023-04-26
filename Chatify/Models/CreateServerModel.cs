@@ -5,12 +5,12 @@ namespace Chatify.Models;
 public class CreateServerModel
 {
     [Required]
-    [MaxLength(50)]
+    [MaxLength(100)]
     [Display(Name = "Server Name")]
     public string ServerName { get; set; }
 
     [Required]
-    [MaxLength(100)]
+    [MaxLength(255)]
     [Display(Name = "Server Description")]
     public string ServerDescription { get; set; }
 

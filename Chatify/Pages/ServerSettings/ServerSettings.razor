@@ -8,7 +8,6 @@
 @inject IRoleData roleData
 @inject IAuditLogData auditLogData
 @inject IConfiguration config
-@inject ICodeGenerator codeGenerator
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
@@ -112,6 +111,7 @@
                           </button>
                           <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="open-details-dropdown">
                             <a class="dropdown-item" @onclick="OpenMembersPage">Members</a>
+                            <a class="dropdown-item" @onclick="OpenCategoriesPage">Audit Logs</a>
                             <a class="dropdown-item" @onclick="OpenChannelsPage">Channels</a>
                             <a class="dropdown-item" @onclick="OpenRolesPage">Roles</a>
                             <a class="dropdown-item" @onclick="OpenAuditLogsPage">Audit Logs</a>
@@ -131,6 +131,7 @@
                                   @if (CanCreateChannel())
                                   {
                                     <a class="dropdown-item" @onclick="OpenCreateChannelPage">Create Channel</a>
+                                    <a class="dropdown-item" @onclick="OpenCreateCategoryPage">Create Channel Category</a>
                                   }
                                   @if (CanCreateRole())
                                   {
@@ -157,9 +158,9 @@
                                 style="width: 300px; height: 300px;">
                             }
                         </div>
-                        <h2 class="fw-bold text-uppercase text-center">@server.ServerName</h2>
-                        <p class="text-break  text-center">@server.ServerDescription</p>
-                        <p class="text-break  text-center">@server.Category.CategoryName</p>
+                        <h2 class="fw-bold text-uppercase text-center text-break">@server.ServerName</h2>
+                        <p class="text-break text-center">@server.ServerDescription</p>
+                        <p class="text-break text-center">@server.Category.CategoryName</p>
                         <p class="text-center">@server.DateCreated.ToString("dd/MM/yyyy")</p>
                         <button class="btn btn-secondary w-100" data-toggle="modal" data-target="#serverModal">
                             Edit Server
@@ -310,15 +311,14 @@ else
         navManager.NavigateTo($"/ServerSettings/CreateChannel/{server.Id}");
     }
 
-    private void OpenUserDetails(UserModel user)
+    private void OpenCategoriesPage()
     {
-        if (user.Id == loggedInUser.Id)
-        {
-            navManager.NavigateTo("/Profile");
-            return;
-        }
+        navManager.NavigateTo($"/ServerSettings/Categories/{server.Id}");
+    }
 
-        navManager.NavigateTo($"/userDetails/{user.Id}");
+    private void OpenCreateCategoryPage()
+    {
+        navManager.NavigateTo($"/ServerSettings/CreateCategory/{server.Id}");
     }
 
     private string CreateWebPath(string relativePath)

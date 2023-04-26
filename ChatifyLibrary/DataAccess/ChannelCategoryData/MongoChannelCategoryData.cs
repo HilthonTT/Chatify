@@ -16,6 +16,18 @@ public class MongoChannelCategoryData : IChannelCategoryData
         _channelCategories = db.ChannelCategoryCollection;
     }
 
+    public async Task<ChannelCategoryModel> GetCategoryAsync(string id)
+    {
+        var results = await _channelCategories.FindAsync(c => c.Id == id);
+        return await results.FirstOrDefaultAsync();
+    }
+
+    public async Task<ChannelCategoryModel> GetCategoryObjectIdAsync(string objectId)
+    {
+        var results = await _channelCategories.FindAsync(c => c.ObjectIdentifier == objectId);
+        return await results.FirstOrDefaultAsync();
+    }
+
     public async Task<List<ChannelCategoryModel>> GetAllCategoriesAsync()
     {
         var output = _cache.Get<List<ChannelCategoryModel>>(CacheName);
@@ -48,7 +60,7 @@ public class MongoChannelCategoryData : IChannelCategoryData
         }
 
         return output;
-    }
+    }    
 
     public Task CreateCategory(ChannelCategoryModel category)
     {

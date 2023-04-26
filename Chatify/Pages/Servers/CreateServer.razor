@@ -2,11 +2,12 @@
 @attribute [Authorize]
 @inject IServerData serverData
 @inject ICategoryData categoryData
+@inject IChannelCategoryData channelCategoryData
 @inject IChannelData channelData
 @inject IUserData userData
 @inject IBanData banData
 @inject IRoleData roleData
-@inject ICodeGenerator codeGenerator
+@inject IOidGenerator oidGenerator
 @inject IConfiguration config
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
@@ -115,7 +116,7 @@ else
     private async Task Create()
     {
         string relativePath = await CaptureFile();
-        string objectId = await codeGenerator.GenerateServerIdentifierAsync();
+        string objectId = await oidGenerator.GenerateOidAsync();
 
         ServerModel s = new()
         {
@@ -139,7 +140,6 @@ else
         }
 
         var newServer = await serverData.CreateServerAndReturn(s);
-        var sss = await serverData.GetServerObjectIdAsync(objectId);
 
         RoleModel r = new()
         {
@@ -148,13 +148,13 @@ else
             Server = newServer,
         };
         r.Users.Add(new BasicUserModel(loggedInUser));    
-
         var newRole = await roleData.CreateRoleAndReturn(r);
 
-        string channelObjectid = await codeGenerator.GenerateChannelIdentifierAsync();
+        string channelObjectId = await oidGenerator.GenerateOidAsync();
+
         ChannelModel c = new()
         {
-            ObjectIdentifier = channelObjectid,
+            ObjectIdentifier = channelObjectId,
             ChannelName = "Default Channel",
             ChannelDescription = "This is the default channel.",
             Server = newServer,
@@ -162,9 +162,17 @@ else
         c.AllowedRoles.Add(newRole);
 
         await channelData.CreateChannel(c);
-        var newChannel = await channelData.GetChannelObjectIdAsync(channelObjectid);
-        newServer.Channels.Add(newChannel);
-        await serverData.UpdateServer(newServer);
+
+        string categoryObjectId = await oidGenerator.GenerateOidAsync();
+        ChannelCategoryModel ca = new()
+        {
+            ObjectIdentifier = categoryObjectId,
+            CategoryName = "Default Category",
+            CategoryDescription = "Default Category Description",
+            Server = newServer,
+        };
+        ca.Channels.Add(c);
+        await channelCategoryData.CreateCategory(ca);
         
         file = null;
         fileName = "";

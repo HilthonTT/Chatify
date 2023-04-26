@@ -9,5 +9,6 @@ public class ChannelCategoryModel
     public string CategoryDescription { get; set; }
     public ServerModel Server { get; set; }
     public List<ChannelModel> Channels { get; set; } = new();
+    public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public bool Archived { get; set; }
 }

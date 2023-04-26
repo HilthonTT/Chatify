@@ -1,0 +1,174 @@
+﻿@page "/ServerSettings/CreateCategory/{Id}"
+@inject IChannelCategoryData channelCategoryData
+@inject IAuditLogData auditLogData
+@inject IUserData userData
+@inject IServerData serverData
+@inject IRoleData roleData
+@inject IBanData banData
+@inject IOidGenerator oidGenerator
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+@inject AuthenticationStateProvider authProvider
+
+@if (ban is null)
+{
+    @if (HasAnyPermissions())
+    {
+        <h1 class="page-heading mb-4">Create A Channel For @server?.ServerName</h1>
+
+        <div class="rounded rounded-3">
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-8 bg-dark p-4">
+                        <div class="row">
+                            <div class="col-11">
+                                <EditForm Model="creatingCategoryChannel" OnValidSubmit="Create">
+                                    <DataAnnotationsValidator />
+                                    <div class="row">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="category-name">Category Name</label>
+                                            <div class="mt-1">Name your category's name</div>
+                                            <ValidationMessage For="(() => creatingCategoryChannel.CategoryName)"/>
+                                            <InputText class="form-control bg-dark text-white input-section" id="category-name" 
+                                                @bind-Value="creatingCategoryChannel.CategoryName"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="category-description">Category Description</label>
+                                            <div class="mt-1">Describe your category's purpose. What kind of topic will it be related to?</div>
+                                            <ValidationMessage For="(() => creatingCategoryChannel.CategoryDescription)"/>
+                                            <InputTextArea class="form-control bg-dark text-white input-section" id="category-description"
+                                                @bind-Value="creatingCategoryChannel.CategoryDescription"/>
+                                        </div> 
+                                        <div class="center-children">
+                                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                                Create Category
+                                            </button>
+                                        </div>
+                                    </div>
+                                </EditForm>
+                            </div>
+                            <div class="col-1">
+                                <div class="close-button-section">
+                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <NotAuthorized />
+    }
+}
+else
+{
+    <Banned />
+}
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private CreateChannelCategoryModel creatingCategoryChannel = new();
+    private ServerModel server;
+    private RoleModel role;
+    private UserModel loggedInUser;
+    private BanModel ban;
+
+    protected override async Task OnInitializedAsync()
+    {
+        server = await serverData.GetServerAsync(Id);
+        loggedInUser = await authProvider.GetUserFromAuth(userData);
+        if (loggedInUser is not null)
+        {
+            ban = await banData.GetUserBanActive(loggedInUser.Id);
+        }
+        if (loggedInUser is not null && server is not null)
+        {
+            role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
+        }
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo($"/ServerSettings/{server.Id}");
+    }
+
+    private async Task Create()
+    {
+        string objectId = await oidGenerator.GenerateOidAsync();
+
+        ChannelCategoryModel c = new()
+        {
+            ObjectIdentifier = objectId,
+            CategoryName = creatingCategoryChannel.CategoryName,
+            CategoryDescription = creatingCategoryChannel.CategoryDescription,
+            Server = server,
+        };
+
+        await channelCategoryData.CreateCategory(c);
+        var newCategory = await channelCategoryData.GetCategoryObjectIdAsync(objectId);
+        await serverData.UpdateServer(server);
+
+        creatingCategoryChannel = new();
+        AuditLogModel a = new()
+        {
+            Name = "Channel Category Creation",
+            Description = $"{loggedInUser.DisplayName} has created channel of Id {newCategory.Id} ",
+            User = new BasicUserModel(loggedInUser),
+            Server = server,
+            DateModified = DateTime.UtcNow,
+        };
+
+        await auditLogData.CreateAuditLog(a);
+    }
+
+    private bool IsUserOwner()
+    {
+        if (loggedInUser is null || server is null)
+        {
+            return false;
+        }
+
+        if (loggedInUser.Id == server.Owner.Id)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CanCreateChannel()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (role is not null && role.CanCreateChannel)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAnyPermissions()
+    {
+        if (IsUserOwner())
+        {
+            return true;
+        }
+
+        if (CanCreateChannel())
+        {
+            return true;
+        }
+
+        return false;
+    }
+}

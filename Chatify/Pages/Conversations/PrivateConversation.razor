@@ -7,7 +7,7 @@
 @inject IBanData banData
 @inject IServerData serverData
 @inject IConfiguration config
-@inject ICodeGenerator codeGenerator
+@inject OidGenerator oidGenerator
 @inject IJSRuntime JSRuntime
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
@@ -327,7 +327,7 @@ else
             errorMessage = "";
 
             string relativePath = await CaptureFile();
-            string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
+            string objectId = await oidGenerator.GenerateOidAsync();
 
             MessageModel m = new()
             {
@@ -363,7 +363,7 @@ else
             return;
         }
 
-        string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
+        string objectId = await oidGenerator.GenerateOidAsync();
 
         MessageModel m = new()
         {

@@ -5,7 +5,7 @@
 @inject IUserData userData
 @inject IBanData banData
 @inject IConfiguration config
-@inject ICodeGenerator codeGenerator
+@inject IOidGenerator oidGenerator
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
@@ -241,7 +241,7 @@ else
             errorMessage = "";
 
             string relativePath = await CaptureFile();
-            string objectIdentifier = await codeGenerator.GenerateConversationIdentifierAsync();
+            string objectIdentifier = await oidGenerator.GenerateOidAsync();
 
             ConversationModel c = new()
             {

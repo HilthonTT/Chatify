@@ -10,5 +10,6 @@ public class CreateBanModel
     public DateTime BannedUntil { get; set; }
 
     [Required]
+    [MaxLength(255)]
     public string Reason { get; set; }
 }

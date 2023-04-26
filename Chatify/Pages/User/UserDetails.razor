@@ -5,7 +5,7 @@
 @inject IFriendRequestData requestData
 @inject IPrivateConversationData privateConversationData
 @inject IBanData banData
-@inject ICodeGenerator codeGenerator
+@inject OidGenerator oidGenerator
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 @inject IJSRuntime JSRuntime
@@ -263,7 +263,7 @@ else
     {
         errorMessage = "";
 
-        string objectId = await codeGenerator.GenerateFriendRequestIdentifierAsync();
+        string objectId = await oidGenerator.GenerateOidAsync();
 
         if (loggedInUser is null) return;
 

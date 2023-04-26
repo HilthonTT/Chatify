@@ -10,7 +10,7 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
-@inject ICodeGenerator codeGenerator
+@inject OidGenerator oidGenerator
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
 
@@ -350,7 +350,7 @@ else
     private async Task SendMessage()
     {
         string relativePath = await CaptureFile();
-        string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
+        string objectId = await oidGenerator.GenerateOidAsync();
 
         MessageModel m = new()
         {
@@ -382,7 +382,7 @@ else
             return;
         }
 
-        string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
+        string objectId = await oidGenerator.GenerateOidAsync();
 
         MessageModel m = new()
         {

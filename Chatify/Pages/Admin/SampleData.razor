@@ -5,7 +5,7 @@
 @inject IUserData userData
 @inject ICategoryData categoryData
 @inject IFriendRequestData requestData
-@inject ICodeGenerator generator
+@inject IOidGenerator oidGenerator
 
 <h1 class="text-uppercase text-center fw-bold">Sample Data</h1>
 
@@ -89,7 +89,7 @@
         UserModel user = new()
         {
             ObjectIdentifier = "abc-123",
-            FriendCode = await generator.GenerateFriendCodeAsync(),
+            FriendCode = await oidGenerator.GenerateOidAsync(),
             FirstName = "Arthur",
             LastName = "Morgan",
             Email = "ArthurMorgan@gmail.com"
@@ -100,7 +100,7 @@
         user = new()
         {
             ObjectIdentifier = "def-456",
-            FriendCode = await generator.GenerateFriendCodeAsync(),
+            FriendCode = await oidGenerator.GenerateOidAsync(),
             FirstName = "John",
             LastName = "Martston",
             Email = "JohnMarston@gmail.com"
@@ -110,7 +110,7 @@
         user = new()
         {
             ObjectIdentifier = "hij-789",
-            FriendCode = await generator.GenerateFriendCodeAsync(),
+            FriendCode = await oidGenerator.GenerateOidAsync(),
             FirstName = "Hosea",
             LastName = "Matthews",
             Email = "HoseaMatthews@gmail.com"

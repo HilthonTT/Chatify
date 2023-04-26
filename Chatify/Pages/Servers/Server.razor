@@ -4,11 +4,12 @@
 @inject IUserData userData
 @inject IServerData serverData
 @inject IChannelData channelData
+@inject IChannelCategoryData channelCategoryData
 @inject IMessageData messageData
 @inject IBanData banData
 @inject IRoleData roleData
 @inject IConfiguration config
-@inject ICodeGenerator codeGenerator
+@inject OidGenerator oidGenerator
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 @inject AuthenticationStateProvider authProvider
@@ -103,7 +104,8 @@
 
 @if (ban is null)
 {
-    <h1 class="page-heading">@selectedChannel?.ChannelName</h1>
+    <h1 class="page-heading text-break mb-1">@server?.ServerName</h1>
+    <h3 class="page-heading">@selectedChannel?.ChannelName</h3>
 
     <p class="text-uppercase text-center">@selectedChannel?.ChannelDescription</p>
 
@@ -120,16 +122,25 @@
                   <div class="col-md-4 col-xl-2">
                     <div class="participants-list p-2">
                         <h3 class="fw-bold text-uppercase">Channels</h3>
+                        <hr />
                         <ul class="list-group">
-                            <Virtualize Items="channels" Context="c" OverscanCount="10">
-                                <li class="list-group-item @GetChannelClass(c) bg-secondary text-white mb-2 clickable" 
-                                    @onclick="(async() => await LoadSelectedChannel(c))">
-                                    <span class="clickable">
-                                        <span class="oi oi-chat mx-1"></span>
-                                        <span>@c.ChannelName</span>
-                                    </span>
-                                </li>
-                            </Virtualize>
+                            @if (channelCategories is not null)
+                            {
+                                <Virtualize Items="channelCategories" Context="cc" OverscanCount="10">              
+                                    <span class="h3">@cc.CategoryName</span>
+                                    <Virtualize Items="cc.Channels" Context="c" OverscanCount="10">
+                                        <li class="list-group-item @GetChannelClass(c) mb-2 clickable">
+                                            <span class="clickable ">
+                                                <div class="clickable text-white"
+                                                    @onclick="(() => LoadSelectedChannel(c))">
+                                                    <span class="oi oi-chat mx-1"></span>
+                                                    <span class="h5">@c.ChannelName</span>
+                                                </div>
+                                            </span>
+                                        </li>
+                                    </Virtualize>
+                                </Virtualize>
+                            }
                         </ul>
                     </div>
                 </div>
@@ -226,6 +237,7 @@ else
     private ServerModel selectedServer;
     private ChannelModel selectedChannel;
     private List<MessageModel> messages;
+    private List<ChannelCategoryModel> channelCategories;
     private List<ChannelModel> channels;
     private List<RoleModel> roles;
     private List<ServerModel> servers;
@@ -248,6 +260,7 @@ else
             selectedChannel = channels.FirstOrDefault();
             messages = await messageData.GetChannelMessagesAsync(selectedChannel);
             roles = await roleData.GetAllRolesServerAsync(server);
+            channelCategories = await channelCategoryData.GetServerCategoriesAsync(server);
         }
 
         loggedInUser = await authProvider.GetUserFromAuth(userData);
@@ -378,7 +391,7 @@ else
 
             string relativePath = await CaptureFile();
 
-            string objectIdentifier = await codeGenerator.GenerateMessageIdentifierAsync();
+            string objectIdentifier = await oidGenerator.GenerateOidAsync();
 
             MessageModel m = new()
             {
@@ -421,7 +434,7 @@ else
             return;
         }
 
-        string objectId = await codeGenerator.GenerateMessageIdentifierAsync();
+        string objectId = await oidGenerator.GenerateOidAsync();
 
         MessageModel m = new()
         {

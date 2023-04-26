@@ -4,7 +4,7 @@
 @inject IUserData userData
 @inject IFriendRequestData requestData
 @inject IBanData banData
-@inject ICodeGenerator codeGenerator
+@inject IOidGenerator oidGenerator
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 
@@ -69,7 +69,7 @@ else
         errorMessage = "";
         var user = await userData.GetUserFriendCodeAsync(request.FriendCode);
         var friendRequest = friendRequests.Where(f => f.Receiver.Id == user.Id).FirstOrDefault();
-        string objectId = await codeGenerator.GenerateFriendCodeAsync();
+        string objectId = await oidGenerator.GenerateOidAsync();
 
         if (user is null)
         {

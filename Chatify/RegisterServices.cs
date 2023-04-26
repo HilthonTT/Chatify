@@ -69,6 +69,7 @@ public static class RegisterServices
         builder.Services.AddSingleton<IAuditLogData, MongoAuditLogData>();
         builder.Services.AddSingleton<IChannelCategoryData, MongoChannelCategoryData>();
 
-        builder.Services.AddSingleton<ICodeGenerator, CodeGenerator>();
+        builder.Services.AddSingleton<IOidGenerator, OidGenerator>();
+        builder.Services.AddSingleton<OidGenerator>();
     }
 }

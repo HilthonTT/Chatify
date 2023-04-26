@@ -6,10 +6,12 @@ public class CreateRoleModel
 {
     [Required]
     [Display(Name = "Role Name")]
+    [MaxLength(100)]
     public string RoleName { get; set; }
 
     [Required]
     [Display(Name = "Role Description")]
+    [MaxLength(255)]
     public string RoleDescription { get; set; }
 
     [Required]
