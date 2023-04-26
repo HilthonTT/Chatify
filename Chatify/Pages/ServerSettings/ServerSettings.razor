@@ -100,60 +100,88 @@
             <div class="row justify-content-center">
               <div class="col-lg-10 col-md-8 bg-dark p-4">
                 <div class="row">
-                  <div class="col-11">
-                    <div class="btn-group center-children mb-4">
-                        <div class="dropdown w-50 me-2">
+                  <div class="col-2">
+                      <div class="dropdown w-100 mb-4">
                           <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="open-details-dropdown"
                               data-toggle="dropdown" 
                               aria-haspopup="true" 
                               aria-expanded="false">
-                            Open details
+                            Open Members
                           </button>
                           <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="open-details-dropdown">
                             <a class="dropdown-item" @onclick="OpenMembersPage">Members</a>
-                            <a class="dropdown-item" @onclick="OpenCategoriesPage">Audit Logs</a>
-                            <a class="dropdown-item" @onclick="OpenChannelsPage">Channels</a>
-                            <a class="dropdown-item" @onclick="OpenRolesPage">Roles</a>
-                            <a class="dropdown-item" @onclick="OpenAuditLogsPage">Audit Logs</a>
                           </div>
-                        </div>
-                        @if (CanCreateChannel() || CanCreateRole())
-                        {
-                            <div class="dropdown w-50">
-                              <button class="btn btn-secondary dropdown-toggle dropdown-menu-end w-100" type="button" 
-                                  id="create-details-dropdown" 
-                                  data-toggle="dropdown" 
-                                  aria-haspopup="true" 
-                                  aria-expanded="false">
-                                Create Details
-                              </button>
-                              <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="create-details-dropdown">
-                                  @if (CanCreateChannel())
-                                  {
-                                    <a class="dropdown-item" @onclick="OpenCreateChannelPage">Create Channel</a>
-                                    <a class="dropdown-item" @onclick="OpenCreateCategoryPage">Create Channel Category</a>
-                                  }
-                                  @if (CanCreateRole())
-                                  {
-                                    <a class="dropdown-item" @onclick="OpenCreateRolePage">Create Role</a>
-                                  }
-                              </div>
-                            </div>          
-                        }
-                    </div>
+                      </div>
+                      <div class="dropdown w-100 mb-4">
+                          <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="open-details-dropdown"
+                              data-toggle="dropdown" 
+                              aria-haspopup="true" 
+                              aria-expanded="false">
+                            Open Categories
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="open-details-dropdown">
+                            <a class="dropdown-item" @onclick="OpenCategoriesPage">Categories</a>
+                            @if (CanCreateChannel())
+                            {
+                                <a class="dropdown-item" @onclick="OpenCreateCategoryPage">Create Category</a>              
+                            }
+                          </div>
+                      </div>
+                      <div class="dropdown w-100 mb-4">
+                          <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="open-details-dropdown"
+                              data-toggle="dropdown" 
+                              aria-haspopup="true" 
+                              aria-expanded="false">
+                            Open Channels
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="open-details-dropdown">
+                            <a class="dropdown-item" @onclick="OpenChannelsPage">Channels</a>
+                          </div>
+                      </div>
+                       <div class="dropdown w-100 mb-4">
+                          <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="open-details-dropdown"
+                              data-toggle="dropdown" 
+                              aria-haspopup="true" 
+                              aria-expanded="false">
+                            Open Roles
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="open-details-dropdown">
+                            <a class="dropdown-item" @onclick="OpenRolesPage">Roles</a>
+                            @if (CanCreateRole())
+                            {
+                                <a class="dropdown-item" @onclick="OpenCreateRolePage">Create Role</a>          
+                            }
+                          </div>
+                      </div>
+                       <div class="dropdown w-100 mb-4">
+                          <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="open-details-dropdown"
+                              data-toggle="dropdown" 
+                              aria-haspopup="true" 
+                              aria-expanded="false">
+                            Open Audit Logs
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="open-details-dropdown">
+                            @if (CanViewAuditLog())
+                            {
+                                <a class="dropdown-item" @onclick="OpenAuditLogsPage">Audit Logs</a>             
+                            }
+                          </div>
+                      </div>
+                  </div>
+                  <div class="col-9">
                     <div>
                         <div class="center-children mt-2">
                             @if (string.IsNullOrWhiteSpace(server.PictureName) is false)
                             {
                                 <img src="@CreateWebPath(server.PictureName)"
-                                class="img-fluidborder rounded-circle" 
+                                class="img-fluid border rounded-circle" 
                                 alt="@server.OriginalPictureName"
                                 style="width: 300px; height: 300px;">
                             }
                             else
                             {
                                 <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                class="img-fluid rounded-circle" 
+                                class="img-fluid rounded-circle"
                                 alt="Placeholder Image"
                                 style="width: 300px; height: 300px;">
                             }
@@ -304,11 +332,6 @@ else
     private void OpenCreateRolePage()
     {
         navManager.NavigateTo($"/ServerSettings/CreateRole/{server.Id}");
-    }
-
-    private void OpenCreateChannelPage()
-    {
-        navManager.NavigateTo($"/ServerSettings/CreateChannel/{server.Id}");
     }
 
     private void OpenCategoriesPage()

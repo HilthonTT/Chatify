@@ -99,54 +99,57 @@
                         </div>
                         <h2 class="fw-bold text-uppercase text-center text-break">@server?.ServerName</h2>
                         <p class="text-break text-center h4">@channelCategory?.CategoryName</p>
-                        @if (showCreateChannel is false && HasAnyPermissions())
+                        @if (CanCreateChannel())
                         {
-                            <button class="btn btn-secondary w-100" 
-                                @onclick="(() => showCreateChannel = !showCreateChannel)">
-                                Create Channel
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-secondary w-100 mb-3" 
-                                @onclick="(() => showCreateChannel = !showCreateChannel)">
-                                Close
-                            </button>
-                            <EditForm Model="creatingChannel" OnValidSubmit="Create">
-                                <DataAnnotationsValidator />
-                                <div class="row">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
-                                        <div class="mt-1">Name your channel's name</div>
-                                        <ValidationMessage For="(() => creatingChannel.ChannelName)"/>
-                                        <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
-                                            @bind-Value="creatingChannel.ChannelName"/>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
-                                        <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
-                                        <ValidationMessage For="(() => creatingChannel.ChannelDescription)"/>
-                                        <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
-                                            @bind-Value="creatingChannel.ChannelDescription"/>
-                                    </div> 
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold text-uppercase" for="channel-roles">Channel Roles</label>
-                                        <div class="mt-1 mb-1">
-                                            Select which roles are allowed to chat in the channel. <br />
-                                            <span class="text-danger">Note: All roles are by default allowed.</span>
+                            @if (showCreateChannel is false)
+                            {
+                                <button class="btn btn-secondary w-100" 
+                                    @onclick="(() => showCreateChannel = !showCreateChannel)">
+                                    Create Channel
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary w-100 mb-3" 
+                                    @onclick="(() => showCreateChannel = !showCreateChannel)">
+                                    Close
+                                </button>
+                                <EditForm Model="creatingChannel" OnValidSubmit="Create">
+                                    <DataAnnotationsValidator />
+                                    <div class="row">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
+                                            <div class="mt-1">Name your channel's name</div>
+                                            <ValidationMessage For="(() => creatingChannel.ChannelName)"/>
+                                            <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
+                                                @bind-Value="creatingChannel.ChannelName"/>
                                         </div>
-                                        <button class="btn btn-secondary text-uppercase" 
-                                            type="button" data-toggle="modal" data-target="#roleModal">
-                                            Open Roles
-                                        </button>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
+                                            <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
+                                            <ValidationMessage For="(() => creatingChannel.ChannelDescription)"/>
+                                            <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
+                                                @bind-Value="creatingChannel.ChannelDescription"/>
+                                        </div> 
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-uppercase" for="channel-roles">Channel Roles</label>
+                                            <div class="mt-1 mb-1">
+                                                Select which roles are allowed to chat in the channel. <br />
+                                                <span class="text-danger">Note: All roles are by default allowed.</span>
+                                            </div>
+                                            <button class="btn btn-secondary text-uppercase" 
+                                                type="button" data-toggle="modal" data-target="#roleModal">
+                                                Open Roles
+                                            </button>
+                                        </div>
+                                        <div class="center-children">
+                                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                                Create Channel
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="center-children">
-                                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                            Create Channel
-                                        </button>
-                                    </div>
-                                </div>
-                            </EditForm>
+                                </EditForm>
+                            }
                         }
                         @if (channels?.Count > 0)
                         {
@@ -315,6 +318,7 @@ else
         await auditLogData.CreateAuditLog(a);
         allowedChannelRoles.Clear();
         disallowedChannelRoles.Clear();
+        ClosePage();
     }
 
     private void AddOrRemoveSelectedRole(RoleModel role)

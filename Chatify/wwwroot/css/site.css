@@ -14,6 +14,10 @@ hr {
     opacity: 0.50;
 }
 
+.nav-item a {
+    color: white !important;
+}
+
 h1:focus {
     outline: none;
 }
@@ -359,6 +363,9 @@ a, .btn-link {
 .clickable {
     cursor: pointer !important;
 }
+    .clickable:hover {
+        color: gray !important;
+    }
 
 .unclickable {
     cursor: auto !important;
@@ -417,3 +424,16 @@ a, .btn-link {
     display: flex;
     align-items: center;
 }
+
+.horizontal-children {
+    display: flex;
+    align-items: center;
+}
+
+.admin-text {
+    color: red !important;
+    cursor: pointer;
+}
+    .admin-text:hover {
+        color: darkred !important;
+    }

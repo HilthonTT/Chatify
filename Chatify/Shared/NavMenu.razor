@@ -1,8 +1,10 @@
 ﻿@inject IUserData userData
 @inject IFriendRequestData requestData
+@inject IConfiguration config
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark p-3">
     <a class="navbar-brand" href="/">Chatify</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -11,60 +13,44 @@
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item active">
-                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="/">Conversations</a>
             </li>
             <AuthorizeView>
                 <Authorized>
                     <li class="nav-item">
-                        <a class="nav-link" href="/Profile">
-                            Profile
+                        <a class="nav-link" @onclick="OpenServers">
+                            Servers
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="MicrosoftIdentity/Account/SignOut">
-                            Logout
-                        </a>
-                    </li>
-                    @if (loggedInUser is not null)
-                    {
-                        <li class="nav-item nav-link">
-                            <span class="oi oi-person"></span> @loggedInUser.DisplayName
-                        </li>
-                    }
                 </Authorized>
-                <NotAuthorized>
-                    <li class="nav-item">
-                        <a class="nav-link" href="MicrosoftIdentity/Account/SignIn">
-                            Login
+            </AuthorizeView>
+             <AuthorizeView>
+                <Authorized>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="navbar-friends" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Friends
                         </a>
+                        <div class="dropdown-menu dropdown-menu-dark  accordion-body" aria-labelledby="navbar-friends">
+                            <a class="dropdown-item" @onclick="OpenFriendRequests">Friend Requests</a>
+                            <a class="dropdown-item" @onclick="OpenSendFriendRequest">Send Friend Request</a>
+                        </div>
                     </li>
-                </NotAuthorized>
+                </Authorized>
             </AuthorizeView>
         </ul>
         <div class="d-flex">
-            <AuthorizeView>
-                <Authorized>
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Friends
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-dark  accordion-body" aria-labelledby="navbarDarkDropdownMenuLink">
-                                <a class="dropdown-item" href="/FriendRequests">Friend Requests</a>
-                                <a class="dropdown-item" href="/SendFriendRequest">Send Friend Request</a>
-                            </div>
-                        </li>
-                    </ul>
-                </Authorized>
-            </AuthorizeView>
             <AuthorizeView Policy="Admin">
                 <Authorized>
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="nav-link dropdown-toggle admin-text me-1"
+                                id="navbar-admin" 
+                                data-toggle="dropdown" 
+                                aria-haspopup="true" 
+                                aria-expanded="false">
                                 Admin
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-dark  accordion-body" aria-labelledby="navbarDarkDropdownMenuLink">
+                            </div>
+                            <div class="dropdown-menu dropdown-menu-dark accordion-body" aria-labelledby="navbar-admin">
                                 <a class="dropdown-item" href="/Bans">Bans</a>
                                 <a class="dropdown-item" href="/BanAppeals">BanAppeals</a>
                             </div>
@@ -72,13 +58,57 @@
                     </ul>
                 </Authorized>
             </AuthorizeView>
+            <AuthorizeView>
+                <Authorized>
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
+                        <li class="nav-item">
+                            <a class="nav-link" href="MicrosoftIdentity/Account/SignOut">
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </Authorized>
+                <NotAuthorized>
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
+                        <li class="nav-item navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
+                            <a class="nav-link" href="MicrosoftIdentity/Account/SignIn">
+                                Login
+                            </a>
+                        </li>
+                    </ul>
+                </NotAuthorized>
+            </AuthorizeView>
+            @if (loggedInUser is not null)
+            {
+                <div class="nav-item nav-link text-white clickable horizontal-children" 
+                    @onclick="OpenProfile">
+                    <div>
+                        <span class="oi oi-person"></span> @loggedInUser.DisplayName
+                    </div>
+                </div>
+            }
+            @if (loggedInUser is not null && string.IsNullOrWhiteSpace(loggedInUser.FileName) is false)
+            {
+                <img src="@CreateWebPath(loggedInUser.FileName)"
+                    class="img-fluid border rounded-circle mx-1" 
+                    alt="@loggedInUser.FileName"
+                    style="width: 50px; height: 50px;">
+            }
+            else
+            {
+                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                    class="img-fluid rounded-circle"
+                    alt="Placeholder Image"
+                    style="width: 50px; height: 50px;">
+            }
             <input class="form-control me-2 text-light bg-dark input-section" 
                 type="search" 
                 placeholder="Search User"
                 aria-label="Search User" 
-            @oninput="((txt) => searchText = (string)txt.Value)"/>
+                    @oninput="((txt) => searchText = (string)txt.Value)"/>
             <button class="btn btn-outline-secondary" type="submit" @onclick="GoToUsers">Search</button>
         </div>
+        
     </div>
 </nav>
 
@@ -100,9 +130,34 @@
     {
         if (string.IsNullOrWhiteSpace(searchText))
         {
-            navManager.NavigateTo($"/Users/", forceLoad: true);
+            navManager.NavigateTo($"/Users");
         }
 
-        navManager.NavigateTo($"/Users/{searchText}", forceLoad: true);
+        navManager.NavigateTo($"/Users/{searchText}", true);
+    }
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private void OpenProfile()
+    {
+        navManager.NavigateTo("/Profile");
+    }
+
+    private void OpenServers()
+    {
+        navManager.NavigateTo("/Servers");
+    }
+
+    private void OpenFriendRequests()
+    {
+        navManager.NavigateTo("/FriendRequests");
+    }
+
+    private void OpenSendFriendRequest()
+    {
+        navManager.NavigateTo("/SendFriendRequest");
     }
 }
