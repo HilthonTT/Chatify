@@ -12,8 +12,7 @@
 
 @if (ban is null)
 {
-    <h1 class="page-heading mb-4">Conversations</h1>
-
+    <h1 class="page-heading mb-4">Explore Conversations</h1>
 
     <div class="text-center">
         <button class="btn btn-outline-secondary btn-lg text-uppercase" @onclick="LoadCreatePage">Create A Conversation</button>
@@ -38,7 +37,7 @@
                 aria-label="Search Box" class="form-control bg-dark text-light input-section"
                 @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
         </div>
-        <div class="col-12 d-block d-md-none">
+        <div class="col-12 d-block d-md-none mt-2">
             @if (categories is not null && showCategories)
             {
                 <div class="participants-list p-2">
@@ -79,14 +78,66 @@
                 </div>
             }
         </div>
+        <div class="col-12 d-block d-md-none mt-2">
+            @if (loggedInUser?.Friends is not null && showFriends)
+            {
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Friends</h3>
+                    <hr />
+                    <button class="btn btn-outline-secondary w-100 mb-2" 
+                        @onclick="(() => showFriends = false)">
+                        Close
+                    </button>
+                    <ul class="list-group">
+                        @if (loggedInUser.Friends.Count > 0)
+                        {
+                            <Virtualize Items="loggedInUser.Friends" Context="f" OverscanCount="10">
+                                <li class="list-group-item bg-secondary text-white mb-2 clickable" 
+                                    @onclick="(async() => await OpenPrivateConversation(f))">
+                                    <span class="clickable">
+                                        <span class="oi oi-person mx-1"></span>
+                                        <span>@f.DisplayName</span>
+                                    </span>
+                                </li>
+                            </Virtualize>
+                        }
+                        else
+                        {
+                            <span class="mb-2 text-center" 
+                                @onclick="LoadUsersPage">
+                                <button class="btn btn-secondary w-100">
+                                    Look for users
+                                </button>
+                            </span>
+                        }
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Friends</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-secondary text-white mb-2 clickable" 
+                            @onclick="(() => showFriends = true)">
+                            <span class="clickable">
+                                <span class="oi oi-person mx-1"></span>
+                                <span>Open Friends</span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            }
+        </div>
     </div>
 
     <div class="row mt-4">
-        <div class="col-md-3 col-xl-2 d-none d-md-block border-white">
+        <div class="col-sm-4 col-md-3 col-xl-2 d-none d-md-block border-white">
             @if (loggedInUser is not null)
             {
                 <div class="participants-list p-2">
                     <h3 class="fw-bold text-uppercase">Friends</h3>
+                    <hr />
                     <ul class="list-group">
                         @if (loggedInUser.Friends.Count > 0)
                         {
@@ -113,15 +164,7 @@
                 </div>
             }
         </div>
-        <div class="col-md-7 col-xl-8">
-            @if (conversations is null)
-            {
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            }
+        <div class="col-sm-4 col-md-6 col-xl-8">
             <div class="row">
                 @if (conversations is not null)
                 {
@@ -129,13 +172,22 @@
                         <ConversationComponent @key="c.Id" Conversation="c" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                 }
+                else
+                {
+                    <div class="text-center mt-5">
+                        <div class="spinner-border text-secondary" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
-        <div class="col-md-3 col-xl-2 d-none d-md-block">
+        <div class="col-sm-4 col-md-3 col-xl-2 d-none d-md-block">
             @if (categories is not null)
             {
                 <div class="participants-list p-2">
                     <h3 class="fw-bold text-uppercase">Categories</h3>
+                    <hr />
                     <ul class="list-group">
                         <li class="list-group-item @SelectedCategoryClass() bg-secondary text-white mb-2 clickable" 
                             @onclick="(async() => await OnCategoryClick())">
@@ -175,6 +227,7 @@ else
     private string selectedCategory = "";
     private bool isSortedByNew = true;
     private bool showCategories = false;
+    private bool showFriends = false;
 
     protected override async Task OnInitializedAsync()
     { 
@@ -301,14 +354,6 @@ else
 
         conversations = output;
         await SaveFilterState();
-    }
-
-    private async Task ArchiveConversation()
-    {
-        archivingConversation.Archived = true;
-        await conversationData.UpdateConversation(archivingConversation);
-        conversations.Remove(archivingConversation);
-        archivingConversation = null;
     }
 
     private async Task OrderByNew(bool isNew)

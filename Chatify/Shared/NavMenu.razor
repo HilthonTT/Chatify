@@ -5,7 +5,7 @@
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark p-3">
+@*<nav class="navbar navbar-expand-lg navbar-dark bg-dark p-3">
     <a class="navbar-brand" href="/">Chatify</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -17,8 +17,8 @@
             </li>
             <AuthorizeView>
                 <Authorized>
-                    <li class="nav-item">
-                        <a class="nav-link" @onclick="OpenServers">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="" @onclick="OpenServers">
                             Servers
                         </a>
                     </li>
@@ -27,7 +27,7 @@
              <AuthorizeView>
                 <Authorized>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" id="navbar-friends" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="" id="navbar-friends" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Friends
                         </a>
                         <div class="dropdown-menu dropdown-menu-dark  accordion-body" aria-labelledby="navbar-friends">
@@ -108,11 +108,104 @@
                     @oninput="((txt) => searchText = (string)txt.Value)"/>
             <button class="btn btn-outline-secondary" type="submit" @onclick="GoToUsers">Search</button>
         </div>
-        
     </div>
 </nav>
+*@
+
+  <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
+    <a href="https://getbootstrap.com/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+      <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+      <span class="fs-4">Chatify</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+      <li class="nav-item">
+        <a href="/" class="nav-link active" aria-current="page">
+          <svg class="bi me-2" width="16" height="16"><use xlink:href="/Conversations"></use></svg>
+          Conversations
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/Servers" class="nav-link active">
+          <svg class="bi me-2" width="16" height="16"><use xlink:href="/Servers"></use></svg>
+          Servers
+        </a>
+      </li>
+      <li class="nav-item">
+            <a href="#" class="nav-link active"
+                id="friend-dropdown" 
+                data-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false">
+                <svg class="bi me-2" width="16" height="16"><use xlink:href="/Friends"></use></svg>
+                Friends
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="friend-dropdown">
+                <li><a class="dropdown-item" href="/FriendRequests">Friend Requests</a></li>
+                <li><a class="dropdown-item" href="/SendFriendRequest">Send Friend Request</a></li>
+            </ul>
+        </li>
+      <AuthorizeView Policy="Admin">
+        <li class="nav-item">
+            <a href="#" class="nav-link active"
+                id="admin-dropdown" 
+                data-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false">
+                <svg class="bi me-2" width="16" height="16"><use xlink:href="/Admin"></use></svg>
+                Admin
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="admin-dropdown">
+                <li><a class="dropdown-item" href="/Bans">Bans</a></li>
+                <li><a class="dropdown-item" href="/BanAppeals">Ban Appeals</a></li>
+            </ul>
+        </li>
+      </AuthorizeView>
+    </ul>
+    <hr>
+    <div class="dropdown">
+      <a href="#" 
+        class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" 
+        id="user-dropdown" 
+        data-toggle="dropdown" 
+        aria-expanded="false">
+        @if (loggedInUser is not null)
+        {
+            <img src="@CreateWebPath(loggedInUser.FileName)" 
+                alt="@loggedInUser.FileName" 
+                class="rounded-circle me-2" 
+                width="32" 
+                height="32">
+        }
+        else
+        {
+            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                class="rounded-circle rounded-circle me-2"
+                alt="Placeholder Image"
+                width="32" 
+                height="32">
+        }
+        <strong>@Username</strong>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="user-dropdown">
+        <li><a class="dropdown-item" href="/CreateServer">New server...</a></li>
+        <li><a class="dropdown-item" href="/">Settings</a></li>
+        <li><a class="dropdown-item" href="/Profile">Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <AuthorizeView>
+            <Authorized>
+                <li><a class="dropdown-item" href="MicrosoftIdentity/Account/SignOut">Sign out</a></li>
+            </Authorized>
+            <NotAuthorized>
+                <li><a class="dropdown-item" href="MicrosoftIdentity/Account/SignIn">Sign in</a></li>
+            </NotAuthorized>
+        </AuthorizeView>
+      </ul>
+    </div>
+  </div>
 
 @code {
+    private string Username => loggedInUser is not null ? loggedInUser.DisplayName : "???";
     private string searchText = "";
     private UserModel loggedInUser;
     private List<FriendRequestModel> friendRequests;
@@ -139,25 +232,5 @@
     private string CreateWebPath(string relativePath)
     {
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
-    }
-
-    private void OpenProfile()
-    {
-        navManager.NavigateTo("/Profile");
-    }
-
-    private void OpenServers()
-    {
-        navManager.NavigateTo("/Servers");
-    }
-
-    private void OpenFriendRequests()
-    {
-        navManager.NavigateTo("/FriendRequests");
-    }
-
-    private void OpenSendFriendRequest()
-    {
-        navManager.NavigateTo("/SendFriendRequest");
     }
 }

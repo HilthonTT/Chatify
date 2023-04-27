@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.5" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.9.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.9.0" />
+    <PackageReference Include="popper.js" Version="1.16.1" />
   </ItemGroup>
 
   <ItemGroup>

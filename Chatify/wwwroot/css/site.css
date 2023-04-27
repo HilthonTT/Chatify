@@ -17,6 +17,9 @@ hr {
 .nav-item a {
     color: white !important;
 }
+    .nav-item a:hover {
+        color: gray !important;
+    }
 
 h1:focus {
     outline: none;

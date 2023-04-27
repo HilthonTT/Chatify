@@ -2,4 +2,3 @@
 Features to add:
 
 	* Add Pings for unread messages
-	* Modification in navbar, add more buttons, show profile picture...

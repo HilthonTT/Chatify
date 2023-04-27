@@ -38,7 +38,7 @@
                 aria-label="Search Box" class="form-control bg-dark text-light input-section"
                 @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
         </div>
-        <div class="col-12 d-block d-md-none">
+        <div class="col-12 d-block d-md-none mt-2">
             @if (categories is not null && showCategories)
             {
                 <div class="participants-list p-2">
@@ -82,21 +82,21 @@
     </div>
 
     <div class="row mt-4">
-        @if (servers is null)
-        {
-            <div class="text-center">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        }
         <div class="col-md-9 col-xl-10">
-            <div class="row mb-4">
+            <div class="row mb-4 mx-4">
                 @if (servers is not null)
                 {
                     <Virtualize Items="servers" Context="s" OverscanCount="10">
                         <ServerComponent @key="s.Id" Server="s" LoggedInUser="loggedInUser"/>
                     </Virtualize>
+                }
+                else
+                {
+                    <div class="text-center mt-5">
+                        <div class="spinner-border text-secondary" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
                 }
             </div>
         </div>
@@ -105,6 +105,7 @@
             {
                 <div class="participants-list p-2">
                     <h3 class="fw-bold text-uppercase">Categories</h3>
+                    <hr />
                     <ul class="list-group">
                         <li class="list-group-item @SelectedCategoryClass() bg-secondary text-white mb-2 clickable" 
                             @onclick="(async() => await OnCategoryClick())">
