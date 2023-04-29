@@ -1,4 +1,0 @@
-
-Features to add:
-
-	* Add Pings for unread messages

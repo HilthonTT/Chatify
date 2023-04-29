@@ -14,7 +14,7 @@
 @inject IConfiguration config
 
 <div class="modal fade" id="roleModal" tabindex="-1" role="dialog" aria-labelledby="roleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
     <div class="modal-content bg-dark text-white"> 
         <div class="modal-header">
             <h5 class="modal-title" id="roleModalLongTitle">
@@ -73,111 +73,109 @@
 {
     <h1 class="page-heading mb-4">@channelCategory?.CategoryName channel category of @server?.ServerName</h1>
     
-    <div class="rounded rounded-3">
-        <div class="card-body bg-dark">
-            <div class="row justify-content-between">
-                <div class="row">
-                    <div class="close-button-section">
-                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+    <div class="card-body bg-dark">
+        <div class="row justify-content-between">
+            <div class="row">
+                <div class="close-button-section">
+                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                </div>
+                <div class="col-12">
+                    <div class="center-children">
+                        @if (string.IsNullOrWhiteSpace(server?.PictureName) is false)
+                        {
+                            <img src="@CreateWebPath(server.PictureName)"
+                            class="img-fluidborder rounded-circle" 
+                            alt="@server.OriginalPictureName"
+                            style="width: 300px; height: 300px;">
+                        }
+                        else
+                        {
+                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                            class="img-fluid rounded-circle" 
+                            alt="Placeholder Image"
+                            style="width: 300px; height: 300px;">
+                        }
                     </div>
-                    <div class="col-12">
-                        <div class="center-children">
-                            @if (string.IsNullOrWhiteSpace(server?.PictureName) is false)
-                            {
-                                <img src="@CreateWebPath(server.PictureName)"
-                                class="img-fluidborder rounded-circle" 
-                                alt="@server.OriginalPictureName"
-                                style="width: 300px; height: 300px;">
-                            }
-                            else
-                            {
-                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                class="img-fluid rounded-circle" 
-                                alt="Placeholder Image"
-                                style="width: 300px; height: 300px;">
-                            }
+                    <h2 class="fw-bold text-uppercase text-center text-break">@server?.ServerName</h2>
+                    <p class="text-break text-center h4">@channelCategory?.CategoryName</p>
+                    @if (CanCreateChannel())
+                    {
+                        @if (showCreateChannel is false)
+                        {
+                            <button class="btn btn-secondary w-100" 
+                                @onclick="(() => showCreateChannel = !showCreateChannel)">
+                                Create Channel
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary w-100 mb-3" 
+                                @onclick="(() => showCreateChannel = !showCreateChannel)">
+                                Close
+                            </button>
+                            <EditForm Model="creatingChannel" OnValidSubmit="Create">
+                                <DataAnnotationsValidator />
+                                <div class="row">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
+                                        <div class="mt-1">Name your channel's name</div>
+                                        <ValidationMessage For="(() => creatingChannel.ChannelName)"/>
+                                        <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
+                                            @bind-Value="creatingChannel.ChannelName"/>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
+                                        <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
+                                        <ValidationMessage For="(() => creatingChannel.ChannelDescription)"/>
+                                        <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
+                                            @bind-Value="creatingChannel.ChannelDescription"/>
+                                    </div> 
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-uppercase" for="channel-roles">Channel Roles</label>
+                                        <div class="mt-1 mb-1">
+                                            Select which roles are allowed to chat in the channel. <br />
+                                            <span class="text-danger">Note: All roles are by default allowed.</span>
+                                        </div>
+                                        <button class="btn btn-secondary text-uppercase" 
+                                            type="button" data-toggle="modal" data-target="#roleModal">
+                                            Open Roles
+                                        </button>
+                                    </div>
+                                    <div class="center-children">
+                                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                            Create Channel
+                                        </button>
+                                    </div>
+                                </div>
+                            </EditForm>
+                        }
+                    }
+                    @if (channels?.Count > 0)
+                    {
+                        <hr />
+                        <div>
+                            <h2>@channelCategory?.CategoryName's channels</h2>
+                            <Virtualize Items="channels" Context="c" OverscanCount="10">
+                                <div class="card bg-dark border-white unclickable mb-4">
+                                    <div class="row g-0">
+                                        <div class="col-md-12">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@c.ChannelName</h5>
+                                                    <p class="card-text">
+                                                        @c.ChannelDescription
+                                                    </p>
+                                                    <p class="card-text">
+                                                        Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
+                                                    </p>
+                                                </div>
+                                            </div>                          
+                                        </div>
+                                    </div>
+                                </div>
+                            </Virtualize>
                         </div>
-                        <h2 class="fw-bold text-uppercase text-center text-break">@server?.ServerName</h2>
-                        <p class="text-break text-center h4">@channelCategory?.CategoryName</p>
-                        @if (CanCreateChannel())
-                        {
-                            @if (showCreateChannel is false)
-                            {
-                                <button class="btn btn-secondary w-100" 
-                                    @onclick="(() => showCreateChannel = !showCreateChannel)">
-                                    Create Channel
-                                </button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-secondary w-100 mb-3" 
-                                    @onclick="(() => showCreateChannel = !showCreateChannel)">
-                                    Close
-                                </button>
-                                <EditForm Model="creatingChannel" OnValidSubmit="Create">
-                                    <DataAnnotationsValidator />
-                                    <div class="row">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
-                                            <div class="mt-1">Name your channel's name</div>
-                                            <ValidationMessage For="(() => creatingChannel.ChannelName)"/>
-                                            <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
-                                                @bind-Value="creatingChannel.ChannelName"/>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
-                                            <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
-                                            <ValidationMessage For="(() => creatingChannel.ChannelDescription)"/>
-                                            <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
-                                                @bind-Value="creatingChannel.ChannelDescription"/>
-                                        </div> 
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold text-uppercase" for="channel-roles">Channel Roles</label>
-                                            <div class="mt-1 mb-1">
-                                                Select which roles are allowed to chat in the channel. <br />
-                                                <span class="text-danger">Note: All roles are by default allowed.</span>
-                                            </div>
-                                            <button class="btn btn-secondary text-uppercase" 
-                                                type="button" data-toggle="modal" data-target="#roleModal">
-                                                Open Roles
-                                            </button>
-                                        </div>
-                                        <div class="center-children">
-                                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                                Create Channel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </EditForm>
-                            }
-                        }
-                        @if (channels?.Count > 0)
-                        {
-                            <hr />
-                            <div>
-                                <h2>@channelCategory?.CategoryName's channels</h2>
-                                <Virtualize Items="channels" Context="c" OverscanCount="10">
-                                    <div class="card bg-dark border-white unclickable mb-4">
-                                        <div class="row g-0">
-                                            <div class="col-md-12">
-                                                <div class="d-flex justify-content-between">
-                                                    <div class="card-body">
-                                                        <h5 class="card-title">@c.ChannelName</h5>
-                                                        <p class="card-text">
-                                                            @c.ChannelDescription
-                                                        </p>
-                                                        <p class="card-text">
-                                                            Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
-                                                        </p>
-                                                    </div>
-                                                </div>                          
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Virtualize>
-                            </div>
-                        }
-                    </div>
+                    }
                 </div>
             </div>
         </div>

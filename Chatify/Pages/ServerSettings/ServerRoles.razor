@@ -11,7 +11,7 @@
 @inject ProtectedSessionStorage sessionStorage
 
 <div class="modal fade" id="roleModal" tabindex="-1" role="dialog" aria-labelledby="roleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
         <div class="modal-content bg-dark text-white"> 
             <div class="modal-header">
                 <h5 class="modal-title" id="roleModalLongTitle">
@@ -136,14 +136,37 @@
                                 </InputRadioGroup>
                             </div>
                             <div class="center-children">
-                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
                                     Update Role
                                 </button>
                             </div>
                         </div>
                     </EditForm>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer justify-content-between">
+                @if (archivingRole is null)
+                {
+                    <button type="button" 
+                        class="btn btn-outline-danger"
+                        @onclick="(() => archivingRole = selectedRole)">
+                        Archive
+                    </button>
+                }
+                else
+                {
+                    <div class="btn-group">
+                        <button type="button" 
+                            class="btn btn-outline-success"
+                            @onclick="ArchiveRole">
+                            Archive
+                        </button>
+                        <button type="button" 
+                            class="btn btn-outline-danger"
+                            @onclick="(() => archivingRole = null)">
+                            Cancel
+                        </button>
+                    </div>
+                }
                 <button type="button" 
                     class="btn btn-secondary" 
                     data-dismiss="modal" 
@@ -161,103 +184,99 @@
     {
         <h1 class="page-heading mb-4">@server?.ServerName's Roles</h1>
 
-        <div class="rounded rounded-3">
-            <div class="card-body">
-                <div class="row justify-content-center">
-                    <div class="col-lg-10 col-md-8 bg-dark p-4">
-                        <div class="row">
-                            <div class="col-11">
-                                <div class="row mb-4 mt-2">
-                                    <div class="col-12">
-                                        <div class="col-md-8 col-xl-12 btn-group">
-                                            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
-                                                @onclick="(async() => await SortedByNew(true))">
-                                                New
-                                            </button>
-                                            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
-                                                @onclick="(async() => await SortedByNew(false))">
-                                                Old
-                                            </button>
-                                        </div>
-                                    </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-8 bg-dark p-4">
+                <div class="row">
+                    <div class="col-11">
+                        <div class="row mb-4 mt-2">
+                            <div class="col-12">
+                                <div class="col-md-8 col-xl-12 btn-group">
+                                    <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+                                        @onclick="(async() => await SortedByNew(true))">
+                                        New
+                                    </button>
+                                    <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                                        @onclick="(async() => await SortedByNew(false))">
+                                        Old
+                                    </button>
                                 </div>
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <input type="text" placeholder="Search" 
-                                            aria-label="Search Box" class="form-control bg-dark text-light input-section"
-                                            @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
-                                    </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                    <Virtualize Items="roles" Context="r" OverscanCount="10">
-                                        <div class="card bg-dark border-white unclickable mb-4">
-                                            <div class="row g-0">
-                                                <div class="col-md-12">
-                                                    <div class="d-flex justify-content-between">
-                                                        <div class="card-body">
-                                                            <h5 class="card-title">@r.RoleName</h5>
-                                                            <p class="card-text">
-                                                                @r.RoleDescription
-                                                            </p>
-                                                            <p class="card-text">
-                                                                Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
-                                                            </p>
-                                                        </div>
-                                                        @if (CanGiveRole())
-                                                        {
-                                                            <div class="btn-group" role="group">
-                                                                <button id="btn-group-settings" type="button" 
-                                                                    class="btn btn-secondary dropdown-toggle" 
-                                                                    data-toggle="dropdown" 
-                                                                    aria-haspopup="true" 
-                                                                    aria-expanded="false">
-                                                                    <p><i class="fas fa-cog clickable"></i></p>
-                                                                </button>
-                                                                <div class="dropdown-menu dropdown-menu-dark" 
-                                                                        aria-labelledby="btn-group-settings">
-                                                                    @if (r.RoleName != "Member")
-                                                                    {
-                                                                        <button class="dropdown-item text-success" 
-                                                                            data-toggle="modal" 
-                                                                            data-target="#roleModal"
-                                                                            @onclick="(() => LoadSelectedRole(r))">
-                                                                            Edit
-                                                                        </button>
-                                                                    }
-                                                                    @if (HasUserGotRole(loggedInUser, r) is false)
-                                                                    {
-                                                                        <button class="dropdown-item text-success"
-                                                                        @onclick="(() => GiveRole(loggedInUser, r))">
-                                                                            Give Role
-                                                                        </button>
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        @if (r.RoleName != "Member")
-                                                                        {
-                                                                            <button class="dropdown-item text-success"
-                                                                                @onclick="(() => RemoveRole(loggedInUser, r))">
-                                                                                Remove Role
-                                                                            </button>     
-                                                                        }
-                                                                    }
-                                                                </div>
-                                                            </div>            
-                                                        }
-                                                    </div>                          
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <input type="text" placeholder="Search" 
+                                    aria-label="Search Box" class="form-control bg-dark text-light input-section"
+                                    @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                            <Virtualize Items="roles" Context="r" OverscanCount="10">
+                                <div class="card bg-dark border-white unclickable mb-4">
+                                    <div class="row g-0">
+                                        <div class="col-md-12">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@r.RoleName</h5>
+                                                    <p class="card-text">
+                                                        @r.RoleDescription
+                                                    </p>
+                                                    <p class="card-text">
+                                                        Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
+                                                    </p>
                                                 </div>
-                                            </div>
+                                                @if (CanGiveRole())
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        <button id="btn-group-settings" type="button" 
+                                                            class="btn btn-secondary dropdown-toggle" 
+                                                            data-toggle="dropdown" 
+                                                            aria-haspopup="true" 
+                                                            aria-expanded="false">
+                                                            <p><i class="fas fa-cog clickable"></i></p>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-dark" 
+                                                                aria-labelledby="btn-group-settings">
+                                                            @if (r.RoleName != "Member")
+                                                            {
+                                                                <button class="dropdown-item text-success" 
+                                                                    data-toggle="modal" 
+                                                                    data-target="#roleModal"
+                                                                    @onclick="(() => LoadSelectedRole(r))">
+                                                                    Edit
+                                                                </button>
+                                                            }
+                                                            @if (HasUserGotRole(loggedInUser, r) is false)
+                                                            {
+                                                                <button class="dropdown-item text-success"
+                                                                @onclick="(() => GiveRole(loggedInUser, r))">
+                                                                    Give Role
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                @if (r.RoleName != "Member")
+                                                                {
+                                                                    <button class="dropdown-item text-success"
+                                                                        @onclick="(() => RemoveRole(loggedInUser, r))">
+                                                                        Remove Role
+                                                                    </button>     
+                                                                }
+                                                            }
+                                                        </div>
+                                                    </div>            
+                                                }
+                                            </div>                          
                                         </div>
-                                    </Virtualize>
                                     </div>
                                 </div>
+                            </Virtualize>
                             </div>
-                            <div class="col-1">
-                                <div class="close-button-section">
-                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close-white" @onclick="ReturnSettings"/>
                         </div>
                     </div>
                 </div>
@@ -284,6 +303,7 @@ else
     private UserModel loggedInUser;
     private BanModel ban;
     private RoleModel selectedRole;
+    private RoleModel archivingRole;
     private RoleModel role;
     private List<RoleModel> roles;
 
@@ -432,7 +452,16 @@ else
         selectedRole = null;
     }
 
-    private void ClosePage()
+    private async Task ArchiveRole()
+    {
+        archivingRole.Archived = true;
+        await roleData.UpdateRole(archivingRole);
+        roles.Remove(roles.FirstOrDefault(r => r.Id == archivingRole.Id));
+        archivingRole = null;
+        await CloseModal();
+    }
+
+    private void ReturnSettings()
     {
         navManager.NavigateTo($"/ServerSettings/{server.Id}");
     }

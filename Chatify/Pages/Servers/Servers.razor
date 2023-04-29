@@ -5,6 +5,8 @@
 @inject ICategoryData categoryData
 @inject IUserData userData
 @inject IBanData banData
+@inject IOidGenerator oidGenerator
+@inject IPrivateConversationData privateConversationData
 @inject IConfiguration config
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
@@ -21,13 +23,13 @@
     <div class="row">
         <div class="text-uppercase fw-bold">@servers?.Count servers</div>
         <div class="col-md-8 col-xl-12 btn-group">
-            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(false)" 
-                @onclick="(async() => await OrderByNew(false))">
-                Popular
-            </button>
-            <button class="btn text-uppercase fw-bold @SortedByNewClass(true)" 
+            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
                 @onclick="(async() => await OrderByNew(true))">
                 New
+            </button>
+            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                @onclick="(async() => await OrderByNew(false))">
+                Popular
             </button>
         </div>
     </div>
@@ -79,11 +81,93 @@
                 </div>
             }
         </div>
+         <div class="col-12 d-block d-md-none mt-2">
+            @if (loggedInUser?.Friends is not null && showFriends)
+            {
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Friends</h3>
+                    <hr />
+                    <button class="btn btn-outline-secondary w-100 mb-2" 
+                        @onclick="(() => showFriends = false)">
+                        Close
+                    </button>
+                    <ul class="list-group">
+                        @if (loggedInUser.Friends.Count > 0)
+                        {
+                            <Virtualize Items="loggedInUser.Friends" Context="f" OverscanCount="10">
+                                <li class="list-group-item bg-secondary text-white mb-2 clickable" 
+                                    @onclick="(async() => await OpenPrivateConversation(f))">
+                                    <span class="clickable">
+                                        <span class="oi oi-person mx-1"></span>
+                                        <span>@f.DisplayName</span>
+                                    </span>
+                                </li>
+                            </Virtualize>
+                        }
+                        else
+                        {
+                            <span class="mb-2 text-center" 
+                                @onclick="LoadUsersPage">
+                                <button class="btn btn-secondary w-100">
+                                    Look for users
+                                </button>
+                            </span>
+                        }
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Friends</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-secondary text-white mb-2 clickable" 
+                            @onclick="(() => showFriends = true)">
+                            <span class="clickable">
+                                <span class="oi oi-person mx-1"></span>
+                                <span>Open Friends</span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            }
+        </div>
     </div>
-
     <div class="row mt-4">
-        <div class="col-md-9 col-xl-10">
-            <div class="row mb-4 mx-4">
+        <div class="col-sm-4 col-md-3 col-xl-2 d-none d-md-block border-white">
+            @if (loggedInUser is not null)
+            {
+                <div class="participants-list p-2">
+                    <h3 class="fw-bold text-uppercase">Friends</h3>
+                    <hr />
+                    <ul class="list-group">
+                        @if (loggedInUser.Friends.Count > 0)
+                        {
+                            <Virtualize Items="loggedInUser.Friends" Context="f" OverscanCount="10">
+                                <li class="list-group-item bg-secondary text-white mb-2 clickable" 
+                                    @onclick="(async() => await OpenPrivateConversation(f))">
+                                    <span class="clickable">
+                                        <span class="oi oi-person mx-1"></span>
+                                        <span>@f.DisplayName</span>
+                                    </span>
+                                </li>
+                            </Virtualize>
+                        }
+                        else
+                        {
+                            <span class="mb-2 text-center" 
+                                @onclick="LoadUsersPage">
+                                <button class="btn btn-secondary w-100">
+                                    Look for users
+                                </button>
+                            </span>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+        <div class="col-md-4 col-md-6 col-xl-8">
+            <div class="row mb-4">
                 @if (servers is not null && loggedInUser is not null)
                 {
                     <Virtualize Items="servers" Context="s" OverscanCount="10">
@@ -145,6 +229,7 @@ else
     private string selectedCategory = "";
     private bool isSortedByNew = false;
     private bool showCategories = false;
+    private bool showFriends = false;
     private bool showServersThatUserIsIn = false;
 
     protected override async Task OnInitializedAsync()
@@ -237,6 +322,36 @@ else
         selectedCategory = category;
         showCategories = false;
         await FilterServers();
+    }
+
+    private async Task OpenPrivateConversation(BasicUserModel user)
+    {
+        var conversation = await privateConversationData.GetUsersConversationAsync(loggedInUser.Id, user.Id); 
+
+        if (conversation is null)
+        {
+            string objectId = await oidGenerator.GenerateOidAsync();
+
+            PrivateConversationModel c = new()
+            {
+                ObjectIdentifier = objectId,
+                FirstParticipant = new BasicUserModel(loggedInUser),
+                LastParticipant = user,
+            };
+
+            await privateConversationData.CreateConversation(c);
+            conversation = await privateConversationData.GetConversationObjectIdAsync(objectId);
+            navManager.NavigateTo($"/PrivateConversation/{conversation.Id}");
+        }
+        else
+        {
+            navManager.NavigateTo($"/PrivateConversation/{conversation.Id}");
+        }
+    }
+
+    private void LoadUsersPage()
+    {
+        navManager.NavigateTo("/Users");
     }
 
     private void LoadCreatePage()

@@ -24,7 +24,7 @@
   else
   {
     <div class="modal fade" id="serverModal" tabindex="-1" role="dialog" aria-labelledby="serverModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
         <div class="modal-content bg-dark text-white"> 
             <div class="modal-header">
                 <h5 class="modal-title" id="serverModalLongTitle">
@@ -82,7 +82,35 @@
                         </div>
                     </EditForm>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer justify-content-between">
+                <button type="button" 
+                    class="btn btn-outline-warning" 
+                    @onclick="ClearPicture">
+                    Clear Picture
+                </button>
+                @if (archivingServer is null)
+                {
+                    <button type="button" 
+                        class="btn btn-outline-danger" 
+                        @onclick="(() => archivingServer = server)">
+                        Archive
+                    </button>       
+                }
+                else
+                {
+                    <div class="btn-group">
+                        <button type="button" 
+                            class="btn btn-outline-success" 
+                            @onclick="ArchiveServer">
+                            Archive
+                        </button>
+                        <button type="button" 
+                            class="btn btn-outline-danger" 
+                            @onclick="(() => archivingServer = null)">
+                            Cancel
+                        </button>       
+                    </div>
+                }
                 <button type="button" 
                     class="btn btn-secondary" 
                     data-dismiss="modal">
@@ -197,7 +225,7 @@
                   </div>
                   <div class="col-1">
                     <div class="close-button-section">
-                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                        <button class="btn btn-close btn-close-white" @onclick="ReturnSettings"/>
                     </div>
                   </div>
                 </div>
@@ -219,6 +247,7 @@ else
 
     private CreateServerModel editingServer = new();
     private ServerModel server;
+    private ServerModel archivingServer;
     private UserModel loggedInUser;
     private BanModel ban;
     private RoleModel role;
@@ -304,7 +333,27 @@ else
         file = null;
     }
 
+    private async Task ArchiveServer()
+    {
+        server.Archived = true;
+        await serverData.UpdateServer(server);
+        await CloseModal();
+        ClosePage();
+    }
+
+    private void ClearPicture()
+    {
+        server.PictureName = "";
+        server.OriginalPictureName = "";
+        server.PictureExtension = "";
+    }
+
     private void ClosePage()
+    {
+        navManager.NavigateTo("/Servers");
+    }
+
+    private void ReturnSettings()
     {
         navManager.NavigateTo($"/Server/{server.Id}");
     }

@@ -36,7 +36,7 @@ public class MongoRoleData : IRoleData
 
     public async Task<RoleModel> GetUserServerRoleAsync(UserModel user, ServerModel server)
     {
-        string cachingString = _helper.RoleCachingString(user.Id + "-" + server.Id);
+        string cachingString = _helper.RoleCachingString(user.Id + server.Id);
 
         var output = _cache.Get<RoleModel>(cachingString);
         if (output is null)
@@ -66,8 +66,16 @@ public class MongoRoleData : IRoleData
 
     public async Task<RoleModel> GetServerMemberRoleAsync(ServerModel server)
     {
-        var results = await _roles.FindAsync(r => r.Server.Id == server.Id && r.RoleName == "Member");
-        return await results.FirstOrDefaultAsync();
+        string cachingString = _helper.RoleCachingString(server.Id + server.ServerName);
+        var output = _cache.Get<RoleModel>(cachingString);
+        if (output is null)
+        {
+            var results = await _roles.FindAsync(r => r.Server.Id == server.Id && r.RoleName == "Member");
+            output = await results.FirstOrDefaultAsync();
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(30));
+        }
+
+        return output;
     }
 
     public Task CreateRole(RoleModel role)

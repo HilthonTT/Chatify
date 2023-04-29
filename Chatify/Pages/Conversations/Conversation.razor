@@ -116,13 +116,20 @@
               <span class="text-uppercase">@GetNonReadMessagesCount()</span>
               <div class="row flex-grow-1">
                 <div class="col-md-8 col-xl-10 messages-container">
-                  @if (messages is not null)
-                  {
-                    <Virtualize Items="messages" Context="m" OverscanCount="10"> 
-                        <MessageComponent @key="m.Id" NonReadMessages="nonReadMessages" Message="m" LoggedInUser="loggedInUser"/>
-                    </Virtualize>
-                    <div class="messages-mb" />
-                  }
+                  <CascadingValue Value="RequestChanged">
+                      @if (messages is not null)
+                      {
+                        <Virtualize Items="messages" Context="m" OverscanCount="10"> 
+                            <MessageComponent @key="m.Id"
+                                NonReadMessages="nonReadMessages" 
+                                Message="m" 
+                                Messages="messages"
+                                RequestChanged="RequestChanged"
+                                LoggedInUser="loggedInUser"/>
+                        </Virtualize>
+                        <div class="messages-mb" />
+                      }
+                  </CascadingValue>
                 </div>
                 <div class="col-md-4 col-xl-2">
                     @if (loggedInUser?.Id == conversation?.Owner.Id)
@@ -139,7 +146,7 @@
                         <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
                         <ul class="list-group">
                             <Virtualize Items="conversation?.Participants" Context="p" OverscanCount="10">
-                                @if (chosenUser is null || chosenUser.Id != p.Id)
+                                @if (selectedUser is null || selectedUser.Id != p.Id)
                                 {
                                     <li class="list-group-item bg-secondary text-white mb-2">
                                         <span class="oi oi-person me-1"></span>
@@ -148,17 +155,26 @@
                                         </span>
                                         @if (loggedInUser.Id != p.Id)
                                         {
-                                            <button class="btn btn-primary btn-sm float-end" @onclick="(() => chosenUser = p)">Remove</button>
+                                            <button class="btn btn-dark btn-sm float-end" 
+                                                @onclick="(() => selectedUser = p)">
+                                                Remove
+                                            </button>
                                         }
                                     </li>
                                 }
                                 else
                                 {
-                                    <li class="list-group-item mb-2">
+                                    <li class="list-group-item bg-black text-white mb-2">
                                         <span class="oi oi-person me-1"></span><span class="clickable" @onclick="(() => UserDetailsPage(p))">@p.DisplayName</span>
-                                        <div class="btn-group-sm float-end">
-                                            <button class="btn btn-success me-1" @onclick="(async() => await RemoveParticipant())">Remove</button>
-                                            <button class="btn btn-danger" @onclick="(() => chosenUser = null)">Cancel</button>
+                                        <div class="btn-group-sm text-center mt-1">
+                                            <button class="btn btn-outline-success me-1" 
+                                                @onclick="(async() => await RemoveParticipant())">
+                                                Remove
+                                            </button>
+                                            <button class="btn btn-outline-danger" 
+                                                @onclick="(() => selectedUser = null)">
+                                                Cancel
+                                            </button>
                                         </div>
                                     </li>
                                 }
@@ -216,6 +232,9 @@ else
     [Parameter]
     public string Id { get; set; }
 
+    [CascadingParameter]
+    public EventCallback<MessageModel> RequestChanged { get; set; }
+
     private CreateMessageModel model = new();
     private HubConnection? hubConnection;
 
@@ -227,7 +246,7 @@ else
     private List<ServerModel> servers;
     private ServerModel selectedServer;
     private UserModel loggedInUser;
-    private BasicUserModel chosenUser;
+    private BasicUserModel selectedUser;
     private BanModel ban;
 
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
@@ -253,9 +272,9 @@ else
 
         if (loggedInUser is not null && messages is not null)
         {
-             nonReadMessages = messages.Where(m => 
-                (!m.ReadBy.Any(u => u.Id == loggedInUser.Id)) 
-                && m.Sender.Id != loggedInUser?.Id).ToList();
+            nonReadMessages = messages.Where(m => 
+               (!m.ReadBy.Any(u => u.Id == loggedInUser.Id)) 
+               && m.Sender.Id != loggedInUser?.Id).ToList();
         }
 
         hubConnection = new HubConnectionBuilder()
@@ -373,6 +392,7 @@ else
             Conversation = conversation,
             Archived = false,
         };
+        m.ReadBy.Add(new BasicUserModel(loggedInUser));
 
         await messageData.CreateMessage(m);
 
@@ -430,9 +450,9 @@ else
 
     private async Task RemoveParticipant()
     {
-        conversation.Participants.Remove(chosenUser);
+        conversation.Participants.Remove(selectedUser);
         await conversationData.UpdateConversation(conversation);
-        chosenUser = null;
+        selectedUser = null;
     }
 
     private async Task OrderByNew(bool isNew)

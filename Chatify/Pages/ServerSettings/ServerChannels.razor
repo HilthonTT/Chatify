@@ -12,7 +12,7 @@
 @inject ProtectedSessionStorage sessionStorage
 
 <div class="modal fade" id="channelModal" tabindex="-1" role="dialog" aria-labelledby="channelModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
     <div class="modal-content bg-dark text-white"> 
         <div class="modal-header">
             <h5 class="modal-title" id="channelModalLongTitle">
@@ -39,14 +39,33 @@
                                 @bind-Value="editingChannel.ChannelDescription"/>
                         </div>
                         <div class="center-children">
-                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                            <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
                                 Update
                             </button>
                         </div>
                     </div>
                 </EditForm>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer justify-content-between">
+            @if (archivingChannel is null)
+            {
+                <button type="button" 
+                    class="btn btn-outline-danger" 
+                    @onclick="(() => archivingChannel = selectedChannel)">
+                    Archive
+                </button> 
+            }
+            else
+            {
+                <div class="btn-group">
+                    <button class="btn btn-outline-success" @onclick="ArchiveChannel">
+                        Archive
+                    </button>
+                    <button class="btn btn-outline-danger" @onclick="(() => archivingChannel = null)">
+                        Cancel
+                    </button>
+                </div>
+            }
             <button type="button" 
                 class="btn btn-secondary" 
                 data-dismiss="modal" 
@@ -65,83 +84,79 @@
     {
         <h1 class="page-heading mb-4">@server?.ServerName's Channels</h1>
 
-        <div class="rounded rounded-3">
-            <div class="card-body">
-                <div class="row justify-content-center">
-                    <div class="col-lg-10 col-md-8 bg-dark p-4">
-                        <div class="row">
-                            <div class="col-11">
-                                <div class="row mb-4 mt-2">
-                                    <div class="col-12">
-                                        <div class="col-md-8 col-xl-12 btn-group">
-                                            <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
-                                                @onclick="(async() => await SortedByNew(true))">
-                                                New
-                                            </button>
-                                            <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
-                                                @onclick="(async() => await SortedByNew(false))">
-                                                Old
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2 mt-4">
-                                        <div class="col-12">
-                                            <input type="text" placeholder="Search" 
-                                                aria-label="Search Box" class="form-control bg-dark text-light input-section"
-                                                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-                                        <div class="col-12">
-                                            <Virtualize Items="channels" Context="c" OverscanCount="10">
-                                                <div class="card bg-dark border-white unclickable mb-4">
-                                                    <div class="row g-0">
-                                                        <div class="col-md-12">
-                                                            <div class="d-flex justify-content-between">
-                                                                <div class="card-body">
-                                                                    <h5 class="card-title">@c.ChannelName</h5>
-                                                                    <p class="card-text">
-                                                                        @c.ChannelDescription
-                                                                    </p>
-                                                                    <p class="card-text">
-                                                                        Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
-                                                                    </p>
-                                                                </div>
-                                                                @if (CanCreateChannel())
-                                                                {
-                                                                    <div class="btn-group" role="group">
-                                                                        <button id="btn-group-settings" type="button" 
-                                                                            class="btn btn-secondary dropdown-toggle" 
-                                                                            data-toggle="dropdown" 
-                                                                            aria-haspopup="true" 
-                                                                            aria-expanded="false">
-                                                                            <p><i class="fas fa-cog clickable"></i></p>
-                                                                        </button>
-                                                                        <div class="dropdown-menu dropdown-menu-dark" 
-                                                                                aria-labelledby="btn-group-settings">
-                                                                            <button class="dropdown-item text-success" 
-                                                                                data-toggle="modal" 
-                                                                                data-target="#channelModal"
-                                                                                @onclick="(() => LoadSelectedChannel(c))">
-                                                                                Edit
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                }
-                                                            </div>                          
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-8 bg-dark p-4">
+                <div class="row">
+                    <div class="col-11">
+                        <div class="row mb-4 mt-2">
+                            <div class="col-12">
+                                <div class="col-md-8 col-xl-12 btn-group">
+                                    <button class="btn text-uppercase fw-bold me-2 @SortedByNewClass(true)" 
+                                        @onclick="(async() => await SortedByNew(true))">
+                                        New
+                                    </button>
+                                    <button class="btn text-uppercase fw-bold @SortedByNewClass(false)" 
+                                        @onclick="(async() => await SortedByNew(false))">
+                                        Old
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row mb-2 mt-4">
+                                <div class="col-12">
+                                    <input type="text" placeholder="Search" 
+                                        aria-label="Search Box" class="form-control bg-dark text-light input-section"
+                                        @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <Virtualize Items="channels" Context="c" OverscanCount="10">
+                                        <div class="card bg-dark border-white unclickable mb-4">
+                                            <div class="row g-0">
+                                                <div class="col-md-12">
+                                                    <div class="d-flex justify-content-between">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title">@c.ChannelName</h5>
+                                                            <p class="card-text">
+                                                                @c.ChannelDescription
+                                                            </p>
+                                                            <p class="card-text">
+                                                                Date Created: @c.DateCreated.ToString("dd/MM/yyyy")
+                                                            </p>
                                                         </div>
-                                                    </div>
+                                                        @if (CanCreateChannel())
+                                                        {
+                                                            <div class="btn-group" role="group">
+                                                                <button id="btn-group-settings" type="button" 
+                                                                    class="btn btn-secondary dropdown-toggle" 
+                                                                    data-toggle="dropdown" 
+                                                                    aria-haspopup="true" 
+                                                                    aria-expanded="false">
+                                                                    <p><i class="fas fa-cog clickable"></i></p>
+                                                                </button>
+                                                                <div class="dropdown-menu dropdown-menu-dark" 
+                                                                        aria-labelledby="btn-group-settings">
+                                                                    <button class="dropdown-item text-success" 
+                                                                        data-toggle="modal" 
+                                                                        data-target="#channelModal"
+                                                                        @onclick="(() => LoadSelectedChannel(c))">
+                                                                        Edit
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>                          
                                                 </div>
-                                            </Virtualize>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </Virtualize>
                                 </div>
                             </div>
-                            <div class="col-1">
-                                <div class="close-button-section">
-                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
                         </div>
                     </div>
                 </div>
@@ -169,6 +184,7 @@ else
     private UserModel loggedInUser;
     private BanModel ban;
     private ChannelModel selectedChannel;
+    private ChannelModel archivingChannel;
     private RoleModel role;
     private List<ChannelModel> channels;
 
@@ -292,6 +308,14 @@ else
         await auditLogData.CreateAuditLog(a);
         selectedChannel = null;
         editingChannel = new();
+        await CloseModal();
+    }
+
+    private async Task ArchiveChannel()
+    {
+        archivingChannel.Archived = true;
+        await channelData.UpdateChannel(archivingChannel);
+        channels.Remove(channels.FirstOrDefault(c => c.Id == archivingChannel.Id));
         await CloseModal();
     }
 

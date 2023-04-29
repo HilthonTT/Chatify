@@ -17,7 +17,7 @@
 @implements IAsyncDisposable
 
 <div class="modal fade" id="invitationModal" tabindex="-1" role="dialog" aria-labelledby="invitationModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
     <div class="modal-content bg-dark text-white"> 
         <div class="modal-header">
             <h5 class="modal-title" id="invitationModalLongTitle">
@@ -34,7 +34,7 @@
                 aria-label="Search Box" class="form-control bg-dark text-light input-section mb-3"
                 @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
                  <div class="center-children mb-3">
-                    <button class="btn btn-secondary btn-lg text-uppercase"
+                    <button class="btn btn-secondary w-100 btn-lg text-uppercase"
                         @onclick="SendInvite">
                         Send Invite
                     </button>
@@ -145,14 +145,21 @@
                     </div>
                 </div>
                 <div class="col-md-8 col-xl-8 messages-container">
-                    <span class="text-uppercase">@GetNonReadMessagesCount()</span>
-                  @if (messages is not null)
-                  {
-                    <Virtualize Items="messages" Context="m" OverscanCount="10">
-                      <MessageComponent @key="m.Id" NonReadMessages="nonReadMessages" Message="m" LoggedInUser="loggedInUser"/>
-                    </Virtualize>
-                    <div class="messages-mb" />
-                  }
+                  <span class="text-uppercase">@GetNonReadMessagesCount()</span>
+                  <CascadingValue Value="RequestChanged">
+                      @if (messages is not null)
+                      {
+                        <Virtualize Items="messages" Context="m" OverscanCount="10">
+                          <MessageComponent @key="m.Id" 
+                                NonReadMessages="nonReadMessages" 
+                                Message="m" 
+                                Messages="messages"
+                                RequestChanged="RequestChanged"
+                                LoggedInUser="loggedInUser"/>
+                        </Virtualize>
+                        <div class="messages-mb" />
+                      }
+                  </CascadingValue>
                 </div>
                 <div class="col-md-4 col-xl-2">
                     @if (UserHasPermission())
@@ -229,6 +236,9 @@ else
 @code {
     [Parameter]
     public string Id { get; set; }
+
+    [CascadingParameter]
+    public EventCallback<MessageModel> RequestChanged { get; set; }
 
     private CreateMessageModel model = new();
     private HubConnection? hubConnection;

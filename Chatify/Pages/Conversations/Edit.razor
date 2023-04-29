@@ -21,7 +21,7 @@
     else
     {
         <div class="modal fade" id="conversationModal" tabindex="-1" role="dialog" aria-labelledby="conversationModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
             <div class="modal-content bg-dark text-white"> 
                 <div class="modal-header">
                     <h5 class="modal-title" id="conversationModalLongTitle">
@@ -49,7 +49,7 @@
                                         accept=".png,.jpg,.jpeg"/>
                                 </div>
                                 <div class="center-children">
-                                    <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
+                                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
                                         type="submit">
                                         Update
                                     </button>
@@ -57,7 +57,30 @@
                             </div>
                         </EditForm>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer justify-content-between">
+                    <button type="button" 
+                        class="btn btn-outline-warning" 
+                        @onclick="ClearPicture">
+                        Clear Picture
+                    </button>
+                    @if (selectedConversation is null)
+                    {
+                        <button class="btn btn-outline-danger" 
+                            type="submit" @onclick="(() => selectedConversation = conversation)">
+                            Archive
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="btn-group">
+                            <button class="btn btn-outline-success" @onclick="ArchiveConversation">
+                                Archive
+                            </button>
+                            <button class="btn btn-outline-danger" @onclick="(() => selectedConversation = null)">
+                                Cancel
+                            </button>
+                        </div>
+                    }
                     <button type="button" 
                         class="btn btn-secondary" 
                         data-dismiss="modal">
@@ -68,76 +91,6 @@
             </div>
         </div>
         
-        <div class="modal fade" id="participantModal" tabindex="-1" role="dialog" aria-labelledby="participantModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-            <div class="modal-content bg-dark text-white"> 
-                <div class="modal-header">
-                    <h5 class="modal-title" id="participantModalLongTitle">
-                        Add a participant in @conversation?.GroupName
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                    </div>
-                    <div class="modal-body">
-                        @if (users?.Count > 0)
-                        {
-                            <Virtualize Items="users" Context="u" OverscanCount="10">
-                            <div class="card bg-dark border-white mb-4">
-                                <div class="row g-0">
-                                    <div class="col-1">
-                                        <div class="p-1">
-                                            @if (string.IsNullOrWhiteSpace(u.FileName) is false)
-                                            {
-                                                <div class="text-center p-3">
-                                                    <img src="@CreateWebPath(u.FileName)" 
-                                                        class="card-img-top rounded-circle" 
-                                                        alt="@u.FileName"
-                                                        style="width: 100px; height: 100px;">
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="text-center p-3">
-                                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                        class="card-img-top rounded-circle" 
-                                                        alt="Placeholder Image"
-                                                        style="width: 100px; height: 100px;">
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                    <div class="col-11 d-flex justify-content-between">
-                                        <div class="card-body">
-                                            <h5 class="card-title">@u.DisplayName</h5>
-                                            <p class="card-text">
-                                                Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
-                                            </p>
-
-                                        </div>           
-                                    </div>
-                                </div>                 
-                            </div>
-                            </Virtualize>
-                        }
-                        else
-                        {
-                            <div class="text-center">
-                                <div class="spinner-border text-secondary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    <div class="modal-footer">
-                    <button type="button" 
-                        class="btn btn-secondary" 
-                        data-dismiss="modal">
-                        Close
-                    </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         @if (conversation is not null)
         {
             <div class="rounded rounded-3">
@@ -146,7 +99,7 @@
                         <div class="col-lg-10 col-md-8 card bg-dark p-4">
                             <div class="row">
                                 <div class="close-button-section">
-                                    <button class="btn btn-close btn-close-white" @onclick="(() => ClosePage(conversation))"/>
+                                    <button class="btn btn-close btn-close-white" @onclick="(() => ReturnToConversation(conversation))"/>
                                 </div>
                                 <div class="col-12">
                                     <div>
@@ -154,14 +107,16 @@
                                             @if (string.IsNullOrWhiteSpace(conversation.PictureName) is false)
                                             {
                                                 <img src="@CreateWebPath(conversation.PictureName)"
-                                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
-                                                alt="@conversation.OriginalPictureName">
+                                                    class="img-fluid border border-secondary rounded-circle" 
+                                                    alt="@conversation.OriginalPictureName"
+                                                    style="width: 300px; height: 300px;">
                                             }
                                             else
                                             {
                                                 <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                class="img-fluid w-25 h-25 border border-secondary rounded-circle" 
-                                                alt="Placeholder Image">
+                                                    class="img-fluid border border-secondary rounded-circle" 
+                                                    alt="Placeholder Image"
+                                                    style="width: 300px; height: 300px;">
                                             }
                                         </div>
                                         <h2 class="conversation-title text-center">@conversation.GroupName</h2>
@@ -171,10 +126,6 @@
                                             <button class="btn btn-secondary mb-2"
                                                 data-toggle="modal" data-target="#conversationModal">
                                                 Edit Conversation
-                                            </button>
-                                            <button class="btn btn-secondary"
-                                                data-toggle="modal" data-target="#participantModal">
-                                                    Add Participant
                                             </button>
                                         </div>
                                     </div>
@@ -200,7 +151,7 @@ else
 
     private ConversationModel conversation;
     private List<CategoryModel> categories;
-    private List<BasicUserModel> users;
+    private ConversationModel selectedConversation;
     private UserModel loggedInUser;
     private BanModel ban;
 
@@ -217,7 +168,6 @@ else
         if (loggedInUser is not null)
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
-            users = loggedInUser.Friends.Where(f => conversation.Participants.Any(p => p.Id != f.Id)).ToList();
         }
         if (conversation is not null)
         {
@@ -275,17 +225,30 @@ else
         await conversationData.UpdateConversation(conversation);
         await auditLogData.CreateAuditLog(a);
         file = null;
-        await CloseModal("messageModal");
+        await CloseModal("conversationModal");
     }
 
-    private async Task AddParticipant(BasicUserModel user)
+    private async Task ArchiveConversation()
     {
-        conversation.Participants.Add(user);
+        conversation.Archived = true;
         await conversationData.UpdateConversation(conversation);
-        await CloseModal("participantModal");
+        await CloseModal("conversationModal");
+        ClosePage();
     }
 
-    private void ClosePage(ConversationModel conversation)
+    private void ClearPicture()
+    {
+        conversation.PictureName = "";
+        conversation.OriginalPictureName = "";
+        conversation.PictureExtension = "";
+    }
+
+    private void ClosePage()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    private void ReturnToConversation(ConversationModel conversation)
     {
         navManager.NavigateTo($"/Conversation/{conversation.Id}");
     }

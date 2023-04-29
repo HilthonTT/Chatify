@@ -38,7 +38,7 @@
                                 accept=".png,.jpg,.jpeg,.txt,.pdf"/>
                         </div>
                         <div class="center-children">
-                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
+                            <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
                                     type="submit">
                                 Update
                             </button>
@@ -46,7 +46,12 @@
                     </div>
                 </EditForm>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer justify-content-between">
+                <button type="button" 
+                        class="btn btn-outline-danger"
+                        @onclick="ArchiveMessage">
+                    Archive
+                </button>
                 <button type="button" 
                     class="btn btn-secondary" 
                     data-dismiss="modal">
@@ -201,6 +206,10 @@
     public List<MessageModel> NonReadMessages { get; set; }
 
     [Parameter]
+    [EditorRequired]
+    public List<MessageModel> Messages { get; set; }
+
+    [Parameter]
     public EventCallback<MessageModel> RequestChanged { get; set; }
 
     private CreateMessageModel model = new();
@@ -309,6 +318,15 @@
         await messageData.UpdateMessageAsync(Message);
         NonReadMessages.Remove(Message);
         await RequestChanged.InvokeAsync(Message);
+    }
+
+    private async Task ArchiveMessage()
+    {
+        Message.Archived = true;
+        await messageData.UpdateMessageAsync(Message);
+        Messages.Remove(Message);
+        await RequestChanged.InvokeAsync(Message);
+        await CloseModal(Message);
     }
 
     private async Task JoinServer(ServerModel server)

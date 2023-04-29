@@ -16,42 +16,38 @@
     {
         <h1 class="page-heading mb-4">Create A Channel For @server?.ServerName</h1>
 
-        <div class="rounded rounded-3">
-            <div class="card-body">
-                <div class="row justify-content-center">
-                    <div class="col-lg-10 col-md-8 bg-dark p-4">
-                        <div class="row">
-                            <div class="col-11">
-                                <EditForm Model="creatingCategoryChannel" OnValidSubmit="Create">
-                                    <DataAnnotationsValidator />
-                                    <div class="row">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold text-uppercase" for="category-name">Category Name</label>
-                                            <div class="mt-1">Name your category's name</div>
-                                            <ValidationMessage For="(() => creatingCategoryChannel.CategoryName)"/>
-                                            <InputText class="form-control bg-dark text-white input-section" id="category-name" 
-                                                @bind-Value="creatingCategoryChannel.CategoryName"/>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold text-uppercase" for="category-description">Category Description</label>
-                                            <div class="mt-1">Describe your category's purpose. What kind of topic will it be related to?</div>
-                                            <ValidationMessage For="(() => creatingCategoryChannel.CategoryDescription)"/>
-                                            <InputTextArea class="form-control bg-dark text-white input-section" id="category-description"
-                                                @bind-Value="creatingCategoryChannel.CategoryDescription"/>
-                                        </div> 
-                                        <div class="center-children">
-                                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                                Create Category
-                                            </button>
-                                        </div>
-                                    </div>
-                                </EditForm>
-                            </div>
-                            <div class="col-1">
-                                <div class="close-button-section">
-                                    <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-8 bg-dark p-4">
+                <div class="row">
+                    <div class="col-11">
+                        <EditForm Model="creatingCategoryChannel" OnValidSubmit="Create">
+                            <DataAnnotationsValidator />
+                            <div class="row">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-uppercase" for="category-name">Category Name</label>
+                                    <div class="mt-1">Name your category's name</div>
+                                    <ValidationMessage For="(() => creatingCategoryChannel.CategoryName)"/>
+                                    <InputText class="form-control bg-dark text-white input-section" id="category-name" 
+                                        @bind-Value="creatingCategoryChannel.CategoryName"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-uppercase" for="category-description">Category Description</label>
+                                    <div class="mt-1">Describe your category's purpose. What kind of topic will it be related to?</div>
+                                    <ValidationMessage For="(() => creatingCategoryChannel.CategoryDescription)"/>
+                                    <InputTextArea class="form-control bg-dark text-white input-section" id="category-description"
+                                        @bind-Value="creatingCategoryChannel.CategoryDescription"/>
+                                </div> 
+                                <div class="center-children">
+                                    <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                                        Create Category
+                                    </button>
                                 </div>
                             </div>
+                        </EditForm>
+                    </div>
+                    <div class="col-1">
+                        <div class="close-button-section">
+                            <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
                         </div>
                     </div>
                 </div>
