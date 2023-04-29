@@ -84,7 +84,7 @@
     <div class="row mt-4">
         <div class="col-md-9 col-xl-10">
             <div class="row mb-4 mx-4">
-                @if (servers is not null)
+                @if (servers is not null && loggedInUser is not null)
                 {
                     <Virtualize Items="servers" Context="s" OverscanCount="10">
                         <ServerComponent @key="s.Id" Server="s" LoggedInUser="loggedInUser"/>

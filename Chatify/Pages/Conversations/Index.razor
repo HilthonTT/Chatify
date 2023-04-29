@@ -166,7 +166,7 @@
         </div>
         <div class="col-sm-4 col-md-6 col-xl-8">
             <div class="row">
-                @if (conversations is not null)
+                @if (conversations is not null && loggedInUser is not null)
                 {
                     <Virtualize Items="conversations" Context="c" OverscanCount="10">
                         <ConversationComponent @key="c.Id" Conversation="c" LoggedInUser="loggedInUser"/>
@@ -221,7 +221,6 @@ else
     private UserModel loggedInUser;
     private List<ConversationModel> conversations;
     private List<CategoryModel> categories;
-    private ConversationModel archivingConversation;
     private BanModel ban;
     private string searchText = "";
     private string selectedCategory = "";

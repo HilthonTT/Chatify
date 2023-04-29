@@ -1,6 +1,7 @@
 ﻿@inject IConfiguration config
 @inject NavigationManager navManager
 @inject IServerData serverData
+@inject IMessageData messageData
 @inject IRoleData roleData
 @inject IJSRuntime JSRuntime
 
@@ -63,9 +64,14 @@
                     <div class="card-body text-break">
                         <h5 class="card-title">@Server.ServerName</h5>
                         <p class="card-text">@Server.Category.CategoryName</p>
-                        <p class="card-text">
+                        <p class="card-text mb-0">
                             <small class="text-muted">
                                 Owner: @Server.Owner.DisplayName
+                            </small>
+                        </p>
+                        <p class="card-text mb-0">
+                            <small class="text-warning">
+                                @GetNonReadMessagesCount()
                             </small>
                         </p>
                         <p class="card-text">
@@ -118,6 +124,13 @@
     public UserModel LoggedInUser { get; set; }
 
     private ServerModel selectedServer;
+
+    private List<MessageModel> nonReadMessages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        nonReadMessages = await messageData.GetServerUnreadMessagesAsync(Server, LoggedInUser);  
+    }
 
     private async Task CloseModal(ServerModel server)
     {
@@ -190,5 +203,27 @@
         }
 
         return false;
+    }
+
+    private string GetNonReadMessagesCount()
+    {
+        if (nonReadMessages?.Count == 0)
+        {
+            return "";
+        }
+        if (nonReadMessages?.Count == 1)
+        {
+            return "1 unread message";
+        }
+        if (nonReadMessages?.Count > 99)
+        {
+            return "99+ unread messages";
+        }
+        if (nonReadMessages?.Count < 99)
+        {
+            return $"{nonReadMessages.Count} unread messages";
+        }
+
+        return "";
     }
 }

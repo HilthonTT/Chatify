@@ -67,6 +67,76 @@
                 </div>
             </div>
         </div>
+        
+        <div class="modal fade" id="participantModal" tabindex="-1" role="dialog" aria-labelledby="participantModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+            <div class="modal-content bg-dark text-white"> 
+                <div class="modal-header">
+                    <h5 class="modal-title" id="participantModalLongTitle">
+                        Add a participant in @conversation?.GroupName
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+                    </div>
+                    <div class="modal-body">
+                        @if (users?.Count > 0)
+                        {
+                            <Virtualize Items="users" Context="u" OverscanCount="10">
+                            <div class="card bg-dark border-white mb-4">
+                                <div class="row g-0">
+                                    <div class="col-1">
+                                        <div class="p-1">
+                                            @if (string.IsNullOrWhiteSpace(u.FileName) is false)
+                                            {
+                                                <div class="text-center p-3">
+                                                    <img src="@CreateWebPath(u.FileName)" 
+                                                        class="card-img-top rounded-circle" 
+                                                        alt="@u.FileName"
+                                                        style="width: 100px; height: 100px;">
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="text-center p-3">
+                                                    <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                        class="card-img-top rounded-circle" 
+                                                        alt="Placeholder Image"
+                                                        style="width: 100px; height: 100px;">
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-11 d-flex justify-content-between">
+                                        <div class="card-body">
+                                            <h5 class="card-title">@u.DisplayName</h5>
+                                            <p class="card-text">
+                                                Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
+                                            </p>
+
+                                        </div>           
+                                    </div>
+                                </div>                 
+                            </div>
+                            </Virtualize>
+                        }
+                        else
+                        {
+                            <div class="text-center">
+                                <div class="spinner-border text-secondary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" 
+                        class="btn btn-secondary" 
+                        data-dismiss="modal">
+                        Close
+                    </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         @if (conversation is not null)
         {
@@ -75,7 +145,10 @@
                     <div class="row justify-content-center">
                         <div class="col-lg-10 col-md-8 card bg-dark p-4">
                             <div class="row">
-                                <div class="col-11">
+                                <div class="close-button-section">
+                                    <button class="btn btn-close btn-close-white" @onclick="(() => ClosePage(conversation))"/>
+                                </div>
+                                <div class="col-12">
                                     <div>
                                         <div class="center-children mt-2">
                                             @if (string.IsNullOrWhiteSpace(conversation.PictureName) is false)
@@ -94,15 +167,16 @@
                                         <h2 class="conversation-title text-center">@conversation.GroupName</h2>
                                         <p class="conversation-info text-center">The Owner: @conversation.Owner.DisplayName</p>
                                         <p class="conversation-info text-center">This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")</p>
-                                        <button class="btn btn-secondary w-100"
-                                            data-toggle="modal" data-target="#conversationModal">
+                                        <div class="btn-group-vertical w-100">
+                                            <button class="btn btn-secondary mb-2"
+                                                data-toggle="modal" data-target="#conversationModal">
                                                 Edit Conversation
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-1">
-                                    <div class="close-button-section">
-                                        <button class="btn btn-close btn-close-white" @onclick="(() => ClosePage(conversation))"/>
+                                            </button>
+                                            <button class="btn btn-secondary"
+                                                data-toggle="modal" data-target="#participantModal">
+                                                    Add Participant
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -126,6 +200,7 @@ else
 
     private ConversationModel conversation;
     private List<CategoryModel> categories;
+    private List<BasicUserModel> users;
     private UserModel loggedInUser;
     private BanModel ban;
 
@@ -142,6 +217,7 @@ else
         if (loggedInUser is not null)
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
+            users = loggedInUser.Friends.Where(f => conversation.Participants.Any(p => p.Id != f.Id)).ToList();
         }
         if (conversation is not null)
         {
@@ -151,9 +227,9 @@ else
         }
     }
 
-    private async Task CloseModal()
+    private async Task CloseModal(string id)
     {
-        await JSRuntime.InvokeVoidAsync("closeModal", "messageModal");
+        await JSRuntime.InvokeVoidAsync("closeModal", id);
     }
 
     private async Task UpdateConversation()
@@ -199,7 +275,14 @@ else
         await conversationData.UpdateConversation(conversation);
         await auditLogData.CreateAuditLog(a);
         file = null;
-        await CloseModal();
+        await CloseModal("messageModal");
+    }
+
+    private async Task AddParticipant(BasicUserModel user)
+    {
+        conversation.Participants.Add(user);
+        await conversationData.UpdateConversation(conversation);
+        await CloseModal("participantModal");
     }
 
     private void ClosePage(ConversationModel conversation)

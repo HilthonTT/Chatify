@@ -227,7 +227,7 @@ else
         user = await userData.GetUserAsync(Id);
         if (loggedInUser is not null)
         {
-            conversations = await conversationData.GetUserConversationsAsync(loggedInUser.Id);
+            conversations = await conversationData.GetUserConversationsAsync(user.Id);
             ban = await banData.GetUserBanActive(loggedInUser.Id);
         }
     }

@@ -49,6 +49,47 @@ public class MongoMessageData : IMessageData
         return output;
     }
 
+    public async Task<List<MessageModel>> GetConversationUnreadMessagesAsync(ConversationModel conversation,
+                                                                             UserModel user)
+    {
+        string cachingString = _helper.MessageCachingString(conversation.Id + user.Id);
+
+        var output = _cache.Get<List<MessageModel>>(cachingString);
+        if (output is null)
+        {
+            var filter = Builders<MessageModel>.Filter.And(
+                Builders<MessageModel>.Filter.Eq(m => m.Conversation.Id, conversation.Id),
+                Builders<MessageModel>.Filter.AnyNe(m => m.ReadBy.Select(u => u.Id), user.Id),
+                Builders<MessageModel>.Filter.Eq(m => m.Archived, false));
+
+            output = await _messages.Find(filter).ToListAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromHours(1));
+        }
+
+        return output;
+    }
+
+    public async Task<List<MessageModel>> GetServerUnreadMessagesAsync(ServerModel server,
+                                                                       UserModel user)
+    {
+        string cachingString = _helper.MessageCachingString(server.Id + user.Id);
+        var output = _cache.Get<List<MessageModel>>(cachingString);
+        if (output is null)
+        {
+            var filter = Builders<MessageModel>.Filter.And(
+                Builders<MessageModel>.Filter.Eq(m => m.Server.Id, server.Id),
+                Builders<MessageModel>.Filter.AnyNe(m => m.ReadBy.Select(u => u.Id), user.Id),
+                Builders<MessageModel>.Filter.Eq(m => m.Archived, false));
+
+            output = await _messages.Find(filter).ToListAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromHours(1));
+        }
+
+        return output;
+    }
+
     public async Task<List<MessageModel>> GetPrivateConversationMessagesAsync(PrivateConversationModel conversation)
     {
         string cachingString = _helper.MessageCachingString(conversation.Id);

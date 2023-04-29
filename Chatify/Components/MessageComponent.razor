@@ -61,8 +61,14 @@
     <div class="d-flex justify-content-between">
         <div>
             <div class="message-sender">@Message.Sender.DisplayName</div>
-            <div class="message-text text-break">@Message.Text</div>
-            <div class="message-timestamp mb-1">Sent at: @Message.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC</div>
+            <div class="message-text text-break fs-5">@Message.Text</div>
+            <div class="message-timestamp mb-1">
+                Sent at: @Message.Timestamp.ToString("dd-MM-yyyy HH:mm") UTC
+                @if (Message.Sender.Id != LoggedInUser.Id)
+                {
+                    <span class="text-warning">@((UserHasReadMessage()) ? "Read" : "Not Read")</span>
+                }
+            </div>
             @if (Message.Timestamp.ToString("dd-MM-yyyy HH:mm") != Message.LastEdited.ToString("dd-MM-yyyy HH:mm"))
             {
                 <div class="message-timestamp mb-1">Edited on: @Message.LastEdited.ToString("dd-MM-yyyy HH:mm") UTC</div>
@@ -131,25 +137,32 @@
                 </div>
             }
         </div>
-        @if (Message.Sender.Id == LoggedInUser.Id && Message.ServerInvitation is null)
-        {
-            <div class="btn-group" role="group">
-                <button id="btn-group-settings" 
-                    type="button" class="btn btn-secondary dropdown-toggle" 
-                    data-toggle="dropdown" 
-                    aria-haspopup="true" 
-                    aria-expanded="false">
-                    <p><i class="fas fa-cog clickable"></i></p>
-                </button>
-                <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
+        <div class="btn-group" role="group">
+            <button id="btn-group-settings" 
+                type="button" class="btn btn-secondary dropdown-toggle" 
+                data-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false">
+                <p><i class="fas fa-cog clickable"></i></p>
+            </button>
+            <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
+                @if (Message.Sender.Id == LoggedInUser.Id)
+                {
                     <button class="dropdown-item text-success" 
                         data-toggle="modal" 
                         data-target="#messageModal-@Message.Id">
                         Edit
                     </button>
-                </div>
-            </div>       
-        }
+                }
+                @if (Message.Sender.Id != LoggedInUser.Id && UserHasReadMessage() is false)
+                {
+                    <button class="dropdown-item text-warning"
+                        @onclick="MarkAsRead">
+                        Mark As Read
+                    </button>
+                }
+            </div>
+        </div>       
     </div>
     @if (string.IsNullOrWhiteSpace(Message.FileName) is false)
     {
@@ -182,6 +195,13 @@
     [Parameter]
     [EditorRequired]
     public UserModel LoggedInUser { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public List<MessageModel> NonReadMessages { get; set; }
+
+    [Parameter]
+    public EventCallback<MessageModel> RequestChanged { get; set; }
 
     private CreateMessageModel model = new();
     private long maxFileSize = 1024 * 1024 * 3; // represents 3MB
@@ -279,7 +299,16 @@
         model = new();
         file = null;
 
+        await RequestChanged.InvokeAsync(Message);
         await CloseModal(Message);
+    }
+
+    private async Task MarkAsRead()
+    {
+        Message.ReadBy.Add(new BasicUserModel(LoggedInUser));
+        await messageData.UpdateMessageAsync(Message);
+        NonReadMessages.Remove(Message);
+        await RequestChanged.InvokeAsync(Message);
     }
 
     private async Task JoinServer(ServerModel server)
@@ -301,6 +330,18 @@
     private void OpenDetails(ServerModel server)
     {
         navManager.NavigateTo($"/Server/{server.Id}");
+    }
+
+    private bool UserHasReadMessage()
+    {
+        var user = Message.ReadBy.FirstOrDefault(u => u.Id == LoggedInUser.Id);
+
+        if (user is not null)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private bool IsUserBanned(ServerModel server)

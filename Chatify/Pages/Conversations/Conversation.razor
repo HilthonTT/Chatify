@@ -113,12 +113,13 @@
         else
         {
             <div class="container-fluid vh-100 d-flex flex-column">
+              <span class="text-uppercase">@GetNonReadMessagesCount()</span>
               <div class="row flex-grow-1">
                 <div class="col-md-8 col-xl-10 messages-container">
                   @if (messages is not null)
                   {
                     <Virtualize Items="messages" Context="m" OverscanCount="10"> 
-                        <MessageComponent @key="m.Id" Message="m" LoggedInUser="loggedInUser"/>
+                        <MessageComponent @key="m.Id" NonReadMessages="nonReadMessages" Message="m" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                     <div class="messages-mb" />
                   }
@@ -222,6 +223,7 @@ else
     private bool isSortedByNew = true;
     private ConversationModel conversation;
     private List<MessageModel> messages;
+    private List<MessageModel> nonReadMessages;
     private List<ServerModel> servers;
     private ServerModel selectedServer;
     private UserModel loggedInUser;
@@ -247,6 +249,13 @@ else
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
             servers = await serverData.GetUserServersAsync(loggedInUser.Id);
+        }
+
+        if (loggedInUser is not null && messages is not null)
+        {
+             nonReadMessages = messages.Where(m => 
+                (!m.ReadBy.Any(u => u.Id == loggedInUser.Id)) 
+                && m.Sender.Id != loggedInUser?.Id).ToList();
         }
 
         hubConnection = new HubConnectionBuilder()
@@ -394,6 +403,7 @@ else
             Conversation = conversation,
             Archived = false,
         };
+        m.ReadBy.Add(new BasicUserModel(loggedInUser));
 
         await messageData.CreateMessage(m);
 
@@ -443,17 +453,6 @@ else
         navManager.NavigateTo("/");
     }
 
-    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
-
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection is not null)
-        {
-            await hubConnection.StopAsync();
-            await hubConnection.DisposeAsync();
-        }
-    }
-
     private void InviteFriendPage(ConversationModel conversation)
     {
         navManager.NavigateTo($"/InviteFriend/{conversation.Id}");
@@ -479,6 +478,28 @@ else
     {
         file = e.File;
         GetFileExtensionAndFileName();
+    }
+
+    private string GetNonReadMessagesCount()
+    {
+        if (nonReadMessages?.Count == 0)
+        {
+            return "";
+        }
+        if (nonReadMessages?.Count == 1)
+        {
+            return "1 unread message";
+        }
+        if (nonReadMessages?.Count > 99)
+        {
+            return "99+ unread messages";
+        }
+        if (nonReadMessages?.Count < 99)
+        {
+            return $"{nonReadMessages.Count} unread messages";
+        }
+
+        return "";
     }
 
     private async Task<string> CaptureFile()
@@ -511,6 +532,17 @@ else
         catch
         {
             throw;
+        }
+    }
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected; // ? says if not null
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.StopAsync();
+            await hubConnection.DisposeAsync();
         }
     }
 }

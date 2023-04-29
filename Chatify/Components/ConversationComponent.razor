@@ -1,10 +1,11 @@
 ﻿@inject IConfiguration config
+@inject IMessageData messageData
 @inject NavigationManager navManager
 
 <div class="col-xl-6 col-lg-12 mb-3 center-children">
     <div class="row">
         <div class="col-12">
-            <div class="card bg-dark text-light border-white p-2 h-100 d-flex flex-column" style="width: 25rem;">
+            <div class="card bg-dark text-light border-white p-2 h-100 d-flex flex-column" style="width: 30rem;">
                 @if (string.IsNullOrWhiteSpace(Conversation.PictureName) is false)
                 {
                     <div class="text-center p-3">
@@ -27,9 +28,14 @@
                     <div class="card-body text-break">
                         <h5 class="card-title">@Conversation.GroupName</h5>
                         <p class="card-text">@Conversation.Category.CategoryName</p>
-                        <p class="card-text">
+                        <p class="card-text mb-0">
                             <small class="text-muted">
                                 Owner: @Conversation.Owner.DisplayName
+                            </small>
+                        </p>
+                        <p class="card-text mb-0">
+                            <small class="text-warning">
+                                @GetNonReadMessagesCount()
                             </small>
                         </p>
                         <p class="card-text">
@@ -60,6 +66,13 @@
     [EditorRequired]
     public UserModel LoggedInUser { get; set; }
 
+    private List<MessageModel> nonReadMessages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        nonReadMessages = await messageData.GetConversationUnreadMessagesAsync(Conversation, LoggedInUser);
+    }
+
     private string CreateWebPath(string relativePath)
     {
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
@@ -79,5 +92,27 @@
         }
 
         return false;
+    }
+
+    private string GetNonReadMessagesCount()
+    {
+        if (nonReadMessages?.Count == 0)
+        {
+            return "";
+        }
+        if (nonReadMessages?.Count == 1)
+        {
+            return "1 unread message";
+        }
+        if (nonReadMessages?.Count > 99)
+        {
+            return "99+ unread messages";
+        }
+        if (nonReadMessages?.Count < 99)
+        {
+            return $"{nonReadMessages.Count} unread messages";
+        }
+
+        return "";
     }
 }

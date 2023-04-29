@@ -5,114 +5,7 @@
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
 
-@*<nav class="navbar navbar-expand-lg navbar-dark bg-dark p-3">
-    <a class="navbar-brand" href="/">Chatify</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item active">
-                <a class="nav-link" href="/">Conversations</a>
-            </li>
-            <AuthorizeView>
-                <Authorized>
-                    <li class="nav-item active">
-                        <a class="nav-link" href="" @onclick="OpenServers">
-                            Servers
-                        </a>
-                    </li>
-                </Authorized>
-            </AuthorizeView>
-             <AuthorizeView>
-                <Authorized>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="" id="navbar-friends" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Friends
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-dark  accordion-body" aria-labelledby="navbar-friends">
-                            <a class="dropdown-item" @onclick="OpenFriendRequests">Friend Requests</a>
-                            <a class="dropdown-item" @onclick="OpenSendFriendRequest">Send Friend Request</a>
-                        </div>
-                    </li>
-                </Authorized>
-            </AuthorizeView>
-        </ul>
-        <div class="d-flex">
-            <AuthorizeView Policy="Admin">
-                <Authorized>
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
-                        <li class="nav-item dropdown">
-                            <div class="nav-link dropdown-toggle admin-text me-1"
-                                id="navbar-admin" 
-                                data-toggle="dropdown" 
-                                aria-haspopup="true" 
-                                aria-expanded="false">
-                                Admin
-                            </div>
-                            <div class="dropdown-menu dropdown-menu-dark accordion-body" aria-labelledby="navbar-admin">
-                                <a class="dropdown-item" href="/Bans">Bans</a>
-                                <a class="dropdown-item" href="/BanAppeals">BanAppeals</a>
-                            </div>
-                        </li>
-                    </ul>
-                </Authorized>
-            </AuthorizeView>
-            <AuthorizeView>
-                <Authorized>
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
-                        <li class="nav-item">
-                            <a class="nav-link" href="MicrosoftIdentity/Account/SignOut">
-                                Logout
-                            </a>
-                        </li>
-                    </ul>
-                </Authorized>
-                <NotAuthorized>
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
-                        <li class="nav-item navbar-nav me-auto mb-2 mb-lg-0 horizontal-children">
-                            <a class="nav-link" href="MicrosoftIdentity/Account/SignIn">
-                                Login
-                            </a>
-                        </li>
-                    </ul>
-                </NotAuthorized>
-            </AuthorizeView>
-            @if (loggedInUser is not null)
-            {
-                <div class="nav-item nav-link text-white clickable horizontal-children" 
-                    @onclick="OpenProfile">
-                    <div>
-                        <span class="oi oi-person"></span> @loggedInUser.DisplayName
-                    </div>
-                </div>
-            }
-            @if (loggedInUser is not null && string.IsNullOrWhiteSpace(loggedInUser.FileName) is false)
-            {
-                <img src="@CreateWebPath(loggedInUser.FileName)"
-                    class="img-fluid border rounded-circle mx-1" 
-                    alt="@loggedInUser.FileName"
-                    style="width: 50px; height: 50px;">
-            }
-            else
-            {
-                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                    class="img-fluid rounded-circle"
-                    alt="Placeholder Image"
-                    style="width: 50px; height: 50px;">
-            }
-            <input class="form-control me-2 text-light bg-dark input-section" 
-                type="search" 
-                placeholder="Search User"
-                aria-label="Search User" 
-                    @oninput="((txt) => searchText = (string)txt.Value)"/>
-            <button class="btn btn-outline-secondary" type="submit" @onclick="GoToUsers">Search</button>
-        </div>
-    </div>
-</nav>
-*@
-
-  <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100">
     <a href="https://getbootstrap.com/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
       <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
       <span class="fs-4">Chatify</span>
@@ -169,7 +62,7 @@
         id="user-dropdown" 
         data-toggle="dropdown" 
         aria-expanded="false">
-        @if (loggedInUser is not null)
+        @if (string.IsNullOrWhiteSpace(loggedInUser?.FileName) is false)
         {
             <img src="@CreateWebPath(loggedInUser.FileName)" 
                 alt="@loggedInUser.FileName" 
@@ -180,11 +73,11 @@
         else
         {
             <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                class="rounded-circle rounded-circle me-2"
+                class="rounded-circle me-2"
                 alt="Placeholder Image"
                 width="32" 
                 height="32">
-        }
+        }     
         <strong>@Username</strong>
       </a>
       <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="user-dropdown">

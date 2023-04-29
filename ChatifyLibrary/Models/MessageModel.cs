@@ -7,6 +7,7 @@ public class MessageModel
     public string Id { get; set; }
     public string ObjectIdentifier { get; set; }
     public BasicUserModel Sender { get; set; }
+    public List<BasicUserModel> ReadBy { get; set; } = new();
     public string Text { get; set; }
     public string FileName { get; set; }
     public string OriginalFileName { get; set; }

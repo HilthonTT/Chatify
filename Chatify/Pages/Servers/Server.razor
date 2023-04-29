@@ -145,10 +145,11 @@
                     </div>
                 </div>
                 <div class="col-md-8 col-xl-8 messages-container">
+                    <span class="text-uppercase">@GetNonReadMessagesCount()</span>
                   @if (messages is not null)
                   {
                     <Virtualize Items="messages" Context="m" OverscanCount="10">
-                      <MessageComponent @key="m.Id" Message="m" LoggedInUser="loggedInUser"/>
+                      <MessageComponent @key="m.Id" NonReadMessages="nonReadMessages" Message="m" LoggedInUser="loggedInUser"/>
                     </Virtualize>
                     <div class="messages-mb" />
                   }
@@ -238,6 +239,7 @@ else
     private ServerModel selectedServer;
     private ChannelModel selectedChannel;
     private List<MessageModel> messages;
+    private List<MessageModel> nonReadMessages;
     private List<ChannelCategoryModel> channelCategories;
     private List<ChannelModel> channels;
     private List<RoleModel> roles;
@@ -271,6 +273,8 @@ else
             servers = await serverData.GetUserServersAsync(loggedInUser.Id);
             if (server is not null) role = await roleData.GetUserServerRoleAsync(loggedInUser, server);
         }
+
+        LoadNonReadMessages();
 
         if (selectedChannel is not null)
         {
@@ -315,6 +319,9 @@ else
 
         selectedChannel = channel;
         messages = await messageData.GetChannelMessagesAsync(selectedChannel);
+
+        LoadNonReadMessages();
+
         hubConnection.On<MessageModel>("ReceiveMessage", OnReceiveMessage);
 
         if (hubConnection.State == HubConnectionState.Disconnected)
@@ -334,6 +341,16 @@ else
                 await FilterServers();
             }
             StateHasChanged();
+        }
+    }
+
+    private void LoadNonReadMessages()
+    {
+        if (loggedInUser is not null && messages is not null)
+        {
+            nonReadMessages = messages.Where(m => 
+               (!m.ReadBy.Any(u => u.Id == loggedInUser.Id)) 
+               && m.Sender.Id != loggedInUser?.Id).ToList();
         }
     }
 
@@ -406,6 +423,7 @@ else
                 Server = server,
                 Archived = false,
             };
+            m.ReadBy.Add(new BasicUserModel(loggedInUser));
 
             if (hubConnection is not null)
             {
@@ -578,6 +596,28 @@ else
         }
 
         return "in-disallowed-roles";
+    }
+
+    private string GetNonReadMessagesCount()
+    {
+        if (nonReadMessages?.Count == 0)
+        {
+            return "";
+        }
+        if (nonReadMessages?.Count == 1)
+        {
+            return "1 unread message";
+        }
+        if (nonReadMessages?.Count > 99)
+        {
+            return "99+ unread messages";
+        }
+        if (nonReadMessages?.Count < 99)
+        {
+            return $"{nonReadMessages.Count} unread messages";
+        }
+
+        return "";
     }
 
     private bool IsUserAuthorized()
