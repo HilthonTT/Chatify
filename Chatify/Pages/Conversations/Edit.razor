@@ -78,41 +78,47 @@
     {   
         @if (conversation is not null)
         {
-            <div class="rounded rounded-3">
-                <div class="card-body">
-                    <div class="row justify-content-center">
-                        <div class="col-lg-10 col-md-8 card bg-dark p-4">
-                            <div class="row">
-                                <div class="close-button-section">
-                                    <button class="btn btn-close btn-close-white" @onclick="(() => ReturnToConversation(conversation))"/>
-                                </div>
-                                <div class="col-12">
-                                    <div>
-                                        <div class="center-children mt-2">
-                                            @if (string.IsNullOrWhiteSpace(conversation.PictureName) is false)
-                                            {
-                                                <img src="@CreateWebPath(conversation.PictureName)"
-                                                    class="img-fluid border border-secondary rounded-circle" 
-                                                    alt="@conversation.OriginalPictureName"
-                                                    style="width: 300px; height: 300px;">
-                                            }
-                                            else
-                                            {
-                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                    class="img-fluid border border-secondary rounded-circle" 
-                                                    alt="Placeholder Image"
-                                                    style="width: 300px; height: 300px;">
-                                            }
-                                        </div>
-                                        <h2 class="conversation-title text-center">@conversation.GroupName</h2>
-                                        <p class="conversation-info text-center">The Owner: @conversation.Owner.DisplayName</p>
-                                        <p class="conversation-info text-center">This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")</p>
-                                        <div class="btn-group-vertical w-100">
-                                            <button class="btn btn-secondary mb-2"
-                                                data-toggle="modal" data-target="#conversationModal">
-                                                Edit Conversation
-                                            </button>
-                                        </div>
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-8 card bg-dark p-4">
+                        <div class="row">
+                            <div class="close-button-section">
+                                <button class="btn btn-close btn-close-white"
+                                @onclick="(() => ReturnToConversation(conversation))"/>
+                            </div>
+                            <div class="col-12">
+                                <div>
+                                    <div class="center-children mt-2">
+                                        @if (string.IsNullOrWhiteSpace(conversation.PictureName) is false)
+                                        {
+                                            <img src="@CreateWebPath(conversation.PictureName)"
+                                                class="img-fluid border border-secondary rounded-circle" 
+                                                alt="@conversation.OriginalPictureName"
+                                                style="width: 300px; height: 300px;">
+                                        }
+                                        else
+                                        {
+                                            <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                                class="img-fluid border border-secondary rounded-circle" 
+                                                alt="Placeholder Image"
+                                                style="width: 300px; height: 300px;">
+                                        }
+                                    </div>
+                                    <h2 class="conversation-title text-center">
+                                        @conversation.GroupName
+                                    </h2>
+                                    <p class="conversation-info text-center">
+                                        The Owner: @conversation.Owner.DisplayName
+                                    </p>
+                                    <p class="conversation-info text-center">
+                                        This was created on: @conversation.DateCreated.ToString("dd/MM/yyyy")
+                                    </p>
+                                    <div class="btn-group-vertical w-100">
+                                        <button class="btn btn-secondary mb-2"
+                                            data-toggle="modal" 
+                                            data-target="#conversationModal">
+                                            Edit Conversation
+                                        </button>
                                     </div>
                                 </div>
                             </div>

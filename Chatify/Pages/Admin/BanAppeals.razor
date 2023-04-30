@@ -88,7 +88,32 @@
         @if (appeals is not null)
         {
             <Virtualize Items="appeals" Context="a" OverscanCount="10">
-                <BanAppealComponent @key="a.Id" BanAppeal="a"/>
+                <DisplayImgComponent @key="a.Id" 
+                    ImageSource="@a.AppealingUser.FileName" 
+                    IsClickable="true"
+                    OpenDetails="(() => OpenDetails(a))">
+                    <ChildContent>
+                        <h5 class="card-title h4">@a.AppealingUser.DisplayName</h5>
+                        <div class="card-text text-danger h4">
+                            Status: @((a.IsApproved ? $"Approved" : "Pending"))
+                        </div>
+                        @if (a.ApprovedAdmin is not null)
+                        {
+                            <div class="card-text">
+                                Disapproved By: @a.ApprovedAdmin.DisplayName on @a.ApprovedAt.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        }
+                        @if (a.DisapprovedAdmin is not null)
+                        {
+                            <div class="card-text">
+                                Disapproved By: @a.DisapprovedAdmin.DisplayName on @a.DisapprovedAt.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        }
+                        <div class="card-text">
+                            Date Created: @a.SubmittedAt.ToString("dd/MM/yyyy")
+                        </div>
+                    </ChildContent>
+                </DisplayImgComponent>
             </Virtualize>
         }
     </div>
@@ -249,6 +274,11 @@
     {
         filterByApproved = isApproved;
         await FilterAppeals();
+    }
+
+    private void OpenDetails(BanAppealModel appeal)
+    {
+        navManager.NavigateTo($"/BanAppealDetails/{appeal.Id}");
     }
 
     private string SortedByNewClass(bool isNew)

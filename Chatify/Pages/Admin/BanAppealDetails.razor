@@ -7,79 +7,43 @@
 @inject AuthenticationStateProvider authProvider
 @inject IConfiguration config
 
-<div class="modal fade" id="approveAppealModal" tabindex="-1" role="dialog" aria-labelledby="approveAppealModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="approveAppealModalLongTitle">
-                Approve @appeal?.AppealingUser.DisplayName's appeal
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+<ModalComponent Id="approveAppealModal" Title=@($"Approve {appeal?.AppealingUser.DisplayName}'s appeal")>
+    <ChildContent>
+        <div class="row">
+            <div>
+                <label class="form-label fw-bold text-uppercase" for="profile-picture">Approve appeal</label>
+                <div>Are you sure you would like to approve this appeal?</div>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div>
-                        <label class="form-label fw-bold text-uppercase" for="profile-picture">Approve appeal</label>
-                        <div>Are you sure you would like to approve this appeal?</div>
-                    </div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
-                            type="submit" 
-                            data-dismiss="modal" 
-                            @onclick="(() => ApproveAppeal())">
-                            Approve
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal">
-                    Close
+            <div class="center-children">
+                <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
+                    type="submit" 
+                    data-dismiss="modal" 
+                    @onclick="(() => ApproveAppeal())">
+                    Approve
                 </button>
             </div>
         </div>
-    </div>
-</div>
+    </ChildContent>
+</ModalComponent>
 
-<div class="modal fade" id="disapproveAppealModal" tabindex="-1" role="dialog" aria-labelledby="disapproveAppealModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="approveAppealModalLongTitle">
-                Disapprove @appeal?.AppealingUser.DisplayName's appeal
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+<ModalComponent Id="disapproveAppealModal" Title=@($"Disapprove {appeal?.AppealingUser.DisplayName}'s appeal")>
+    <ChildContent>
+        <div class="row">
+            <div>
+                <label class="form-label fw-bold text-uppercase" for="profile-picture">Disapprove appeal</label>
+                <div>Are you sure you would like to disapprove this appeal?</div>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div>
-                        <label class="form-label fw-bold text-uppercase" for="profile-picture">Disapprove appeal</label>
-                        <div>Are you sure you would like to disapprove this appeal?</div>
-                    </div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
-                            type="submit" 
-                            data-dismiss="modal" 
-                            @onclick="(() => DisapproveAppeal())">
-                            Disapprove
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal">
-                    Close
+            <div class="center-children">
+                <button class="btn btn-secondary btn-lg text-uppercase mt-4" 
+                    type="submit" 
+                    data-dismiss="modal" 
+                    @onclick="(() => DisapproveAppeal())">
+                    Disapprove
                 </button>
             </div>
         </div>
-    </div>
-</div>
-
-
+    </ChildContent>
+</ModalComponent>
 
 <h1 class="page-heading mb-4">Ban Appeal Details</h1>
 

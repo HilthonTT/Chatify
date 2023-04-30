@@ -2,38 +2,18 @@
 @inject IUserData userData
 @inject IJSRuntime JSRuntime
 
-<div class="modal fade" id="requestModal-@FriendRequest.Id" tabindex="-1" role="dialog" aria-labelledby="requestModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="requestModalLongTitle">
-                Friend @FriendRequest.Sender.DisplayName
-            </h5>
-                <button type="button" 
-                    class="btn-close btn-close-white text-white" 
-                    data-dismiss="modal" 
-                    aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="mt-1">Are you sure you want to add @FriendRequest.Sender?.DisplayName?</div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" @onclick="AcceptRequest">
-                            Accept Friend Request
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary"
-                data-dismiss="modal">
-                Close
-            </button>
+<ModalComponent Id=@($"requestModal-{FriendRequest.Id}") Title=@($"Friend {FriendRequest.Sender.DisplayName}")>
+    <ChildContent>
+        <div class="row">
+            <div class="mt-1">Are you sure you want to add @FriendRequest.Sender?.DisplayName?</div>
+            <div class="center-children">
+                <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" @onclick="AcceptRequest">
+                    Accept Friend Request
+                </button>
             </div>
         </div>
-    </div>
-</div>
+    </ChildContent>
+</ModalComponent>
 
 <div class="card mt-2">
     <div class="card-body bg-dark">

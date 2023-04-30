@@ -5,62 +5,48 @@
 @inject IServerData serverData
 @inject NavigationManager navManager
 
-<div class="modal fade" id="messageModal-@Message.Id" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="messageModalLongTitle">
-                    Edit @Message.Text
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                <EditForm Model="model" OnValidSubmit="(async() => await UpdateMessage())">
-                    <DataAnnotationsValidator />
-                    <div class="row">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="message-text">Message Text</label>
-                            <div class="mt-1">Edit your message</div>
-                            <ValidationMessage For="(() => model.Text)"/>
-                            <InputText class="form-control bg-dark text-white input-section" id="message-text" 
-                                @bind-Value="model.Text"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="message-file">Insert your message file</label>
-                            <div class="mt-1 mb-2">
-                                <div>Select a file you want to associate with the message.</div>
-                                <div class="text-danger">Leave blank to leave previous file.</div>
-                            </div>
-                            <ValidationMessage For="(() => model)"/>
-                            <InputFile OnChange="LoadFiles"
-                                class="form-control bg-dark text-white input-section" 
-                                id="message-file"
-                                accept=".png,.jpg,.jpeg,.txt,.pdf"/>
-                        </div>
-                        <div class="center-children">
-                            <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
-                                    type="submit">
-                                Update
-                            </button>
-                        </div>
+
+<ModalComponent Id=@($"messageModal-{Message.Id}") Title=@($"Edit {Message.Text}") FooterClass="justify-content-between">
+    <ChildContent>
+        <EditForm Model="model" OnValidSubmit="(async() => await UpdateMessage())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="message-text">Message Text</label>
+                    <div class="mt-1">Edit your message</div>
+                    <ValidationMessage For="(() => model.Text)"/>
+                    <InputText class="form-control bg-dark text-white input-section" id="message-text" 
+                        @bind-Value="model.Text"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="message-file">Insert your message file</label>
+                    <div class="mt-1 mb-2">
+                        <div>Select a file you want to associate with the message.</div>
+                        <div class="text-danger">Leave blank to leave previous file.</div>
                     </div>
-                </EditForm>
+                    <ValidationMessage For="(() => model)"/>
+                    <InputFile OnChange="LoadFiles"
+                        class="form-control bg-dark text-white input-section" 
+                        id="message-file"
+                        accept=".png,.jpg,.jpeg,.txt,.pdf"/>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
+                            type="submit">
+                        Update
+                    </button>
+                </div>
             </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" 
-                        class="btn btn-outline-danger"
-                        @onclick="ArchiveMessage">
-                    Archive
-                </button>
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+        </EditForm>
+    </ChildContent>
+    <ButtonContent>
+        <button type="button" 
+                class="btn btn-outline-danger"
+                @onclick="ArchiveMessage">
+            Archive
+        </button>
+    </ButtonContent>
+</ModalComponent>
 
 <div class="message bg-dark @((Message.Sender.Id == LoggedInUser.Id) ? "self" : "")">
     <div class="d-flex justify-content-between">

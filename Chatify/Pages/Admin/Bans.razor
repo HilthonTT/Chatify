@@ -77,7 +77,23 @@
         @if (bans is not null)
         {
             <Virtualize Items="bans" Context="b" OverscanCount="10">
-                 <BanComponent @key="b.Id" Ban="b"/>
+                 <DisplayImgComponent @key="b.Id" 
+                    ImageSource="@b.UserBanned.FileName" 
+                    IsClickable="true"
+                    OpenDetails="(() => OpenDetails(b))">
+                    <ChildContent>
+                        <h5 class="card-title h4">@b.UserBanned.DisplayName</h5>
+                        <div class="card-text">
+                            Banned Until: @b.BannedUntil.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                        <div class="card-text">
+                            Banned Until: @b.BannedUntil.ToString("dd/MM/yyyy HH:mm")
+                        </div>               
+                        <div class="card-text">
+                            Status: @((b.IsActive ? "Active" : "Inactive"))
+                        </div>
+                    </ChildContent>
+                 </DisplayImgComponent>
             </Virtualize>
         }
     </div>
@@ -230,6 +246,11 @@
     {
         searchUserText = searchInput;
         await FilterUsers();
+    }
+
+    private void OpenDetails(BanModel ban)
+    {
+        navManager.NavigateTo($"/BanDetails/{ban.Id}");
     }
 
     private string SortedByNewClass(bool isNew)

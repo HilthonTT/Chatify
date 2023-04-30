@@ -196,64 +196,62 @@
                         <div class="row mt-3">
                             <div class="col-12">
                             <Virtualize Items="roles" Context="r" OverscanCount="10">
-                                <div class="card bg-dark border-white unclickable mb-4">
-                                    <div class="row g-0">
-                                        <div class="col-md-12">
-                                            <div class="d-flex justify-content-between">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@r.RoleName</h5>
-                                                    <p class="card-text">
-                                                        @r.RoleDescription
-                                                    </p>
-                                                    <p class="card-text">
-                                                        Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
-                                                    </p>
-                                                </div>
-                                                @if (CanGiveRole())
-                                                {
-                                                    <div class="btn-group" role="group">
-                                                        <button id="btn-group-settings" type="button" 
-                                                            class="btn btn-secondary dropdown-toggle" 
-                                                            data-toggle="dropdown" 
-                                                            aria-haspopup="true" 
-                                                            aria-expanded="false">
-                                                            <p><i class="fas fa-cog clickable"></i></p>
+                                <DisplayComponent @key="r.Id" 
+                                    IsClickable="false" 
+                                    BodyClass="d-flex justify-content-between">
+                                    <ChildContent>
+                                        <h5 class="card-title">@r.RoleName</h5>
+                                        <p class="card-text">
+                                            @r.RoleDescription
+                                        </p>
+                                        <p class="card-text">
+                                            Date Created: @r.DateCreated.ToString("dd/MM/yyyy")
+                                        </p>
+                                    </ChildContent>
+                                    <SettingsContent>
+                                        @if (CanGiveRole())
+                                        {
+                                            <div class="btn-group" role="group">
+                                                <button id="btn-group-settings" type="button" 
+                                                    class="btn btn-secondary dropdown-toggle" 
+                                                    data-toggle="dropdown" 
+                                                    aria-haspopup="true" 
+                                                    aria-expanded="false">
+                                                    <p><i class="fas fa-cog clickable"></i></p>
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-dark" 
+                                                        aria-labelledby="btn-group-settings">
+                                                    @if (r.RoleName != "Member")
+                                                    {
+                                                        <button class="dropdown-item text-success" 
+                                                            data-toggle="modal" 
+                                                            data-target="#roleModal"
+                                                            @onclick="(() => LoadSelectedRole(r))">
+                                                            Edit
                                                         </button>
-                                                        <div class="dropdown-menu dropdown-menu-dark" 
-                                                                aria-labelledby="btn-group-settings">
-                                                            @if (r.RoleName != "Member")
-                                                            {
-                                                                <button class="dropdown-item text-success" 
-                                                                    data-toggle="modal" 
-                                                                    data-target="#roleModal"
-                                                                    @onclick="(() => LoadSelectedRole(r))">
-                                                                    Edit
-                                                                </button>
-                                                            }
-                                                            @if (HasUserGotRole(loggedInUser, r) is false)
-                                                            {
-                                                                <button class="dropdown-item text-success"
-                                                                @onclick="(() => GiveRole(loggedInUser, r))">
-                                                                    Give Role
-                                                                </button>
-                                                            }
-                                                            else
-                                                            {
-                                                                @if (r.RoleName != "Member")
-                                                                {
-                                                                    <button class="dropdown-item text-success"
-                                                                        @onclick="(() => RemoveRole(loggedInUser, r))">
-                                                                        Remove Role
-                                                                    </button>     
-                                                                }
-                                                            }
-                                                        </div>
-                                                    </div>            
-                                                }
-                                            </div>                          
-                                        </div>
-                                    </div>
-                                </div>
+                                                    }
+                                                    @if (HasUserGotRole(loggedInUser, r) is false)
+                                                    {
+                                                        <button class="dropdown-item text-success"
+                                                        @onclick="(() => GiveRole(loggedInUser, r))">
+                                                            Give Role
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        @if (r.RoleName != "Member")
+                                                        {
+                                                            <button class="dropdown-item text-success"
+                                                                @onclick="(() => RemoveRole(loggedInUser, r))">
+                                                                Remove Role
+                                                            </button>     
+                                                        }
+                                                    }
+                                                </div>
+                                            </div>            
+                                        }
+                                    </SettingsContent>
+                                </DisplayComponent>
                             </Virtualize>
                             </div>
                         </div>

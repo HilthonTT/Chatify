@@ -101,41 +101,16 @@
         @if (users?.Count > 0)
         {
             <Virtualize Items="users" Context="u" OverscanCount="10">
-                <div class="card bg-dark clickable @GetUserClass(u) mb-4" 
-                    @onclick="(() => selectedUser = u)">
-                    <div class="row g-0">
-                        <div class="col-md-1">
-                            <div class="p-1">
-                                @if (string.IsNullOrWhiteSpace(u.FileName) is false)
-                                {
-                                    <div class="text-center p-3">
-                                        <img src="@CreateWebPath(u.FileName)" 
-                                            class="card-img-top rounded-circle clickable" 
-                                            alt="@u.FileName"
-                                            style="width: 100px; height: 100px;">
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="text-center p-3">
-                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                            class="card-img-top rounded-circle clickable" 
-                                            alt="Placeholder Image"
-                                            style="width: 100px; height: 100px;">
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                        <div class="col-md-11">
-                            <div class="card-body mt-4">
-                                <h5 class="card-title text-end">@u.DisplayName</h5>
-                                <p class="card-text text-end">
-                                    Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <DisplayImgComponent @key="u.Id" ImageSource="@u.FileName" IsClickable="true" 
+                    OnClickEvent="(() => selectedUser = u)"
+                    ParentClass="@GetUserClass(u)">
+                    <ChildContent>
+                        <h5 class="card-title text-end">@u.DisplayName</h5>
+                        <p class="card-text text-end">
+                            Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
+                        </p>
+                    </ChildContent>
+                </DisplayImgComponent>
             </Virtualize>
         }
         else

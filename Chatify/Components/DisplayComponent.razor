@@ -1,0 +1,41 @@
+﻿@inject IConfiguration config
+
+<div class="card bg-dark border-white mb-4 @ClickableClass()">
+    <div class="row g-0">
+        <div class="col-md-12">
+            <div class="@BodyClass">
+                <div class="card-body">
+                    @ChildContent
+                </div>
+                @SettingsContent
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment SettingsContent { get; set; }
+
+
+    [Parameter]
+    [EditorRequired]
+    public bool IsClickable { get; set; }
+
+    [Parameter]
+    public string BodyClass { get; set; }
+
+    private string ClickableClass()
+    {
+        if (IsClickable)
+        {
+            return "clickable";
+        }
+
+        return "unclickable";
+    }
+}

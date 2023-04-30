@@ -5,38 +5,21 @@
 @inject IRoleData roleData
 @inject IJSRuntime JSRuntime
 
-<div class="modal fade" id="modal-@Server.Id" tabindex="-1" role="dialog" aria-labelledby="modalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="modalLongTitle">
-                Leave @Server.ServerName?
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+<ModalComponent Id=@($"modal-{Server.Id}") Title=@($"Leave {Server.ServerName}?")>
+    <ChildContent>
+        <div class="row">
+            <div class="mb-3">
+                <div class="mt-1 text-center h5">Are you sure you would like to leave @Server.ServerName?</div>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="mb-3">
-                        <div class="mt-1 text-center h5">Are you sure you would like to leave @Server.ServerName?</div>
-                    </div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4"
-                            @onclick="(async() => await LeaveServer(Server))">
-                            Leave
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal">
-                    Close
+            <div class="center-children">
+                <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4"
+                    @onclick="(async() => await LeaveServer(Server))">
+                    Leave
                 </button>
             </div>
         </div>
-    </div>
-</div>
+    </ChildContent>
+</ModalComponent>
 
 <div class="col-xl-6 col-lg-12 mb-3 center-children">
     <div class="row">

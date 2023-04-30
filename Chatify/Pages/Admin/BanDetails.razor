@@ -7,115 +7,96 @@
 @inject AuthenticationStateProvider authProvider
 @inject IJSRuntime JSRuntime
 
-<div class="modal fade" id="banModal" tabindex="-1" role="dialog" aria-labelledby="banModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="banModalLongTitle">
-                Edit @ban?.UserBanned.DisplayName's ban
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+<ModalComponent Id="banModal" Title=@($"Edit {ban?.UserBanned.DisplayName}'s ban")>
+    <ChildContent>
+        <EditForm Model="model" OnValidSubmit="(async() => await UpdateBan())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="ban-reason">Ban Reason</label>
+                    <div class="mt-1">Edit the ban's reason</div>
+                    <ValidationMessage For="(() => model.Reason)"/>
+                    <InputTextArea class="form-control bg-dark text-white input-section" id="ban-reason" 
+                        @bind-Value="model.Reason"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="ban-banned-until">Ban duration</label>
+                    <div class="mt-1">Edit the duration of the ban. Choose the date until what time the user is banned.</div>
+                    <ValidationMessage For="(() => model.BannedUntil)"/>
+                    <InputDate class="form-control bg-dark text-white input-section" id="ban-banned-until"
+                        @bind-Value="model.BannedUntil"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="ban-activity">Channel Description</label>
+                    <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
+                    <InputRadioGroup id="activity" @bind-Value="IsActive">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="@TrueString"/>
+                            <label for="@TrueString">Active</label>
+                        </div>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="@FalseString"/>
+                            <label for="@FalseString">Inactive</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                        Update
+                    </button>
+                </div>
             </div>
-            <div class="modal-body">
-                <EditForm Model="model" OnValidSubmit="(async() => await UpdateBan())">
-                    <DataAnnotationsValidator />
-                    <div class="row">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="ban-reason">Ban Reason</label>
-                            <div class="mt-1">Edit the ban's reason</div>
-                            <ValidationMessage For="(() => model.Reason)"/>
-                            <InputText class="form-control bg-dark text-white input-section" id="ban-reaso" 
-                                @bind-Value="model.Reason"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="ban-banned-until">Ban duration</label>
-                            <div class="mt-1">Edit the duration of the ban. Choose the date until what time the user is banned.</div>
-                            <ValidationMessage For="(() => model.BannedUntil)"/>
-                            <InputDate class="form-control bg-dark text-white input-section" id="ban-banned-until"
-                                @bind-Value="model.BannedUntil"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="ban-activity">Channel Description</label>
-                            <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
-                            <InputRadioGroup id="activity" @bind-Value="IsActive">
-                                <div class="radio-item-group">
-                                    <InputRadio Value="true" id="@TrueString"/>
-                                    <label for="@TrueString">Active</label>
-                                </div>
-                                <div class="radio-item-group">
-                                    <InputRadio Value="false" id="@FalseString"/>
-                                    <label for="@FalseString">Inactive</label>
-                                </div>
-                            </InputRadioGroup>
-                        </div>
-                        <div class="center-children">
-                            <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                Update
-                            </button>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary" 
-                data-dismiss="modal">
-                Close
-            </button>
-            </div>
-        </div>
-    </div>
-</div>
+        </EditForm>
+    </ChildContent>
+</ModalComponent>
 
 <h1 class="page-heading mb-4">Ban Details</h1>
 
 @if (ban is not null)
 {
-    <div class="rounded rounded-3">
-        <div class="card-body">
-            <div class="row justify-content-center">
-                <div class="col-lg-10 col-md-8 card bg-dark p-4 shadow">
-                    <div class="row">
-                        <div class="close-button-section">
-                            <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-8 card bg-dark p-4 shadow">
+                <div class="row">
+                    <div class="close-button-section">
+                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                    </div>
+                    <div class="col-12">
+                        <div>
+                            <h2>@ban.UserBanned.DisplayName's ban</h2>
                         </div>
-                        <div class="col-12">
-                            <div>
-                                <h2>@ban.UserBanned.DisplayName's ban</h2>
-                            </div>
-                            <p class="fs-5 text-danger">
-                                The user was banned on @ban.BannedAt.ToString("dd/MM/yyyy")
+                        <p class="fs-5 text-danger">
+                            The user was banned on @ban.BannedAt.ToString("dd/MM/yyyy")
+                        </p>
+                        <p class="fs-5 text-danger">
+                            The user is banned until @ban.BannedUntil.ToString("dd/MM/yyyy")
+                        </p>
+                        <hr />
+                        <div>
+                            <h2>Ban Reason</h2>
+                            <p class="fs-5 text-break text-danger">
+                                @ban.Reason
                             </p>
-                            <p class="fs-5 text-danger">
-                                The user is banned until @ban.BannedUntil.ToString("dd/MM/yyyy")
-                            </p>
-                            <hr />
-                            <div>
-                                <h2>Ban Reason</h2>
-                                <p class="fs-5 text-break text-danger">
-                                    @ban.Reason
-                                </p>
-                            </div>
-                            <hr />
-                            <div>
-                                <h2>Status</h2>
-                                <p class="fs-5 text-danger">
-                                    @((ban.IsActive) ? "Active" : "Inactive")
-                                </p>
-                            </div>
-                            <hr />
-                            <div>
-                                <h2>Banned By</h2>
-                                <p class="fs-5 text-danger">
-                                    @ban.Admin.DisplayName - @ban.Admin.Id                 
-                                </p>
-                            </div>
-                            <button class="btn btn-secondary w-100" 
-                                data-toggle="modal" 
-                                data-target="#banModal">
-                                Edit
-                            </button>
                         </div>
+                        <hr />
+                        <div>
+                            <h2>Status</h2>
+                            <p class="fs-5 text-danger">
+                                @((ban.IsActive) ? "Active" : "Inactive")
+                            </p>
+                        </div>
+                        <hr />
+                        <div>
+                            <h2>Banned By</h2>
+                            <p class="fs-5 text-danger">
+                                @ban.Admin.DisplayName - @ban.Admin.Id                 
+                            </p>
+                        </div>
+                        <button class="btn btn-secondary w-100" 
+                            data-toggle="modal" 
+                            data-target="#banModal">
+                            Edit
+                        </button>
                     </div>
                 </div>
             </div>
@@ -130,12 +111,10 @@
 
     private const string TrueString = "True";
     private const string FalseString = "False";
-
     private CreateBanModel model = new();
     private UserModel loggedInUser;
     private BanModel ban;
     private bool IsActive = false;
-
 
     protected override async Task OnInitializedAsync()
     {

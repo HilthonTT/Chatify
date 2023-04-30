@@ -1,0 +1,89 @@
+﻿@inject IConfiguration config
+
+<div class="card bg-dark border-white clickable @ParentClass @ClickableClass() mb-4"
+    @onclick="OnClickEvent">
+    <div class="row g-0">
+        <div class="col-md-1">
+            <div class="p-1">
+                @if (string.IsNullOrWhiteSpace(ImageSource) is false)
+                {
+                    <div class="text-center p-3 @ImageClass()" @onclick="OpenDetails">
+                        <img src="@CreateWebPath()" 
+                            class="card-img-top rounded-circle" 
+                            alt="@ImageSource"
+                            style="width: 100px; height: 100px;">
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-3 @ImageClass()" @onclick="OpenDetails">
+                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                            class="card-img-top rounded-circle" 
+                            alt="Placeholder Image"
+                            style="width: 100px; height: 100px;">
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-md-11 @BodyClass">
+            <div class="card-body" @onclick="OpenDetails">
+                @ChildContent
+            </div>
+            @SettingsContent
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public string ImageSource { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment SettingsContent { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public bool IsClickable { get; set; }
+
+    [Parameter]
+    public Action OnClickEvent { get; set; }
+
+    [Parameter]
+    public Action OpenDetails { get; set; }
+
+    [Parameter]
+    public string ParentClass { get; set; }
+
+    [Parameter]
+    public string BodyClass { get; set; }
+
+    private string CreateWebPath()
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), ImageSource);
+    }
+
+    private string ClickableClass()
+    {
+        if (IsClickable)
+        {
+            return "clickable";
+        }
+
+        return "unclickable";
+    }
+
+    private string ImageClass()
+    {
+        if (OpenDetails is not null)
+        {
+            return "clickable";
+        }
+
+        return "unclickable";
+    }
+}

@@ -108,101 +108,87 @@
                             <div class="row mt-3">
                                 <div class="col-12">
                                     <Virtualize Items="users" Context="u" OverscanCount="10">
-                                        <div class="card bg-dark border-white mb-4">
-                                            <div class="row g-0">
-                                                <div class="col-1">
-                                                    <div class="p-1">
-                                                        @if (string.IsNullOrWhiteSpace(u.FileName) is false)
-                                                        {
-                                                            <div class="text-center m-2">
-                                                                <img src="@CreateWebPath(u.FileName)" 
-                                                                    class="card-img-top rounded-circle" 
-                                                                    alt="@u.FileName"
-                                                                    style="width: 100px; height: 100px;">
-                                                            </div>
-                                                        }
-                                                        else
-                                                        {
-                                                            <div class="text-center m-2">
-                                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                                    class="card-img-top rounded-circle" 
-                                                                    alt="Placeholder Image"
-                                                                    style="width: 100px; height: 100px;">
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                </div>
-                                                <div class="col-11 d-flex justify-content-between">
-                                                    <div class="card-body mx-2">
-                                                        <h5 class="card-title">@u.DisplayName</h5>
-                                                        @if (string.IsNullOrWhiteSpace(GetUserRoleName(u)) is false)
-                                                        {
-                                                            <p class="card-text">
-                                                                Role: @GetUserRoleName(u)
-                                                            </p>    
-                                                        }
-                                                        <p class="card-text">
-                                                            Status: @((IsUserBanned(u) ? "Banned" : "Active"))
-                                                        </p>
-                                                        <p class="card-text">
-                                                            Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
-                                                        </p>
-                                                    </div>
-                                                    @if (u.Id != loggedInUser.Id)
+                                        <DisplayImgComponent @key="u.Id" 
+                                            ImageSource="@u.FileName"
+                                            IsClickable="false" 
+                                            BodyClass="d-flex justify-content-between"
+                                            OpenDetails="(() => OpenUserDetails(u))">
+                                            <ChildContent>
+                                                <div class="mx-4">
+                                                    <h5 class="card-title">@u.DisplayName</h5>
+                                                    @if (string.IsNullOrWhiteSpace(GetUserRoleName(u)) is false)
                                                     {
-                                                        <div class="btn-group" role="group">
-                                                            <button id="btn-group-settings" type="button" class="btn btn-secondary dropdown-toggle" 
-                                                                data-toggle="dropdown" 
-                                                                aria-haspopup="true" 
-                                                                aria-expanded="false">
-                                                                <p><i class="fas fa-cog clickable"></i></p>
-                                                            </button>
-                                                            <div class="dropdown-menu dropdown-menu-dark" aria-labelledby="btn-group-settings">
-                                                                @if (IsUserBanned(u) is false && (CanKickMember() || CanBanMember() || CanGiveRole()))
+                                                        <p class="card-text mb-1">
+                                                            Role: @GetUserRoleName(u)
+                                                        </p>    
+                                                    }
+                                                    <p class="card-text mb-1">
+                                                        Status: @((IsUserBanned(u) ? "Banned" : "Active"))
+                                                    </p>
+                                                    <p class="card-text">
+                                                        Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
+                                                    </p>
+                                                </div>
+                                            </ChildContent>
+                                            <SettingsContent>
+                                                @if (u.Id != loggedInUser.Id)
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        <button id="btn-group-settings" type="button" 
+                                                            class="btn btn-secondary dropdown-toggle" 
+                                                            data-toggle="dropdown" 
+                                                            aria-haspopup="true" 
+                                                            aria-expanded="false">
+                                                            <p><i class="fas fa-cog clickable"></i></p>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-dark" 
+                                                            aria-labelledby="btn-group-settings">
+                                                            @if (IsUserBanned(u) is false && (CanKickMember() || 
+                                                                CanBanMember() ||
+                                                                CanGiveRole()))
+                                                            {
+                                                                @if (CanGiveRole())
                                                                 {
-                                                                    @if (CanGiveRole())
-                                                                    {
-                                                                        <button class="dropdown-item text-success" 
-                                                                            data-toggle="modal" 
-                                                                            data-target="#editRoleModal" 
-                                                                            @onclick="(() => selectedUser = u)">
-                                                                            Give Role
-                                                                        </button>         
-                                                                    }
-                                                                    @if (CanKickMember())
-                                                                    {
-                                                                        <button class="dropdown-item text-success" 
-                                                                            data-toggle="modal" 
-                                                                            data-target="#userModal" 
-                                                                            @onclick="(() => selectedUserToKick = u)">
-                                                                            Kick Member
-                                                                        </button>            
-                                                                    }
-                                                                    @if (CanBanMember())
-                                                                    {
-                                                                        <button class="dropdown-item text-danger" 
-                                                                            data-toggle="modal" 
-                                                                            data-target="#userModal" 
-                                                                            @onclick="(() => selectedUserToBan = u)">
-                                                                            Ban Member
-                                                                        </button>        
-                                                                    }
+                                                                    <button class="dropdown-item text-success" 
+                                                                        data-toggle="modal" 
+                                                                        data-target="#editRoleModal" 
+                                                                        @onclick="(() => selectedUser = u)">
+                                                                        Give Role
+                                                                    </button>         
                                                                 }
-                                                                else
+                                                                @if (CanKickMember())
                                                                 {
                                                                     <button class="dropdown-item text-success" 
                                                                         data-toggle="modal" 
                                                                         data-target="#userModal" 
-                                                                        @onclick="(() => selectedUserToUnban = u)">
-                                                                        Unban Member
-                                                                    </button>
+                                                                        @onclick="(() => selectedUserToKick = u)">
+                                                                        Kick Member
+                                                                    </button>            
                                                                 }
-                                                            </div>
-                                                        </div>     
-                                                    }                    
-                                                </div>
-                                            </div>                 
-                                        </div>
+                                                                @if (CanBanMember())
+                                                                {
+                                                                    <button class="dropdown-item text-danger" 
+                                                                        data-toggle="modal" 
+                                                                        data-target="#userModal" 
+                                                                        @onclick="(() => selectedUserToBan = u)">
+                                                                        Ban Member
+                                                                    </button>        
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <button class="dropdown-item text-success" 
+                                                                    data-toggle="modal" 
+                                                                    data-target="#userModal" 
+                                                                    @onclick="(() => selectedUserToUnban = u)">
+                                                                    Unban Member
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                    </div>     
+                                                }                    
+                                            </SettingsContent>
+                                        </DisplayImgComponent>
                                     </Virtualize>
                                 </div>
                             </div>
@@ -441,19 +427,14 @@ else
 
     private string GetUserRoleName(UserModel user)
     {
-        var role = roles.Where(r => r.Users.Select(u => u.Id == user.Id).FirstOrDefault()).FirstOrDefault();
+        var role = roles.Where(r => r.Users.Any(u => u.Id == user.Id)).Select(r => r.RoleName).FirstOrDefault();
 
         if (user.Id == server.Owner.Id)
         {
             return "Owner";
         }
 
-        if (role is not null)
-        {
-            return role.RoleName;
-        }
-
-        return "";
+        return role ?? "";
     }
 
     private string GetModalTitleString()

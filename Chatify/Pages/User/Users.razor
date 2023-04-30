@@ -28,7 +28,21 @@
                     @if (users?.Count > 0)
                     {
                         <Virtualize Items="users" Context="u" OverscanCount="10">
-                            <UserComponent @key="u.Id" User="u" LoggedInUser="loggedInUser"/>
+                            <DisplayImgComponent @key="u.Id" 
+                                IsClickable="false" 
+                                ImageSource="@u.FileName"
+                                OpenDetails="(() => OpenDetails(u))">
+                                <ChildContent>
+                                    <h5 class="card-title">@u.DisplayName</h5>
+                                    <p class="card-text">
+                                        Friend Code: 
+                                        <span class="fw-bold text-danger">@u.FriendCode</span>
+                                    </p>
+                                    <p class="card-text">
+                                        Date Joined: @u.DateCreated.ToString("dd/MM/yyyy")
+                                    </p>
+                                </ChildContent>
+                            </DisplayImgComponent>
                         </Virtualize>
                     }
                     else
@@ -93,5 +107,16 @@ else
     {
         SearchText = searchInput;
         await FilterUsers();
+    }
+
+    private void OpenDetails(UserModel user)
+    {
+        if (loggedInUser?.Id == user.Id)
+        {
+            navManager.NavigateTo("/Profile");
+            return;
+        }
+
+        navManager.NavigateTo($"/UserDetails/{user.Id}");
     }
 }
