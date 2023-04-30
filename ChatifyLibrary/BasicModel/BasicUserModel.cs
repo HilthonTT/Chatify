@@ -8,6 +8,7 @@ public class BasicUserModel
     public string LastName { get; set; }
     public string DisplayName { get; set; }
     public string FileName { get; set; }
+    public string FriendCode { get; set; }
     public DateTime DateCreated { get; set; }
 
     public BasicUserModel()
@@ -23,13 +24,6 @@ public class BasicUserModel
         DateCreated = user.DateCreated;
         DisplayName = user.DisplayName;
         FileName = user.FileName;
-    }
-
-    public string FullName
-    {
-        get
-        {
-            return $" { FirstName } { LastName }";
-        }
+        FriendCode = user.FriendCode;
     }
 }
