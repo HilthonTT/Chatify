@@ -10,4 +10,5 @@ public interface IUserData
     Task<UserModel> GetUserFriendCodeAsync(string code);
     Task<List<UserModel>> GetAllUsersServerAsync(ServerModel server);
     Task<List<UserModel>> GetAllUsersCachedAsync();
+    Task<List<BasicUserModel>> GetUserFriendsAsync(UserModel user);
 }

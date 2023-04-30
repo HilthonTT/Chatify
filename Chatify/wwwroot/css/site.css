@@ -367,7 +367,7 @@ a, .btn-link {
     cursor: pointer !important;
 }
     .clickable:hover {
-        color: gray !important;
+        color: darkgray !important;
     }
 
 .unclickable {

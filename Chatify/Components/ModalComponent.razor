@@ -1,0 +1,44 @@
+﻿<div class="modal fade" id="@Id" tabindex="-1" role="dialog" aria-labelledby="@Id" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
+        <div class="modal-content bg-dark text-white"> 
+            <div class="modal-header">
+                <h5 class="modal-title text-uppercase" id="@Id">
+                    @Title
+                </h5>
+                <button type="button" class="btn-close btn-close-white" 
+                    data-dismiss="modal" 
+                    aria-label="Close" />
+            </div>
+            <div class="modal-body">
+                @ChildContent
+                <div class="modal-footer @FooterClass">
+                    @ButtonContent
+                    <button type="button" 
+                        class="btn btn-secondary" 
+                        data-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public string Id { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string FooterClass { get; set; }
+
+    [Parameter]
+    public RenderFragment ButtonContent { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

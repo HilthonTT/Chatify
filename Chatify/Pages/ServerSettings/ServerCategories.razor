@@ -11,75 +11,59 @@
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
 
-<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="categoryModalLongTitle">
-                Edit @selectedCategory?.CategoryName
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                <EditForm Model="editingCategory" OnValidSubmit="(async() => await UpdateCategory())">
-                    <DataAnnotationsValidator />
-                    <div class="row">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="category-name">Category Name</label>
-                            <div class="mt-1">Edit your category's name</div>
-                            <ValidationMessage For="(() => editingCategory.CategoryName)"/>
-                            <InputText class="form-control bg-dark text-white input-section" id="category-name" 
-                                @bind-Value="editingCategory.CategoryName"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="category-description">Category Description</label>
-                            <div class="mt-1">Edit your category's purpose. What kind of discussion is it related to?</div>
-                            <ValidationMessage For="(() => editingCategory.CategoryDescription)"/>
-                            <InputTextArea class="form-control bg-dark text-white input-section" id="category-description"
-                                @bind-Value="editingCategory.CategoryDescription"/>
-                        </div>
-                        <div class="center-children">
-                            <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
-                                Update
-                            </button>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer justify-content-between">
-            @if (archivingCategory is null)
-            {
-                <button type="button" 
-                    class="btn btn-outline-danger"
-                    @onclick="(() => archivingCategory = selectedCategory)">
-                    Archive
-                </button>
-            }
-            else
-            {
-                <div class="btn-group">
-                    <button type="button" 
-                        class="btn btn-outline-danger"
-                        @onclick="ArchiveCategory">
-                        Archive
-                    </button>
-                    <button type="button" 
-                        class="btn btn-outline-danger"
-                        @onclick="(() => archivingCategory = null)">
-                        Cancel
+<ModalComponent Id="categoryModal" Title=@($"Edit {selectedCategory?.CategoryName}") FooterClass="justify-content-between">
+    <ChildContent>
+        <EditForm Model="editingCategory" OnValidSubmit="(async() => await UpdateCategory())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="category-name">Category Name</label>
+                    <div class="mt-1">Edit your category's name</div>
+                    <ValidationMessage For="(() => editingCategory.CategoryName)"/>
+                    <InputText class="form-control bg-dark text-white input-section" id="category-name" 
+                        @bind-Value="editingCategory.CategoryName"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="category-description">Category Description</label>
+                    <div class="mt-1">Edit your category's purpose. What kind of discussion is it related to?</div>
+                    <ValidationMessage For="(() => editingCategory.CategoryDescription)"/>
+                    <InputTextArea class="form-control bg-dark text-white input-section" id="category-description"
+                        @bind-Value="editingCategory.CategoryDescription"/>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
+                        Update
                     </button>
                 </div>
-            }
-            <button type="button" 
-                class="btn btn-secondary" 
-                data-dismiss="modal" 
-                @onclick="(() => selectedCategory = null)">
-                Close
-            </button>
             </div>
-        </div>
-    </div>
-</div>
+        </EditForm>
+    </ChildContent>
+    <ButtonContent>
+        @if (archivingCategory is null)
+        {
+            <button type="button" 
+                class="btn btn-outline-danger"
+                @onclick="(() => archivingCategory = selectedCategory)">
+                Archive
+            </button>
+        }
+        else
+        {
+            <div class="btn-group">
+                <button type="button" 
+                    class="btn btn-outline-danger"
+                    @onclick="ArchiveCategory">
+                    Archive
+                </button>
+                <button type="button" 
+                    class="btn btn-outline-danger"
+                    @onclick="(() => archivingCategory = null)">
+                    Cancel
+                </button>
+            </div>
+        }
+    </ButtonContent>
+</ModalComponent>
 
 @if (ban is null)
 {

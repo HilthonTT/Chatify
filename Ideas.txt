@@ -1,0 +1,4 @@
+* Make 2 universal components
+	- One for Conversation and server
+	- One for modal display
+	(Keep Message Component)

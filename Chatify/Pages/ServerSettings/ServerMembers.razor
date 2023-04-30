@@ -11,106 +11,71 @@
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
 
-<div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="editRoleModalLongTitle">
-                Edit @selectedUser?.DisplayName's role
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+<ModalComponent Id="editRoleModal" Title=@($"Edit {selectedUser?.DisplayName}'s role")>
+    <ChildContent>
+         <EditForm Model="editingUserRole" OnValidSubmit="(async() => await UpdateUserRole())">
+            <DataAnnotationsValidator  />
+            <div class="row">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-name">@selectedUser?.DisplayName's role</label>
+                    <ValidationMessage For="(() => editingUserRole.RoleId)" />
+                    <div class="mt-1">Edit @selectedUser?.DisplayName's role</div>
+                    <InputRadioGroup id="role" @bind-Value="editingUserRole.RoleId">
+                        @if (roles is not null)
+                        {
+                            <Virtualize Items="roles" Context="r" OverscanCount="10">
+                                <div class="radio-item-group">
+                                    <InputRadio Value="@r.Id" id="@r.Id"/>
+                                    <label for="@r.Id">@r.RoleName - @r.RoleDescription</label>
+                                </div>
+                            </Virtualize>
+                        }
+                    </InputRadioGroup>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
+                        Edit Role
+                    </button>
+                </div>
             </div>
-            <div class="modal-body">
-                <EditForm Model="editingUserRole" OnValidSubmit="(async() => await UpdateUserRole())">
-                    <DataAnnotationsValidator  />
-                    <div class="row">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="role-name">@selectedUser?.DisplayName's role</label>
-                            <ValidationMessage For="(() => editingUserRole.RoleId)" />
-                            <div class="mt-1">Edit @selectedUser?.DisplayName's role</div>
-                            <InputRadioGroup id="role" @bind-Value="editingUserRole.RoleId">
-                                @if (roles is not null)
-                                {
-                                    <Virtualize Items="roles" Context="r" OverscanCount="10">
-                                        <div class="radio-item-group">
-                                            <InputRadio Value="@r.Id" id="@r.Id"/>
-                                            <label for="@r.Id">@r.RoleName - @r.RoleDescription</label>
-                                        </div>
-                                    </Virtualize>
-                                }
-                            </InputRadioGroup>
-                        </div>
-                        <div class="center-children">
-                            <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
-                                Edit Role
-                            </button>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary" 
-                data-dismiss="modal" 
-                @onclick="(() => selectedUser = null)">
-                Close
-            </button>
-            </div>
-        </div>
-    </div>
-</div>
+        </EditForm>
+    </ChildContent>
+</ModalComponent>
 
-<div class="modal fade" id="userModalCenter" tabindex="-1" role="dialog" aria-labelledby="userModalCenterCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="userModallLongTitle">
-                @GetModalTitleString()
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                Are you sure you want to commit these actions?
-            </div>
-            <div class="modal-footer">
+<ModalComponent Id="userModal" Title=@GetModalTitleString()>
+    <ChildContent>
+        Are you sure you want to commit these actions?
+    </ChildContent>
+    <ButtonContent>
+        @if (selectedUserToBan is not null)
+        {
             <button type="button" 
-                class="btn btn-secondary" 
+                class="btn btn-primary" 
                 data-dismiss="modal" 
-                @onclick="ClearSelectedUsers">
-                Close
+                @onclick="(async() => await BanMember(selectedUserToBan))">
+                Ban Member
+            </button> 
+        }
+        else if (selectedUserToKick is not null)
+        {
+            <button type="button" 
+                class="btn btn-primary" 
+                data-dismiss="modal" 
+                @onclick="(async() => await BanMember(selectedUserToKick))">
+                Kick Member
             </button>
-            @if (selectedUserToBan is not null)
-            {
-                <button type="button" 
-                    class="btn btn-primary" 
-                    data-dismiss="modal" 
-                    @onclick="(async() => await BanMember(selectedUserToBan))">
-                    Ban Member
-                </button> 
-            }
-            else if (selectedUserToKick is not null)
-            {
-                <button type="button" 
-                    class="btn btn-primary" 
-                    data-dismiss="modal" 
-                    @onclick="(async() => await BanMember(selectedUserToKick))">
-                    Kick Member
-                </button>
-            }
-            else
-            {
-                <button type="button" 
-                    class="btn btn-primary" 
-                    data-dismiss="modal" 
-                    @onclick="(async() => await UnbanMember(selectedUserToUnban))">
-                    Unban Member
-                </button>
-            }
-            </div>
-        </div>
-    </div>
-</div>
-
+        }
+        else
+        {
+            <button type="button" 
+                class="btn btn-primary" 
+                data-dismiss="modal" 
+                @onclick="(async() => await UnbanMember(selectedUserToUnban))">
+                Unban Member
+            </button>
+        }
+    </ButtonContent>
+</ModalComponent>
 
 @if (ban is null)
 {
@@ -208,7 +173,7 @@
                                                                     {
                                                                         <button class="dropdown-item text-success" 
                                                                             data-toggle="modal" 
-                                                                            data-target="#userModalCenter" 
+                                                                            data-target="#userModal" 
                                                                             @onclick="(() => selectedUserToKick = u)">
                                                                             Kick Member
                                                                         </button>            
@@ -217,7 +182,7 @@
                                                                     {
                                                                         <button class="dropdown-item text-danger" 
                                                                             data-toggle="modal" 
-                                                                            data-target="#userModalCenter" 
+                                                                            data-target="#userModal" 
                                                                             @onclick="(() => selectedUserToBan = u)">
                                                                             Ban Member
                                                                         </button>        
@@ -225,7 +190,9 @@
                                                                 }
                                                                 else
                                                                 {
-                                                                    <button class="dropdown-item text-success" data-toggle="modal" data-target="#userModalCenter" 
+                                                                    <button class="dropdown-item text-success" 
+                                                                        data-toggle="modal" 
+                                                                        data-target="#userModal" 
                                                                         @onclick="(() => selectedUserToUnban = u)">
                                                                         Unban Member
                                                                     </button>

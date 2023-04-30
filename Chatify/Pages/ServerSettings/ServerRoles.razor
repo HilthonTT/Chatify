@@ -10,173 +10,157 @@
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
 
-<div class="modal fade" id="roleModal" tabindex="-1" role="dialog" aria-labelledby="roleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="roleModalLongTitle">
-                    Edit @selectedRole?.RoleName
-                </h5>
-                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+<ModalComponent Id="roleModal" Title=@($"Edit {selectedRole?.RoleName}") FooterClass="justify-content-between">
+    <ChildContent>
+        <EditForm Model="editingRole" OnValidSubmit="(async() => await UpdateRole())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-name">Role Name</label>
+                    <div class="mt-1">Name your role's name</div>
+                    <ValidationMessage For="(() => editingRole.RoleName)"/>
+                    <InputText class="form-control bg-dark text-white input-section" id="role-name" 
+                        @bind-Value="editingRole.RoleName"/>
                 </div>
-                <div class="modal-body">
-                    <EditForm Model="editingRole" OnValidSubmit="(async() => await UpdateRole())">
-                        <DataAnnotationsValidator />
-                        <div class="row">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-name">Role Name</label>
-                                <div class="mt-1">Name your role's name</div>
-                                <ValidationMessage For="(() => editingRole.RoleName)"/>
-                                <InputText class="form-control bg-dark text-white input-section" id="role-name" 
-                                    @bind-Value="editingRole.RoleName"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-description">Role Description</label>
-                                <div class="mt-1">Describe your role's purpose. What kind do they represent?</div>
-                                <ValidationMessage For="(() => editingRole.RoleDescription)"/>
-                                <InputTextArea class="form-control bg-dark text-white input-section" id="role-description"
-                                    @bind-Value="editingRole.RoleDescription"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-ban-member">Ability to ban members.</label>
-                                <div class="mt-1">Choose the role's ability to ban members.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingRole.CanBanMember">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-ban-member"/>
-                                        <label for="true-ban-member">Able to ban member</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-ban-member"/>
-                                        <label for="false-ban-member">Unable to ban member</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-kick-member">Ability to kick members.</label>
-                                <div class="mt-1">Choose the role's ability to kick members.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingRole.CanKickMember">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-kick-member"/>
-                                        <label for="true-kick-member">Able to kick member</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-kick-member"/>
-                                        <label for="false-kick-member">Unable to kick member</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-create-channels">Ability to create channels.</label>
-                                <div class="mt-1">Choose the role's ability to create channels.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingRole.CanCreateChannel">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-create-channel"/>
-                                        <label for="true-create-channel">Able to create channels</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-create-channel"/>
-                                        <label for="false-create-channel">Unable to create channels</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-create-roles">Ability to create roles.</label>
-                                <div class="mt-1">Choose the role's ability to create roles.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingRole.CanCreateRole">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-create-role"/>
-                                        <label for="true-create-role">Able to create roles</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-create-role"/>
-                                        <label for="false-create-role">Unable to create roles</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-give-roles">Ability to give roles.</label>
-                                <div class="mt-1">Choose the role's ability to give roles.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingRole.CanGiveRole">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-give-roles"/>
-                                        <label for="true-give-roles">Able to give roles</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-give-roles"/>
-                                        <label for="false-give-roles">Unable to give roles</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-view-audit-logs">Ability to view audit logs.</label>
-                                <div class="mt-1">Choose the role's ability to view the audit logs.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingRole.CanViewAuditLog">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-view-audit-logs"/>
-                                        <label for="true-view-audit-logs">Able to view the audit logs</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-view-audit-logs"/>
-                                        <label for="false-view-audit-logs">Unable to view the audit logs</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="role-can-edit-server">Ability to edit the server's details.</label>
-                                <div class="mt-1">Choose the role's ability to edit the server's details.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingRole.CanEditServer">
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="true" id="true-edit-server"/>
-                                        <label for="true-edit-server">Able to edit the server's details</label>
-                                    </div>
-                                    <div class="radio-item-group">
-                                        <InputRadio Value="false" id="false-edit-server"/>
-                                        <label for="false-edit-server">Unable to edit the server's details</label>
-                                    </div>
-                                </InputRadioGroup>
-                            </div>
-                            <div class="center-children">
-                                <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
-                                    Update Role
-                                </button>
-                            </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-description">Role Description</label>
+                    <div class="mt-1">Describe your role's purpose. What kind do they represent?</div>
+                    <ValidationMessage For="(() => editingRole.RoleDescription)"/>
+                    <InputTextArea class="form-control bg-dark text-white input-section" id="role-description"
+                        @bind-Value="editingRole.RoleDescription"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-can-ban-member">Ability to ban members.</label>
+                    <div class="mt-1">Choose the role's ability to ban members.</div>
+                    <InputRadioGroup id="category" @bind-Value="editingRole.CanBanMember">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="true-ban-member"/>
+                            <label for="true-ban-member">Able to ban member</label>
                         </div>
-                    </EditForm>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="false-ban-member"/>
+                            <label for="false-ban-member">Unable to ban member</label>
+                        </div>
+                    </InputRadioGroup>
                 </div>
-                <div class="modal-footer justify-content-between">
-                @if (archivingRole is null)
-                {
-                    <button type="button" 
-                        class="btn btn-outline-danger"
-                        @onclick="(() => archivingRole = selectedRole)">
-                        Archive
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-can-kick-member">Ability to kick members.</label>
+                    <div class="mt-1">Choose the role's ability to kick members.</div>
+                    <InputRadioGroup id="category" @bind-Value="editingRole.CanKickMember">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="true-kick-member"/>
+                            <label for="true-kick-member">Able to kick member</label>
+                        </div>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="false-kick-member"/>
+                            <label for="false-kick-member">Unable to kick member</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-can-create-channels">Ability to create channels.</label>
+                    <div class="mt-1">Choose the role's ability to create channels.</div>
+                    <InputRadioGroup id="category" @bind-Value="editingRole.CanCreateChannel">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="true-create-channel"/>
+                            <label for="true-create-channel">Able to create channels</label>
+                        </div>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="false-create-channel"/>
+                            <label for="false-create-channel">Unable to create channels</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-can-create-roles">Ability to create roles.</label>
+                    <div class="mt-1">Choose the role's ability to create roles.</div>
+                    <InputRadioGroup id="category" @bind-Value="editingRole.CanCreateRole">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="true-create-role"/>
+                            <label for="true-create-role">Able to create roles</label>
+                        </div>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="false-create-role"/>
+                            <label for="false-create-role">Unable to create roles</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-can-give-roles">Ability to give roles.</label>
+                    <div class="mt-1">Choose the role's ability to give roles.</div>
+                    <InputRadioGroup id="category" @bind-Value="editingRole.CanGiveRole">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="true-give-roles"/>
+                            <label for="true-give-roles">Able to give roles</label>
+                        </div>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="false-give-roles"/>
+                            <label for="false-give-roles">Unable to give roles</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-can-view-audit-logs">Ability to view audit logs.</label>
+                    <div class="mt-1">Choose the role's ability to view the audit logs.</div>
+                    <InputRadioGroup id="category" @bind-Value="editingRole.CanViewAuditLog">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="true-view-audit-logs"/>
+                            <label for="true-view-audit-logs">Able to view the audit logs</label>
+                        </div>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="false-view-audit-logs"/>
+                            <label for="false-view-audit-logs">Unable to view the audit logs</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="role-can-edit-server">Ability to edit the server's details.</label>
+                    <div class="mt-1">Choose the role's ability to edit the server's details.</div>
+                    <InputRadioGroup id="category" @bind-Value="editingRole.CanEditServer">
+                        <div class="radio-item-group">
+                            <InputRadio Value="true" id="true-edit-server"/>
+                            <label for="true-edit-server">Able to edit the server's details</label>
+                        </div>
+                        <div class="radio-item-group">
+                            <InputRadio Value="false" id="false-edit-server"/>
+                            <label for="false-edit-server">Unable to edit the server's details</label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
+                        Update Role
                     </button>
-                }
-                else
-                {
-                    <div class="btn-group">
-                        <button type="button" 
-                            class="btn btn-outline-success"
-                            @onclick="ArchiveRole">
-                            Archive
-                        </button>
-                        <button type="button" 
-                            class="btn btn-outline-danger"
-                            @onclick="(() => archivingRole = null)">
-                            Cancel
-                        </button>
-                    </div>
-                }
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal" 
-                    @onclick="(() => selectedRole = null)">
-                    Close
-                </button>
                 </div>
             </div>
-        </div>
-    </div>
+        </EditForm>
+    </ChildContent>
+    <ButtonContent>
+        @if (archivingRole is null)
+        {
+            <button type="button" 
+                class="btn btn-outline-danger"
+                @onclick="(() => archivingRole = selectedRole)">
+                Archive
+            </button>
+        }
+        else
+        {
+            <div class="btn-group">
+                <button type="button" 
+                    class="btn btn-outline-success"
+                    @onclick="ArchiveRole">
+                    Archive
+                </button>
+                <button type="button" 
+                    class="btn btn-outline-danger"
+                    @onclick="(() => archivingRole = null)">
+                    Cancel
+                </button>
+            </div>
+        }
+    </ButtonContent>
+</ModalComponent>
 
 @if (ban is null)
 {

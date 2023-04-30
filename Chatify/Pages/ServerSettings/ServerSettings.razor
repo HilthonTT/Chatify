@@ -13,6 +13,89 @@
 @inject ProtectedSessionStorage sessionStorage
 @inject IJSRuntime JSRuntime
 
+ <ModalComponent Id="serverModal" Title=@($"Edit {server?.ServerName}") FooterClass="justify-content-between">
+    <ChildContent>
+        <EditForm Model="editingServer" OnValidSubmit="(async() => await UpdateServer())">
+        <DataAnnotationsValidator  />
+        <div class="row">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
+                <div class="mt-1">Edit your server's name</div>
+                <ValidationMessage For="(() => editingServer.ServerName)"/>
+                <InputText class="form-control bg-dark text-white input-section" id="server-name" 
+                    @bind-Value="editingServer.ServerName"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-uppercase" for="server-icon">Server Icon</label>
+                <div class="mt-1">Select an image for your server. This is not required.</div>
+                <ValidationMessage For="(() => editingServer.PictureName)"/>
+                <InputFile OnChange="LoadFiles"
+                    class="form-control bg-dark text-light input-section"
+                    accept=".png,.jpg,.jpeg"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-uppercase" for="category">Category</label>
+                <ValidationMessage For="(() => editingServer.CategoryId)" />
+                <div class="mt-1">Choose a category that suits your server's brand.</div>
+                <InputRadioGroup id="category" @bind-Value="editingServer.CategoryId">
+                    @if (categories is not null)
+                    {
+                        <Virtualize Items="categories" Context="c" OverscanCount="10">
+                            <div class="radio-item-group">
+                                <InputRadio Value="@c.Id" id="@c.Id"/>
+                                <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
+                            </div>
+                        </Virtualize>
+                    }
+                </InputRadioGroup>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-uppercase" for="server-description">Server Description</label>
+                <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
+                <ValidationMessage For="(() => editingServer.ServerDescription)"/>
+                <InputTextArea class="form-control bg-dark text-white input-section" id="server-description"
+                    @bind-Value="editingServer.ServerDescription"/>
+            </div>
+            <div class="center-children">
+                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
+                    Update
+                </button>
+            </div>
+        </div>
+    </EditForm>
+    </ChildContent>
+    <ButtonContent>
+        <button type="button" 
+            class="btn btn-outline-warning" 
+            @onclick="ClearPicture">
+            Clear Picture
+        </button>
+        @if (archivingServer is null)
+        {
+            <button type="button" 
+                class="btn btn-outline-danger" 
+                @onclick="(() => archivingServer = server)">
+                Archive
+            </button>       
+        }
+        else
+        {
+            <div class="btn-group">
+                <button type="button" 
+                    class="btn btn-outline-success" 
+                    @onclick="ArchiveServer">
+                    Archive
+                </button>
+                <button type="button" 
+                    class="btn btn-outline-danger" 
+                    @onclick="(() => archivingServer = null)">
+                    Cancel
+                </button>       
+            </div>
+        }
+    </ButtonContent>
+</ModalComponent>
+
 @if (ban is null)
 {
   <h1 class="page-heading mb-4">@server?.ServerName Settings</h1>
@@ -23,104 +106,6 @@
   }
   else
   {
-    <div class="modal fade" id="serverModal" tabindex="-1" role="dialog" aria-labelledby="serverModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-        <div class="modal-content bg-dark text-white"> 
-            <div class="modal-header">
-                <h5 class="modal-title" id="serverModalLongTitle">
-                    Edit @server?.ServerName
-                </h5>
-                <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                </div>
-                <div class="modal-body">
-                    <EditForm Model="editingServer" OnValidSubmit="(async() => await UpdateServer())">
-                        <DataAnnotationsValidator  />
-                        <div class="row">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
-                                <div class="mt-1">Edit your server's name</div>
-                                <ValidationMessage For="(() => editingServer.ServerName)"/>
-                                <InputText class="form-control bg-dark text-white input-section" id="server-name" 
-                                    @bind-Value="editingServer.ServerName"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="server-icon">Server Icon</label>
-                                <div class="mt-1">Select an image for your server. This is not required.</div>
-                                <ValidationMessage For="(() => editingServer.PictureName)"/>
-                                <InputFile OnChange="LoadFiles"
-                                    class="form-control bg-dark text-light input-section"
-                                    accept=".png,.jpg,.jpeg"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="category">Category</label>
-                                <ValidationMessage For="(() => editingServer.CategoryId)" />
-                                <div class="mt-1">Choose a category that suits your server's brand.</div>
-                                <InputRadioGroup id="category" @bind-Value="editingServer.CategoryId">
-                                    @if (categories is not null)
-                                    {
-                                        <Virtualize Items="categories" Context="c" OverscanCount="10">
-                                            <div class="radio-item-group">
-                                                <InputRadio Value="@c.Id" id="@c.Id"/>
-                                                <label for="@c.Id">@c.CategoryName - @c.CategoryDescription</label>
-                                            </div>
-                                        </Virtualize>
-                                    }
-                                </InputRadioGroup>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-uppercase" for="server-description">Server Description</label>
-                                <div class="mt-1">Describe your channel's purpose. What kind of discussion is it related to?</div>
-                                <ValidationMessage For="(() => editingServer.ServerDescription)"/>
-                                <InputTextArea class="form-control bg-dark text-white input-section" id="server-description"
-                                    @bind-Value="editingServer.ServerDescription"/>
-                            </div>
-                            <div class="center-children">
-                                <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
-                                    Update
-                                </button>
-                            </div>
-                        </div>
-                    </EditForm>
-                </div>
-                <div class="modal-footer justify-content-between">
-                <button type="button" 
-                    class="btn btn-outline-warning" 
-                    @onclick="ClearPicture">
-                    Clear Picture
-                </button>
-                @if (archivingServer is null)
-                {
-                    <button type="button" 
-                        class="btn btn-outline-danger" 
-                        @onclick="(() => archivingServer = server)">
-                        Archive
-                    </button>       
-                }
-                else
-                {
-                    <div class="btn-group">
-                        <button type="button" 
-                            class="btn btn-outline-success" 
-                            @onclick="ArchiveServer">
-                            Archive
-                        </button>
-                        <button type="button" 
-                            class="btn btn-outline-danger" 
-                            @onclick="(() => archivingServer = null)">
-                            Cancel
-                        </button>       
-                    </div>
-                }
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal">
-                    Close
-                </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
       @if (server is not null)
       {
         <div class="rounded rounded-3">

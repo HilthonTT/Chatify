@@ -9,45 +9,27 @@
 @inject AuthenticationStateProvider authProvider
 
 
-<div class="modal fade" id="profileModal" tabindex="-1" role="dialog" aria-labelledby="profileModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="profileModalLongTitle">
-                Edit Your Profile Picture
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
+<ModalComponent Id="profileModal" Title="Edit Your Profile Picture">
+    <ChildContent>
+        <div class="row">
+            <div class="mb-3">
+                <label class="form-label fw-bold text-uppercase" for="profile-picture">Profile Picture</label>
+                <div>Select an image for your conversation. This is not required.</div>
+                <InputFile OnChange="LoadFiles"
+                    class="form-control bg-dark text-light input-section"
+                    accept=".png,.jpg,.jpeg"/>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-uppercase" for="profile-picture">Profile Picture</label>
-                        <div>Select an image for your conversation. This is not required.</div>
-                        <InputFile OnChange="LoadFiles"
-                            class="form-control bg-dark text-light input-section"
-                            accept=".png,.jpg,.jpeg"/>
-                    </div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
-                            type="submit" 
-                            data-dismiss="modal" 
-                            @onclick="UpdateProfilePicture">
-                            Update
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" 
-                    class="btn btn-secondary" 
-                    data-dismiss="modal">
-                    Close
+            <div class="center-children">
+                <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
+                    type="submit" 
+                    data-dismiss="modal" 
+                    @onclick="UpdateProfilePicture">
+                    Update
                 </button>
             </div>
         </div>
-    </div>
-</div>
-
+    </ChildContent>
+</ModalComponent>
 
 @if (ban is null)
 {

@@ -16,91 +16,74 @@
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
 
-<div class="modal fade" id="invitationModal" tabindex="-1" role="dialog" aria-labelledby="invitationModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="invitationModalLongTitle">
-                Select the server which you want to invite people.
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-                {
-                    <div class="text-danger">@errorMessage</div>
-                }
-                <input type="text" placeholder="Search"
-                aria-label="Search Box" class="form-control bg-dark text-light input-section mb-3"
-                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
-                 <div class="center-children mb-3">
-                    <button class="btn btn-secondary w-100 btn-lg text-uppercase"
-                        @onclick="SendInvite">
-                        Send Invite
-                    </button>
-                </div>
-                @if (servers?.Count > 0)
-                {
-                    <Virtualize Items="servers" Context="s" OverscanCount="10">
-                        <div class="card bg-dark clickable @GetServerClass(s) mb-4" 
-                            @onclick="(() => selectedServer = s)">
-                            <div class="row g-0">
-                                <div class="col-md-1">
-                                    <div class="p-1">
-                                        @if (string.IsNullOrWhiteSpace(s.PictureName) is false)
-                                        {
-                                            <div class="text-center p-3">
-                                                <img src="@CreateWebPath(s.PictureName)" 
-                                                    class="card-img-top rounded-circle clickable" 
-                                                    alt="@s.OriginalPictureName"
-                                                    style="width: 100px; height: 100px;">
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="text-center p-3">
-                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                    class="card-img-top rounded-circle clickable" 
-                                                    alt="Placeholder Image"
-                                                    style="width: 100px; height: 100px;">
-                                            </div>
-                                        }
+<ModalComponent Id="invitationModal" Title="Select the server which you want to invite people.">
+    <ChildContent>
+        @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+        {
+            <div class="text-danger">@errorMessage</div>
+        }
+        <input type="text" placeholder="Search"
+        aria-label="Search Box" class="form-control bg-dark text-light input-section mb-3"
+        @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
+            <div class="center-children mb-3">
+            <button class="btn btn-secondary btn-lg text-uppercase"
+                @onclick="SendInvite">
+                Send Invite
+            </button>
+        </div>
+        @if (servers?.Count > 0)
+        {
+            <Virtualize Items="servers" Context="s" OverscanCount="10">
+                <div class="card bg-dark clickable @GetServerClass(s) mb-4" 
+                    @onclick="(() => selectedServer = s)">
+                    <div class="row g-0">
+                        <div class="col-md-1">
+                            <div class="p-1">
+                                @if (string.IsNullOrWhiteSpace(s.PictureName) is false)
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="@CreateWebPath(s.PictureName)" 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="@s.OriginalPictureName"
+                                            style="width: 100px; height: 100px;">
                                     </div>
-                                </div>
-                                <div class="col-md-11 ">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-end">@s.ServerName</h5>
-                                        <p class="card-text text-end">
-                                            @s.ServerDescription
-                                        </p>
-                                        <p class="card-text text-end">
-                                            Date Created: @s.DateCreated.ToString("dd/MM/yyyy")
-                                        </p>
+                                }
+                                else
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="Placeholder Image"
+                                            style="width: 100px; height: 100px;">
                                     </div>
-                                </div>
+                                }
                             </div>
                         </div>
-                    </Virtualize>
-                }
-                else
-                {
-                    <div class="center-children">
-                        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                        <div class="col-md-11 ">
+                            <div class="card-body">
+                                <h5 class="card-title text-end">@s.ServerName</h5>
+                                <p class="card-text text-end">
+                                    @s.ServerDescription
+                                </p>
+                                <p class="card-text text-end">
+                                    Date Created: @s.DateCreated.ToString("dd/MM/yyyy")
+                                </p>
+                            </div>
                         </div>
                     </div>
-                }
+                </div>
+            </Virtualize>
+        }
+        else
+        {
+            <div class="center-children">
+                <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary" 
-                data-dismiss="modal">
-                Close
-            </button>
-            </div>
-        </div>
-    </div>
-</div>
+        }
+    </ChildContent>
+</ModalComponent>
 
 @if (ban is null)
 {

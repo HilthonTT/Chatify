@@ -10,116 +10,58 @@
 @inject AuthenticationStateProvider authProvider
 @inject IJSRuntime JSRuntime
 
-<div class="modal fade" id="friendModal" tabindex="-1" role="dialog" aria-labelledby="friendModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="friendModalLongTitle">
-                Friend @user?.DisplayName
-            </h5>
-                <button type="button" 
-                    class="btn-close btn-close-white text-white" 
-                    data-dismiss="modal" 
-                    aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-                    {
-                        <div class="text-danger">@errorMessage</div>
-                    }
-                    <div class="mt-1">Are you sure you want to add @user?.DisplayName?</div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="SendFriendRequest">
-                            Send Friend Request
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary"
-                data-dismiss="modal">
-                Close
-            </button>
+<ModalComponent Id="friendModal" Title=@($"Friend {user?.DisplayName}")>
+    <ChildContent>
+        <div class="row">
+            @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+            {
+                <div class="text-danger">@errorMessage</div>
+            }
+            <div class="mt-1">Are you sure you want to add @user?.DisplayName?</div>
+            <div class="center-children">
+                <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="SendFriendRequest">
+                    Send Friend Request
+                </button>
             </div>
         </div>
-    </div>
-</div>
+    </ChildContent>
+</ModalComponent>
 
-<div class="modal fade" id="unfriendModal" tabindex="-1" role="dialog" aria-labelledby="unfriendModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="unfriendModalLongTitle">
-                Friend @user?.DisplayName
-            </h5>
-                <button type="button" 
-                    class="btn-close btn-close-white text-white" 
-                    data-dismiss="modal" 
-                    aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-                    {
-                        <div class="text-danger">@errorMessage</div>
-                    }
-                    <div class="mt-1">Are you sure you want to unfriend @user?.DisplayName?</div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="UnfriendUser">
-                            Unfriend @user?.DisplayName
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary"
-                data-dismiss="modal">
-                Close
-            </button>
+<ModalComponent Id="unfriendModal" Title=@($"Unfriend {user?.DisplayName}")>
+    <ChildContent>
+        <div class="row">
+            @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+            {
+                <div class="text-danger">@errorMessage</div>
+            }
+            <div class="mt-1">Are you sure you want to unfriend @user?.DisplayName?</div>
+            <div class="center-children">
+                <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="UnfriendUser">
+                    Unfriend @user?.DisplayName
+                </button>
             </div>
         </div>
-    </div>
-</div>
+    </ChildContent>
+</ModalComponent>
 
-<div class="modal fade" id="blockModal" tabindex="-1" role="dialog" aria-labelledby="blockModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="blockModalLongTitle">
-                @BlockButtonText() @user?.DisplayName
-            </h5>
-                <button type="button" 
-                    class="btn-close btn-close-white text-white" 
-                    data-dismiss="modal" 
-                    aria-label="Close" />
+<ModalComponent Id="blockModal" Title=@($"{BlockButtonText()} {user?.DisplayName}")>
+    <ChildContent>
+        <div class="row">
+            @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+            {
+                <div class="text-danger">@errorMessage</div>
+            }
+            <div class="mt-1">
+                Are you sure you want to @((LoggedInUserHasBlockedUser()) ? "Unblock" : "Block") @user?.DisplayName?
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-                    {
-                        <div class="text-danger">@errorMessage</div>
-                    }
-                    <div class="mt-1">Are you sure you want to @((LoggedInUserHasBlockedUser()) ? "Unblock" : "Block") @user?.DisplayName?</div>
-                    <div class="center-children">
-                        <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="ToggleBlockUser">
-                            @BlockButtonText() @user?.DisplayName
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary"
-                data-dismiss="modal">
-                Close
-            </button>
+            <div class="center-children">
+                <button class="btn btn-secondary btn-lg text-uppercase mt-4" @onclick="ToggleBlockUser">
+                    @BlockButtonText() @user?.DisplayName
+                </button>
             </div>
         </div>
-    </div>
-</div>
+    </ChildContent>
+</ModalComponent>
 
 @if (ban is null)
 {

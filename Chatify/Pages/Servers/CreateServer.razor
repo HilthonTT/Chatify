@@ -17,16 +17,20 @@
     <h1 class="text-center text-uppercase fw-bold mb-4">Make A Server</h1>
 
     <div class="row">
-        <div class="col-xl-12 col-lg-10 p-5 bg-dark create-form-layout">
+        <div class="col-xl-12 col-lg-10 p-3 bg-dark border border-white rounded">
             <EditForm Model="server" OnValidSubmit="(async() => await Create())">
                 <DataAnnotationsValidator />
                 <div class="row">
-                    <div class="col-11">
+                    <div class="close-button-section">
+                        <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
+                    </div>
+                    <div class="col-12">
                         <div class="mb-3">
                             <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
                             <div class="mt-1">Name your server name. Its name will represent the server name.</div>
                             <ValidationMessage For="(() => server.ServerName)"/>
-                            <InputText class="form-control bg-dark text-white input-section" id="server-name" @bind-Value="server.ServerName"/>
+                            <InputText class="form-control bg-dark text-white input-section" id="server-name" 
+                                @bind-Value="server.ServerName"/>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold text-uppercase" for="server-icon">Server Icon</label>
@@ -64,11 +68,6 @@
                             <button class="btn btn-secondary btn-lg text-uppercase mt-4" type="submit">
                                 Create Server
                             </button>
-                        </div>
-                    </div>
-                    <div class="col-1">
-                        <div class="close-button-section">
-                            <button class="btn btn-close btn-close-white" @onclick="ClosePage"/>
                         </div>
                     </div>
                 </div>

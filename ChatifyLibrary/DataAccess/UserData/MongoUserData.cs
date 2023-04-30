@@ -38,7 +38,7 @@ public class MongoUserData : IUserData
 
     public async Task<List<UserModel>> GetAllUsersServerAsync(ServerModel server)
     {
-        var cachingString = _helper.UserCachingString(server.Id);
+        string cachingString = _helper.UserCachingString(server.Id);
 
         var output = _cache.Get<List<UserModel>>(cachingString);
         if (output is null)
@@ -46,6 +46,36 @@ public class MongoUserData : IUserData
             var memberIds = server.Members.Select(m => m.Id).ToList();
             var filter = Builders<UserModel>.Filter.In(u => u.Id, memberIds);
             output = await _users.Find(filter).ToListAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromHours(1));
+        }
+
+        return output;
+    }
+
+    public async Task<List<BasicUserModel>> GetUserFriendsAsync(UserModel user)
+    {
+        string cachingString = _helper.UserCachingString(user.Id);
+
+        var output = _cache.Get<List<BasicUserModel>>(cachingString);
+        if (output is null)
+        {
+            if (user.Friends == null || user.Friends.Count == 0)
+            {
+                return new List<BasicUserModel>();
+            }
+
+            var friendIds = user.Friends.Select(f => f.Id).ToList();
+            var filter = Builders<UserModel>.Filter.In(u => u.Id, friendIds);
+            output = await _users.Find(filter).Project(u => new BasicUserModel{ 
+                Id = u.Id, 
+                FirstName = u.FirstName, 
+                LastName = u.LastName, 
+                DisplayName = u.DisplayName,
+                FileName = u.FileName,
+                DateCreated = u.DateCreated }).ToListAsync();
+
+            _cache.Set(cachingString, output, TimeSpan.FromMinutes(30));
         }
 
         return output;

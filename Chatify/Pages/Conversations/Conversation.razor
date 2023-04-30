@@ -14,91 +14,140 @@
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
 
-<div class="modal fade" id="invitationModal" tabindex="-1" role="dialog" aria-labelledby="invitationModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="invitationModalLongTitle">
-                Select the server which you want to invite people.
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                @if (string.IsNullOrWhiteSpace(errorMessage) is false)
-                {
-                    <div class="text-danger">@errorMessage</div>
-                }
-                <input type="text" placeholder="Search"
-                aria-label="Search Box" class="form-control bg-dark text-light input-section mb-3"
-                @oninput="(async(txt) => await OnSearchInput((string)txt.Value))"/>
-                 <div class="center-children mb-3">
-                    <button class="btn btn-secondary btn-lg text-uppercase"
-                        @onclick="SendInvite">
-                        Send Invite
-                    </button>
-                </div>
-                @if (servers?.Count > 0)
-                {
-                    <Virtualize Items="servers" Context="s" OverscanCount="10">
-                        <div class="card bg-dark clickable @GetServerClass(s) mb-4" 
-                            @onclick="(() => selectedServer = s)">
-                            <div class="row g-0">
-                                <div class="col-md-1">
-                                    <div class="p-1">
-                                        @if (string.IsNullOrWhiteSpace(s.PictureName) is false)
-                                        {
-                                            <div class="text-center p-3">
-                                                <img src="@CreateWebPath(s.PictureName)" 
-                                                    class="card-img-top rounded-circle clickable" 
-                                                    alt="@s.OriginalPictureName"
-                                                    style="width: 100px; height: 100px;">
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="text-center p-3">
-                                                <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
-                                                    class="card-img-top rounded-circle clickable" 
-                                                    alt="Placeholder Image"
-                                                    style="width: 100px; height: 100px;">
-                                            </div>
-                                        }
+<ModalComponent Id="serverInvitationModal" Title="Select the server which you want to invite people.">
+    <ChildContent>
+        @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+        {
+            <div class="text-danger">@errorMessage</div>
+        }
+        <input type="text" placeholder="Search"
+        aria-label="Search Box" class="form-control bg-dark text-light input-section mb-3"
+        @oninput="(async(txt) => await OnServerSearchInput((string)txt.Value))"/>
+            <div class="center-children mb-3">
+            <button class="btn btn-secondary btn-lg text-uppercase"
+                @onclick="SendInvite">
+                Send Invite
+            </button>
+        </div>
+        @if (servers?.Count > 0)
+        {
+            <Virtualize Items="servers" Context="s" OverscanCount="10">
+                <div class="card bg-dark clickable @GetServerClass(s) mb-4" 
+                    @onclick="(() => selectedServer = s)">
+                    <div class="row g-0">
+                        <div class="col-md-1">
+                            <div class="p-1">
+                                @if (string.IsNullOrWhiteSpace(s.PictureName) is false)
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="@CreateWebPath(s.PictureName)" 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="@s.OriginalPictureName"
+                                            style="width: 100px; height: 100px;">
                                     </div>
-                                </div>
-                                <div class="col-md-11 ">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-end">@s.ServerName</h5>
-                                        <p class="card-text text-end">
-                                            @s.ServerDescription
-                                        </p>
-                                        <p class="card-text text-end">
-                                            Date Created: @s.DateCreated.ToString("dd/MM/yyyy")
-                                        </p>
+                                }
+                                else
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="Placeholder Image"
+                                            style="width: 100px; height: 100px;">
                                     </div>
-                                </div>
+                                }
                             </div>
                         </div>
-                    </Virtualize>
-                }
-                else
-                {
-                    <div class="center-children">
-                        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                        <div class="col-md-11 ">
+                            <div class="card-body">
+                                <h5 class="card-title text-end">@s.ServerName</h5>
+                                <p class="card-text text-end">
+                                    @s.ServerDescription
+                                </p>
+                                <p class="card-text text-end">
+                                    Date Created: @s.DateCreated.ToString("dd/MM/yyyy")
+                                </p>
+                            </div>
                         </div>
                     </div>
-                }
+                </div>
+            </Virtualize>
+        }
+        else
+        {
+            <div class="center-children">
+                <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </div>
-            <div class="modal-footer">
-            <button type="button" 
-                class="btn btn-secondary" 
-                data-dismiss="modal">
-                Close
+        }
+    </ChildContent>
+</ModalComponent>
+
+<ModalComponent Id="friendInvitationModal" Title="Invite friends">
+    <ChildContent>
+        @if (string.IsNullOrWhiteSpace(errorMessage) is false)
+        {
+            <div class="text-danger">@errorMessage</div>
+        }
+        <input type="text" placeholder="Search"
+        aria-label="Search Box" class="form-control bg-dark text-light input-section mb-3"
+        @oninput="(async(txt) => await OnUserSearchInput((string)txt.Value))"/>
+            <div class="center-children mb-3">
+            <button class="btn btn-secondary btn-lg text-uppercase"
+                @onclick="AddParticipant">
+                Add User
             </button>
-            </div>
         </div>
-    </div>
-</div>
+        @if (users?.Count > 0)
+        {
+            <Virtualize Items="users" Context="u" OverscanCount="10">
+                <div class="card bg-dark clickable @GetUserClass(u) mb-4" 
+                    @onclick="(() => selectedUser = u)">
+                    <div class="row g-0">
+                        <div class="col-md-1">
+                            <div class="p-1">
+                                @if (string.IsNullOrWhiteSpace(u.FileName) is false)
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="@CreateWebPath(u.FileName)" 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="@u.FileName"
+                                            style="width: 100px; height: 100px;">
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center p-3">
+                                        <img src="https://dummyimage.com/1200x900/000/ffffff&text=No+image+available." 
+                                            class="card-img-top rounded-circle clickable" 
+                                            alt="Placeholder Image"
+                                            style="width: 100px; height: 100px;">
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-11">
+                            <div class="card-body mt-4">
+                                <h5 class="card-title text-end">@u.DisplayName</h5>
+                                <p class="card-text text-end">
+                                    Date Created: @u.DateCreated.ToString("dd/MM/yyyy")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Virtualize>
+        }
+        else
+        {
+            <div class="center-children mb-3">
+                <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+    </ChildContent>
+</ModalComponent>
 
 @if (ban is null)
 {
@@ -143,7 +192,11 @@
                     }
                     <div class="participants-list p-2">
                         <h3 class="fw-bold text-uppercase">Participants</h3>
-                        <button class="btn btn-outline-secondary w-100 mb-2" @onclick="(() => InviteFriendPage(conversation))">Invite</button>
+                        <button class="btn btn-outline-secondary w-100 mb-2" 
+                                data-toggle="modal"
+                                data-target="#friendInvitationModal">
+                            Invite
+                        </button>
                         <ul class="list-group">
                             <Virtualize Items="conversation?.Participants" Context="p" OverscanCount="10">
                                 @if (selectedUser is null || selectedUser.Id != p.Id)
@@ -194,7 +247,7 @@
                                 <button type="button" 
                                     class="btn btn-outline-secondary form-control"
                                     data-toggle="modal"
-                                    data-target="#invitationModal">
+                                    data-target="#serverInvitationModal">
                                     Send Server Invite
                                 </button>
                             </div>
@@ -239,11 +292,11 @@ else
     private HubConnection? hubConnection;
 
     private string searchText = "";
-    private bool isSortedByNew = true;
     private ConversationModel conversation;
     private List<MessageModel> messages;
     private List<MessageModel> nonReadMessages;
     private List<ServerModel> servers;
+    private List<BasicUserModel> users;
     private ServerModel selectedServer;
     private UserModel loggedInUser;
     private BasicUserModel selectedUser;
@@ -268,6 +321,7 @@ else
         {
             ban = await banData.GetUserBanActive(loggedInUser.Id);
             servers = await serverData.GetUserServersAsync(loggedInUser.Id);
+            users = await userData.GetUserFriendsAsync(loggedInUser);
         }
 
         if (loggedInUser is not null && messages is not null)
@@ -303,9 +357,10 @@ else
         if (firstRender)
         {
             await LoadFilterState();
-            if (conversation is not null)
+            if (loggedInUser is not null)
             {
-                await FilterMessages();
+                await FilterUsers();
+                await FilterServers();
             }
             StateHasChanged();
         }
@@ -315,38 +370,11 @@ else
     {
         var stringResults = await sessionStorage.GetAsync<string>(nameof(searchText));
         searchText = stringResults.Success ? stringResults.Value : "";
-        var boolResults = await sessionStorage.GetAsync<bool>(nameof(isSortedByNew));
-        isSortedByNew = boolResults.Success ? boolResults.Value : true;
     }
 
     private async Task SaveFilterState()
     {
         await sessionStorage.SetAsync(nameof(searchText), searchText);
-        await sessionStorage.SetAsync(nameof(isSortedByNew), isSortedByNew);
-    }
-
-    private async Task FilterMessages()
-    {
-        var output = await messageData.GetConversationMessagesAsync(conversation);
-
-        if (string.IsNullOrWhiteSpace(searchText) is false)
-        {
-            output = output.Where(m => m.Text.Contains(
-                searchText, StringComparison.InvariantCultureIgnoreCase))
-                .ToList();
-        }
-
-        if (isSortedByNew)
-        {
-            output = output.OrderByDescending(c => c.Timestamp).ToList();
-        }
-        else
-        {
-            output = output.OrderBy(c => c.Timestamp).ToList();
-        }
-
-        messages = output;
-        await SaveFilterState();
     }
 
     private async Task FilterServers()
@@ -363,16 +391,22 @@ else
                 .ToList();
         }
 
-        if (isSortedByNew)
+        servers = output;
+        await SaveFilterState();
+    }
+
+    private async Task FilterUsers()
+    {
+        var output = await userData.GetUserFriendsAsync(loggedInUser);
+
+        if (string.IsNullOrWhiteSpace(searchText) is false)
         {
-            output = output.OrderByDescending(s => s.DateCreated).ToList();
-        }
-        else
-        {
-            output = output.OrderBy(s => s.DateCreated).ToList();
+            output = output.Where(
+                u => u.DisplayName.Contains(
+                    searchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
 
-        servers = output;
+        users = output;
         await SaveFilterState();
     }
 
@@ -405,7 +439,6 @@ else
     private async Task SendInvite()
     {
         errorMessage = "";
-
         if (selectedServer is null)
         {
             errorMessage = "You must select a server.";
@@ -433,6 +466,21 @@ else
         }
     }
 
+    private async Task AddParticipant()
+    {
+        errorMessage = "";
+        if (selectedUser is null)
+        {
+            errorMessage = "You must select a user";
+            return;
+        }
+
+        conversation.Participants.Add(selectedUser);
+        await conversationData.UpdateConversation(conversation);
+        users.Remove(users.FirstOrDefault(u => u.Id == selectedUser.Id));
+        selectedUser = null;
+    }
+
     private string CreateWebPath(string relativePath)
     {
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
@@ -448,6 +496,16 @@ else
         return "in-disallowed-roles";
     }
 
+    private string GetUserClass(BasicUserModel user)
+    {
+        if (selectedUser?.Id == user.Id)
+        {
+            return "in-allowed-roles";
+        }
+
+        return "in-disallowed-roles";
+    }
+
     private async Task RemoveParticipant()
     {
         conversation.Participants.Remove(selectedUser);
@@ -455,27 +513,21 @@ else
         selectedUser = null;
     }
 
-    private async Task OrderByNew(bool isNew)
-    {
-        isSortedByNew = isNew;
-        await FilterMessages();
-    }
-
-    private async Task OnSearchInput(string searchInput)
+    private async Task OnServerSearchInput(string searchInput)
     {
         searchText = searchInput;
-        await FilterMessages();
         await FilterServers();
+    }
+
+    private async Task OnUserSearchInput(string searchInput)
+    {
+        searchText = searchInput;
+        await FilterUsers();
     }
 
     private void ClosePage()
     {
         navManager.NavigateTo("/");
-    }
-
-    private void InviteFriendPage(ConversationModel conversation)
-    {
-        navManager.NavigateTo($"/InviteFriend/{conversation.Id}");
     }
 
     private void UserDetailsPage(BasicUserModel user)

@@ -10,6 +10,62 @@
 @inject AuthenticationStateProvider authProvider
 @inject IJSRuntime JSRuntime
 
+<ModalComponent Id="conversationModal" Title=@($"Edit {conversation?.GroupName}") FooterClass="justify-content-between">
+    <ChildContent>
+        <EditForm Model="editingConversation" OnValidSubmit="(async() => await UpdateConversation())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
+                    <div class="mt-1">Edit your server's name</div>
+                    <ValidationMessage For="(() => editingConversation.GroupName)"/>
+                    <InputText class="form-control bg-dark text-white input-section" id="server-name" 
+                        @bind-Value="editingConversation.GroupName"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="server-icon">Conversation Icon</label>
+                    <div class="mt-1">Select an image for your conversation. This is not required.</div>
+                    <ValidationMessage For="(() => editingConversation.PictureName)"/>
+                    <InputFile OnChange="LoadFiles"
+                        class="form-control bg-dark text-light input-section"
+                        accept=".png,.jpg,.jpeg"/>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4 mb-2" 
+                        type="submit">
+                        Update
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    </ChildContent>
+    <ButtonContent>
+        <button type="button" 
+            class="btn btn-outline-warning" 
+            @onclick="ClearPicture">
+            Clear Picture
+        </button>
+        @if (selectedConversation is null)
+        {
+            <button class="btn btn-outline-danger" 
+                type="submit" @onclick="(() => selectedConversation = conversation)">
+                Archive
+            </button>
+        }
+        else
+        {
+            <div class="btn-group">
+                <button class="btn btn-outline-success" @onclick="ArchiveConversation">
+                    Archive
+                </button>
+                <button class="btn btn-outline-danger" @onclick="(() => selectedConversation = null)">
+                    Cancel
+                </button>
+            </div>
+        }
+    </ButtonContent>
+</ModalComponent>
+
 @if (ban is null)
 {
    <h1 class="page-heading mb-4">Update @conversation?.GroupName</h1>
@@ -19,78 +75,7 @@
         <NotAuthorized />
     }
     else
-    {
-        <div class="modal fade" id="conversationModal" tabindex="-1" role="dialog" aria-labelledby="conversationModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-            <div class="modal-content bg-dark text-white"> 
-                <div class="modal-header">
-                    <h5 class="modal-title" id="conversationModalLongTitle">
-                        Edit @conversation?.GroupName
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-                    </div>
-                    <div class="modal-body">
-                        <EditForm Model="editingConversation" OnValidSubmit="(async() => await UpdateConversation())">
-                            <DataAnnotationsValidator />
-                            <div class="row">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold text-uppercase" for="server-name">Server Name</label>
-                                    <div class="mt-1">Edit your server's name</div>
-                                    <ValidationMessage For="(() => editingConversation.GroupName)"/>
-                                    <InputText class="form-control bg-dark text-white input-section" id="server-name" 
-                                        @bind-Value="editingConversation.GroupName"/>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold text-uppercase" for="server-icon">Conversation Icon</label>
-                                    <div class="mt-1">Select an image for your conversation. This is not required.</div>
-                                    <ValidationMessage For="(() => editingConversation.PictureName)"/>
-                                    <InputFile OnChange="LoadFiles"
-                                        class="form-control bg-dark text-light input-section"
-                                        accept=".png,.jpg,.jpeg"/>
-                                </div>
-                                <div class="center-children">
-                                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" 
-                                        type="submit">
-                                        Update
-                                    </button>
-                                </div>
-                            </div>
-                        </EditForm>
-                    </div>
-                    <div class="modal-footer justify-content-between">
-                    <button type="button" 
-                        class="btn btn-outline-warning" 
-                        @onclick="ClearPicture">
-                        Clear Picture
-                    </button>
-                    @if (selectedConversation is null)
-                    {
-                        <button class="btn btn-outline-danger" 
-                            type="submit" @onclick="(() => selectedConversation = conversation)">
-                            Archive
-                        </button>
-                    }
-                    else
-                    {
-                        <div class="btn-group">
-                            <button class="btn btn-outline-success" @onclick="ArchiveConversation">
-                                Archive
-                            </button>
-                            <button class="btn btn-outline-danger" @onclick="(() => selectedConversation = null)">
-                                Cancel
-                            </button>
-                        </div>
-                    }
-                    <button type="button" 
-                        class="btn btn-secondary" 
-                        data-dismiss="modal">
-                        Close
-                    </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
+    {   
         @if (conversation is not null)
         {
             <div class="rounded rounded-3">

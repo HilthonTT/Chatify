@@ -11,72 +11,55 @@
 @inject AuthenticationStateProvider authProvider
 @inject ProtectedSessionStorage sessionStorage
 
-<div class="modal fade" id="channelModal" tabindex="-1" role="dialog" aria-labelledby="channelModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dark" role="document"> 
-    <div class="modal-content bg-dark text-white"> 
-        <div class="modal-header">
-            <h5 class="modal-title" id="channelModalLongTitle">
-                Edit @selectedChannel?.ChannelName
-            </h5>
-            <button type="button" class="btn-close btn-close-white text-white" data-dismiss="modal" aria-label="Close" />
-            </div>
-            <div class="modal-body">
-                <EditForm Model="editingChannel" OnValidSubmit="(async() => await UpdateChannel())">
-                    <DataAnnotationsValidator />
-                    <div class="row">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
-                            <div class="mt-1">Edit your channel's name</div>
-                            <ValidationMessage For="(() => editingChannel.ChannelName)"/>
-                            <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
-                                @bind-Value="editingChannel.ChannelName"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
-                            <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
-                            <ValidationMessage For="(() => editingChannel.ChannelDescription)"/>
-                            <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
-                                @bind-Value="editingChannel.ChannelDescription"/>
-                        </div>
-                        <div class="center-children">
-                            <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
-                                Update
-                            </button>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer justify-content-between">
-            @if (archivingChannel is null)
-            {
-                <button type="button" 
-                    class="btn btn-outline-danger" 
-                    @onclick="(() => archivingChannel = selectedChannel)">
-                    Archive
-                </button> 
-            }
-            else
-            {
-                <div class="btn-group">
-                    <button class="btn btn-outline-success" @onclick="ArchiveChannel">
-                        Archive
-                    </button>
-                    <button class="btn btn-outline-danger" @onclick="(() => archivingChannel = null)">
-                        Cancel
+<ModalComponent Id="channelModal" Title=@($"Edit {selectedChannel?.ChannelName}") FooterClass="justify-content-between">
+    <ChildContent>
+        <EditForm Model="editingChannel" OnValidSubmit="(async() => await UpdateChannel())">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="channel-name">Channel Name</label>
+                    <div class="mt-1">Edit your channel's name</div>
+                    <ValidationMessage For="(() => editingChannel.ChannelName)"/>
+                    <InputText class="form-control bg-dark text-white input-section" id="channel-name" 
+                        @bind-Value="editingChannel.ChannelName"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-uppercase" for="channel-description">Channel Description</label>
+                    <div class="mt-1">Edit your channel's purpose. What kind of discussion is it related to?</div>
+                    <ValidationMessage For="(() => editingChannel.ChannelDescription)"/>
+                    <InputTextArea class="form-control bg-dark text-white input-section" id="channel-description"
+                        @bind-Value="editingChannel.ChannelDescription"/>
+                </div>
+                <div class="center-children">
+                    <button class="btn btn-secondary w-100 btn-lg text-uppercase mt-4" type="submit">
+                        Update
                     </button>
                 </div>
-            }
-            <button type="button" 
-                class="btn btn-secondary" 
-                data-dismiss="modal" 
-                @onclick="(() => selectedChannel = null)">
-                Close
-            </button>
             </div>
-        </div>
-    </div>
-</div>
-
+        </EditForm>
+    </ChildContent>
+    <ButtonContent>
+        @if (archivingChannel is null)
+        {
+            <button type="button" 
+                class="btn btn-outline-danger" 
+                @onclick="(() => archivingChannel = selectedChannel)">
+                Archive
+            </button> 
+        }
+        else
+        {
+            <div class="btn-group">
+                <button class="btn btn-outline-success" @onclick="ArchiveChannel">
+                    Archive
+                </button>
+                <button class="btn btn-outline-danger" @onclick="(() => archivingChannel = null)">
+                    Cancel
+                </button>
+            </div>
+        }
+    </ButtonContent>
+</ModalComponent>
 
 @if (ban is null)
 {
