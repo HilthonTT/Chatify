@@ -78,8 +78,22 @@
                 @if (loggedInUser?.Friends.Count > 0)
                 {
                     <hr />
-                    <Virtualize Items="loggedInUser?.Friends" Context="f" OverscanCount="10">
-                        <BasicUserComponent @key="f.Id" User="f" LoggedInUser="loggedInUser"/>
+                    <Virtualize Items="loggedInUser?.Friends" Context="u" OverscanCount="10">
+                        <DisplayImgComponent @key="u.Id" 
+                                IsClickable="false" 
+                                ImageSource="@u.FileName"
+                                OpenDetails="(() => OpenDetails(u))">
+                                <ChildContent>
+                                    <h5 class="card-title">@u.DisplayName</h5>
+                                    <p class="card-text">
+                                        Friend Code: 
+                                        <span class="fw-bold text-danger">@u.FriendCode</span>
+                                    </p>
+                                    <p class="card-text">
+                                        Date Joined: @u.DateCreated.ToString("dd/MM/yyyy")
+                                    </p>
+                                </ChildContent>
+                            </DisplayImgComponent>
                     </Virtualize>
                     <hr />
                 }

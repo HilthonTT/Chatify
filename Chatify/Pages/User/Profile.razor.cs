@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Forms;
 using ChatifyLibrary.Models;
 using Chatify.Helpers;
+using ChatifyLibrary.BasicModel;
 
 namespace Chatify.Pages.User;
 
@@ -42,6 +43,17 @@ public partial class Profile
     private void EditProfilePage()
     {
         navManager.NavigateTo("/MicrosoftIdentity/Account/EditProfile", true);
+    }
+
+    private void OpenDetails(BasicUserModel user)
+    {
+        if (loggedInUser?.Id == user.Id)
+        {
+            navManager.NavigateTo("/Profile");
+            return;
+        }
+
+        navManager.NavigateTo($"/UserDetails/{user.Id}");
     }
 
     private void LoadFiles(InputFileChangeEventArgs e)
